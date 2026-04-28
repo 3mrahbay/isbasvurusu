@@ -190,6 +190,10 @@ function mailGonder(alici, aliciAdi, tip, parametreler) {
       konu = '✅ Değerlendirmeniz Tamamlandı';
       icerik = testTamamMaili(aliciAdi);
       break;
+    case 'pozisyonDuyuru':
+      konu = '🌸 Yeni Pozisyon: ' + (parametreler.pozisyonBaslik || 'Bir Çiçek Koleji');
+      icerik = pozisyonDuyuruMaili(aliciAdi, parametreler);
+      break;
     default:
       return { hata: 'Bilinmeyen mail tipi: ' + tip };
   }
@@ -468,6 +472,91 @@ function testTamamMaili(ad) {
     
     <p style="color: #666; font-size: 14px; margin-top: 36px; padding-top: 20px; 
               border-top: 1px solid #eee;">
+      Sevgiyle,<br>
+      <strong style="color: #2c5530;">Bir Çiçek Koleji Ailesi</strong>
+    </p>
+  `;
+  
+  return mailSablonuTemel(icerik, '#2c5530', '#e8f5e9');
+}
+
+// ═══════════════════════════════════════════════════════════
+// POZİSYON DUYURU MAİLİ (Toplu mail için)
+// ═══════════════════════════════════════════════════════════
+function pozisyonDuyuruMaili(ad, params) {
+  const baslik = params.pozisyonBaslik || 'Yeni Pozisyon';
+  const aciklama = params.pozisyonAciklama || '';
+  const pozisyonId = params.pozisyonId || '';
+  const sonTarih = params.sonTarih;
+  const havuzModu = params.havuzModu === true;
+  const ekMesaj = params.ekMesaj || '';
+  const optOutToken = params.optOutToken || '';
+  
+  const basvuruUrl = 'https://isbasvurusu.bircicekkoleji.com/basvuru.html?pozisyon=' + pozisyonId;
+  const optOutUrl = optOutToken 
+    ? 'https://isbasvurusu.bircicekkoleji.com/tercihler.html?token=' + optOutToken 
+    : 'https://isbasvurusu.bircicekkoleji.com/tercihler.html';
+  const cikisUrl = optOutToken 
+    ? 'https://isbasvurusu.bircicekkoleji.com/tercihler.html?token=' + optOutToken + '&cikis=true'
+    : '';
+  
+  const tarihSatiri = havuzModu 
+    ? '<div style="display:inline-block; background:#e3f2fd; color:#1976d2; padding:6px 14px; border-radius:16px; font-size:13px; font-weight:600; margin-top:8px;">🌊 Sürekli Açık</div>'
+    : (sonTarih 
+        ? '<div style="display:inline-block; background:#fff3cd; color:#f57c00; padding:6px 14px; border-radius:16px; font-size:13px; font-weight:600; margin-top:8px;">📅 Son Başvuru: ' + sonTarih + '</div>'
+        : '');
+  
+  const ekMesajKutu = ekMesaj 
+    ? `<div style="background:#faf3e8; padding:16px 20px; border-left:4px solid #6b4f3a; border-radius:8px; margin:20px 0; font-style:italic;">${ekMesaj.replace(/\n/g, '<br>')}</div>`
+    : '';
+  
+  const icerik = `
+    <h2 style="color: #2c5530; font-size: 24px; margin: 0 0 8px;">
+      Sevgili ${ad}, 🌸
+    </h2>
+    
+    <p style="font-size: 16px;">
+      Bir Çiçek Koleji'nde <strong>yeni bir pozisyon</strong> açıldı! 
+      Daha önce ilgi gösterdiğiniz alanlardan biri olduğu için ilk size haber veriyoruz.
+    </p>
+    
+    <!-- POZİSYON KARTI -->
+    <div style="background: #e8f5e9; border-left: 4px solid #2c5530; 
+                padding: 24px; border-radius: 12px; margin: 24px 0;">
+      <h3 style="color: #2c5530; margin: 0 0 8px; font-size: 20px;">
+        ${baslik}
+      </h3>
+      <p style="color: #666; margin: 0 0 12px; font-size: 14px; line-height: 1.6;">
+        ${aciklama}
+      </p>
+      ${tarihSatiri}
+    </div>
+    
+    ${ekMesajKutu}
+    
+    <p>
+      Pozisyon hakkında detaylı bilgi almak ve başvurunuzu yapmak için aşağıdaki butona tıklayın:
+    </p>
+    
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${basvuruUrl}" 
+         style="background: #2c5530; color: white; padding: 16px 36px; 
+                text-decoration: none; border-radius: 12px; display: inline-block; 
+                font-weight: 600; font-size: 16px;">
+        🚀 Başvuruya Git
+      </a>
+    </div>
+    
+    <p style="color: #888; font-size: 13px; line-height: 1.7; margin-top: 32px; 
+              padding-top: 20px; border-top: 1px solid #eee;">
+      <strong style="color: #2c5530;">📬 Mail Bildirimleri:</strong><br>
+      Bu maili size, mail tercihinizi belirttiğiniz alanlardan biri açıldığı için gönderdik. 
+      Tercihlerinizi her zaman 
+      <a href="${optOutUrl}" style="color: #2c5530;">buradan değiştirebilir</a>
+      ${cikisUrl ? ' veya <a href="' + cikisUrl + '" style="color: #d32f2f;">tüm maillerden çıkabilirsiniz</a>' : ''}.
+    </p>
+    
+    <p style="color: #666; font-size: 14px; margin-top: 24px;">
       Sevgiyle,<br>
       <strong style="color: #2c5530;">Bir Çiçek Koleji Ailesi</strong>
     </p>

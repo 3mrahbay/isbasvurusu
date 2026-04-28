@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aday Havuzu - Admin</title>
+  <link rel="icon" type="image/png" href="https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png">
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+  
+  <div id="yukleniyor" class="kart yukleniyor" style="margin: 100px auto; max-width: 400px;">
+    <div class="donme"></div>
+    <p>Yetki kontrol ediliyor...</p>
+  </div>
+  
+  <div id="yetkisiz" class="kart gizli" style="margin: 100px auto; max-width: 500px; text-align: center;">
+    <h2>🔒 Yetkisiz Erişim</h2>
+    <a href="admin.html" class="btn">Admin Girişi</a>
+  </div>
+  
+  <div id="adminLayout" class="admin-layout gizli">
+    
+    <aside class="admin-sidebar">
+      <div class="logo-alani">
+        <img src="https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png" alt="BCK">
+        <div class="baslik">Bir Çiçek Koleji</div>
+        <div class="alt">Admin Panel</div>
+      </div>
+      
+      <ul class="admin-menu">
+        <li><a href="admin.html">📊 Genel Bakış</a></li>
+        <li><a href="admin-pozisyonlar.html">💼 Pozisyonlar</a></li>
+        <li><a href="admin-icerik.html">📝 Site İçerikleri</a></li>
+        <li><a href="admin-havuz.html" class="aktif">👥 Aday Havuzu</a></li>
+        <li><a href="admin-mail.html">📬 Toplu Mail</a></li>
+        <li><a href="index.html" target="_blank">🌸 Ana Site</a></li>
+        <li><a href="#" onclick="cikisYap(); return false;">🚪 Çıkış</a></li>
+      </ul>
+    </aside>
+    
+    <main class="admin-icerik">
+      
+      <!-- LİSTE GÖRÜNÜMÜ -->
+      <div id="listeGorunumu">
+        <div class="admin-baslik">
+          <h1>👥 Aday Havuzu</h1>
+          <div id="adaySayisi" style="font-size: 14px; color: var(--gri);"></div>
+        </div>
+        
+        <div id="alertAlani"></div>
+        
+        <!-- FİLTRELER -->
+        <div class="kart">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+            <div class="form-grup" style="margin: 0;">
+              <label>Ara (isim/email)</label>
+              <input type="text" id="aramaInput" placeholder="🔍 Arama yap..." 
+                     oninput="filtreUygula()">
+            </div>
+            
+            <div class="form-grup" style="margin: 0;">
+              <label>Kategori</label>
+              <select id="kategoriFiltre" onchange="filtreUygula()">
+                <option value="">Tümü</option>
+              </select>
+            </div>
+            
+            <div class="form-grup" style="margin: 0;">
+              <label>Durum</label>
+              <select id="durumFiltre" onchange="filtreUygula()">
+                <option value="">Tümü</option>
+                <option value="bilgilerEksik">⏸️ Bilgi bekleniyor</option>
+                <option value="testEksik">🟡 Test bekleniyor</option>
+                <option value="tamamlandi">✅ Tamamlandı</option>
+                <option value="mulakat">🎙️ Mülakat aşamasında</option>
+                <option value="kabul">🎉 Kabul edildi</option>
+                <option value="red">❌ Reddedildi</option>
+                <option value="havuz">🌊 Havuzda</option>
+              </select>
+            </div>
+            
+            <div class="form-grup" style="margin: 0;">
+              <label>Sıralama</label>
+              <select id="siralama" onchange="filtreUygula()">
+                <option value="yeni">📅 En Yeni Önce</option>
+                <option value="eski">📅 En Eski Önce</option>
+                <option value="ad">🔤 İsme Göre (A-Z)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <!-- TABLO -->
+        <div class="kart">
+          <div id="tabloAlani">
+            <div class="yukleniyor">
+              <div class="donme"></div>
+              <p>Adaylar yükleniyor...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- DETAY GÖRÜNÜMÜ -->
+      <div id="detayGorunumu" class="gizli">
+        <button class="geri-don" onclick="listeyeDon()">← Listeye Dön</button>
+        
+        <div class="admin-baslik">
+          <h1 id="detayBaslik">Aday Detayı</h1>
+        </div>
+        
+        <div id="detayAlertAlani"></div>
+        
+        <div id="detayIcerik">
+          <div class="yukleniyor"><div class="donme"></div><p>Yükleniyor...</p></div>
+        </div>
+      </div>
+      
+    </main>
+  </div>
+  
+  <script type="module" src="admin-havuz.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site İçerikleri - Admin</title>
+  <link rel="icon" type="image/png" href="https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png">
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+  
+  <div id="yukleniyor" class="kart yukleniyor" style="margin: 100px auto; max-width: 400px;">
+    <div class="donme"></div>
+    <p>Yetki kontrol ediliyor...</p>
+  </div>
+  
+  <div id="yetkisiz" class="kart gizli" style="margin: 100px auto; max-width: 500px; text-align: center;">
+    <h2>🔒 Yetkisiz Erişim</h2>
+    <a href="admin.html" class="btn">Admin Girişi</a>
+  </div>
+  
+  <div id="adminLayout" class="admin-layout gizli">
+    
+    <aside class="admin-sidebar">
+      <div class="logo-alani">
+        <img src="https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png" alt="BCK">
+        <div class="baslik">Bir Çiçek Koleji</div>
+        <div class="alt">Admin Panel</div>
+      </div>
+      
+      <ul class="admin-menu">
+        <li><a href="admin.html">📊 Genel Bakış</a></li>
+        <li><a href="admin-pozisyonlar.html">💼 Pozisyonlar</a></li>
+        <li><a href="admin-icerik.html" class="aktif">📝 Site İçerikleri</a></li>
+        <li><a href="admin-havuz.html">👥 Aday Havuzu</a></li>
+        <li><a href="admin-mail.html">📬 Toplu Mail</a></li>
+        <li><a href="index.html" target="_blank">🌸 Ana Site</a></li>
+        <li><a href="#" onclick="cikisYap(); return false;">🚪 Çıkış</a></li>
+      </ul>
+    </aside>
+    
+    <main class="admin-icerik">
+      
+      <div class="admin-baslik">
+        <h1>📝 Site İçerikleri</h1>
+        <a href="index.html" target="_blank" class="btn btn-ikincil btn-kucuk">
+          🔍 Siteyi Önizle
+        </a>
+      </div>
+      
+      <div id="alertAlani"></div>
+      
+      <div class="bilgi-kutu">
+        <p>
+          <strong>💡 İpucu:</strong> Buradan değiştirdiğiniz içerikler ana sayfada otomatik 
+          olarak güncellenir. <strong>HTML formatlama</strong> kullanabilirsiniz: 
+          &lt;strong&gt;kalın&lt;/strong&gt;, &lt;em&gt;italik&lt;/em&gt;, &lt;br&gt; satır sonu, 
+          &lt;ul&gt;&lt;li&gt;liste&lt;/li&gt;&lt;/ul&gt;.
+        </p>
+      </div>
+      
+      <!-- HERO -->
+      <div class="kart">
+        <h3>🌟 Hero Bölümü (En Üst Banner)</h3>
+        
+        <div class="form-grup">
+          <label for="heroBaslik">Hero Başlığı</label>
+          <input type="text" id="heroBaslik" placeholder="Örn: Çocukların Hayatında İz Bırakın">
+          <div class="yardim-metni">Sayfanın en üstündeki büyük başlık.</div>
+        </div>
+        
+        <div class="form-grup">
+          <label for="heroAltBaslik">Hero Alt Başlığı</label>
+          <textarea id="heroAltBaslik" rows="3" 
+            placeholder="Hero başlığının altındaki açıklama metni"></textarea>
+        </div>
+        
+        <button class="btn" onclick="heroKaydet()">💾 Hero'yu Kaydet</button>
+      </div>
+      
+      <!-- HAKKIMIZDA -->
+      <div class="kart">
+        <h3>🌸 Hakkımızda Bölümü</h3>
+        
+        <div class="form-grup">
+          <label for="hakkimizdaIcerik">Hakkımızda İçeriği</label>
+          <textarea id="hakkimizdaIcerik" rows="20" 
+            placeholder="HTML kullanabilirsiniz..."></textarea>
+          <div class="yardim-metni">
+            HTML etiketleri kullanabilirsiniz: &lt;h3&gt;, &lt;h4&gt;, &lt;p&gt;, &lt;strong&gt;, &lt;ul&gt;&lt;li&gt;.
+          </div>
+        </div>
+        
+        <button class="btn" onclick="hakkimizdaKaydet()">💾 Hakkımızda'yı Kaydet</button>
+      </div>
+      
+      <!-- DEĞERLER -->
+      <div class="kart">
+        <h3>💎 Değerler Bölümü (Çocuğa Bakışımız)</h3>
+        
+        <div class="form-grup">
+          <label for="degerlerIcerik">Değerler İçeriği</label>
+          <textarea id="degerlerIcerik" rows="20"></textarea>
+        </div>
+        
+        <button class="btn" onclick="degerlerKaydet()">💾 Değerler'i Kaydet</button>
+      </div>
+      
+      <!-- VARSAYILANA SIFIRLA -->
+      <div class="kart">
+        <h3>🔄 Varsayılana Sıfırla</h3>
+        <p style="color: var(--gri); font-size: 14px;">
+          Yaptığınız değişiklikleri silip ana sayfadaki orijinal varsayılan içeriklere dönmek isterseniz:
+        </p>
+        <button class="btn btn-tehlike" onclick="sifirla()">
+          🗑️ Tüm Değişiklikleri Sil (Varsayılana Dön)
+        </button>
+      </div>
+      
+    </main>
+  </div>
+  
+  <script type="module" src="admin-icerik.js"></script>
+</body>
+</html>

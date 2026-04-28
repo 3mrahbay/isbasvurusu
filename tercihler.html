@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mail Tercihleri - Bir Çiçek Koleji</title>
+  <link rel="icon" type="image/png" href="https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png">
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+  
+  <!-- NAV -->
+  <nav class="nav-bar">
+    <div class="nav-icerik">
+      <a href="index.html" class="nav-logo">
+        <img src="https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png" alt="BCK">
+        <div class="ad">Bir Çiçek Koleji</div>
+      </a>
+      <ul class="nav-menu">
+        <li><a href="index.html">← Ana Sayfa</a></li>
+      </ul>
+    </div>
+  </nav>
+  
+  <div class="kapsayici" style="padding-top: 30px;">
+    
+    <button class="geri-don" onclick="window.location.href='index.html'">← Ana Sayfaya Dön</button>
+    
+    <!-- YÜKLENİYOR -->
+    <div id="yukleniyor" class="kart yukleniyor">
+      <div class="donme"></div>
+      <p>Yükleniyor...</p>
+    </div>
+    
+    <!-- HATA -->
+    <div id="hataAlani" class="kart gizli">
+      <h2>⚠️ Bir Sorun Var</h2>
+      <p id="hataMesaj"></p>
+      <a href="index.html" class="btn">Ana Sayfaya Dön</a>
+    </div>
+    
+    <!-- TOKEN BAŞARILI - TERCİHLER -->
+    <div id="anaIcerik" class="gizli">
+      
+      <div class="kart" style="text-align: center;">
+        <div style="font-size: 48px;">📬</div>
+        <h2 style="color: var(--ana-yesil);">Mail Tercihleriniz</h2>
+        <p style="color: var(--gri);">
+          <strong id="adayAdi"></strong> adına kayıtlı tercihlerinizi buradan yönetebilirsiniz.
+        </p>
+      </div>
+      
+      <div id="alertAlani"></div>
+      
+      <!-- ANA ANAHTAR: HİÇ MAIL ALMA -->
+      <div class="kart">
+        <h3>🔔 Mail Almak İstiyor musunuz?</h3>
+        
+        <div style="background: var(--cok-acik-yesil); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+          <div class="checkbox-grup" style="margin: 0;">
+            <input type="checkbox" id="mailAlmakIstiyor">
+            <label for="mailAlmakIstiyor">
+              <strong>✅ Yeni pozisyonlardan haberdar olmak istiyorum</strong><br>
+              <span style="font-size: 13px; color: var(--gri);">
+                İşaretlenmezse hiçbir mail gönderilmez.
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <!-- KATEGORİ TERCİHLERİ -->
+      <div class="kart" id="kategoriKart">
+        <h3>🎯 Hangi Pozisyonlar İçin?</h3>
+        <p style="color: var(--gri); font-size: 14px;">
+          Aşağıdaki kategorilerden birinde yeni pozisyon açıldığında size mail gönderelim:
+        </p>
+        
+        <div id="kategoriListesi" style="background: var(--cok-acik-gri); padding: 12px; border-radius: 8px; max-height: 400px; overflow-y: auto;">
+          <!-- JS ile doldurulacak -->
+        </div>
+      </div>
+      
+      <!-- KAYDET / TAMAMEN ÇIK -->
+      <div class="kart">
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <button class="btn" onclick="tercihleriKaydet()">
+            💾 Tercihlerimi Kaydet
+          </button>
+          <button class="btn btn-tehlike" onclick="tamamenCik()" style="margin-left: auto;">
+            🚪 Tüm Maillerden Çık
+          </button>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- BAŞARILI -->
+    <div id="basariliAlani" class="gizli">
+      <div class="kart" style="text-align: center;">
+        <div style="font-size: 64px; margin-bottom: 16px;">✅</div>
+        <h2 style="color: var(--ana-yesil);">Tercihleriniz Kaydedildi!</h2>
+        <p>Mail tercihleriniz başarıyla güncellendi.</p>
+        <a href="index.html" class="btn">🌸 Ana Sayfaya Dön</a>
+      </div>
+    </div>
+    
+  </div>
+  
+  <footer class="footer" style="padding: 30px 20px;">
+    <div class="footer-alt">
+      © 2026 Bir Çiçek Koleji Anaokulu • <a href="index.html">Ana Sayfa</a>
+    </div>
+  </footer>
+  
+  <script type="module" src="tercihler.js"></script>
+</body>
+</html>
