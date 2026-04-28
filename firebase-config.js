@@ -29,7 +29,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBWnpFI0rTcYeUTBtv8gEEh7lTRqJqQH9o",
+  apiKey: "AIzaSyARlqAoh-HRBC9xPwj7qRgG-IuZFSH39Uc",
   authDomain: "bcka-site.firebaseapp.com",
   projectId: "bcka-site",
   storageBucket: "bcka-site.firebasestorage.app",
