@@ -267,8 +267,8 @@ async function girisYapildi(kullanici) {
       await setDoc(basvuruRef, {
         adayEposta: eposta,
         adayAdi: ad,
-        googleAdi: kullanici.displayName,
-        googleFoto: kullanici.photoURL,
+        googleAdi: kullanici.displayName || null,
+        googleFoto: kullanici.photoURL || null,
         olusturmaZamani: serverTimestamp(),
         sonGirisZamani: serverTimestamp(),
         durum: 'bilgilerEksik',
@@ -284,7 +284,7 @@ async function girisYapildi(kullanici) {
       await setDoc(doc(db, 'havuzMailTercihleri', eposta), {
         adayEposta: eposta,
         adayAdi: ad,
-        ilgiliKategoriler: tercihler,
+        ilgiliKategoriler: tercihler || [],
         mailAlmakIstiyor: true,
         optOutToken: optOutToken,
         olusturmaZamani: serverTimestamp(),
@@ -293,7 +293,7 @@ async function girisYapildi(kullanici) {
       
       // Hoş geldin maili gönder (asenkron)
       mailGonder(eposta, ad, 'hosgeldin', { 
-        pozisyonAdi: pozisyon?.baslik 
+        pozisyonAdi: pozisyon?.baslik || 'Aday Havuzu'
       }).catch(e => console.error('Mail hatası:', e));
       
     } else {
@@ -301,18 +301,52 @@ async function girisYapildi(kullanici) {
       const mevcut = basvuruSnap.data();
       const guncellemeler = {
         sonGirisZamani: serverTimestamp(),
-        googleFoto: kullanici.photoURL
+        googleFoto: kullanici.photoURL || null
       };
       
       // Pozisyon değiştiyse güncelle (eski başvuruyu siler değil, sadece günceller)
-      if (pozisyon && pozisyon.id !== mevcut.pozisyonId) {
+      if (pozisyon && pozisyon.id !== (mevcut.pozisyonId || null)) {
         guncellemeler.eskiBasvuruVarUyari = true;
-        guncellemeler.eskiPozisyonBaslik = mevcut.pozisyonBaslik;
-        guncellemeler.eskiPozisyonId = mevcut.pozisyonId;
-        guncellemeler.pozisyonId = pozisyon.id;
-        guncellemeler.pozisyonBaslik = pozisyon.baslik;
+        // Eski sistemden gelen kayıtlarda bu alanlar olmayabilir, null'a çevir
+        guncellemeler.eskiPozisyonBaslik = mevcut.pozisyonBaslik || null;
+        guncellemeler.eskiPozisyonId = mevcut.pozisyonId || null;
+        guncellemeler.pozisyonId = pozisyon.id || null;
+        guncellemeler.pozisyonBaslik = pozisyon.baslik || null;
         guncellemeler.kategoriId = pozisyon.kategoriId || null;
+        guncellemeler.havuzBasvurusu = pozisyon.havuzBasvurusu === true;
         guncellemeler.tekrarBasvuruZamani = serverTimestamp();
+      }
+      
+      // Mail tercihlerini de güncelle (yeni tercihler veya yeniden başvuru)
+      if (tercihler && tercihler.length > 0) {
+        try {
+          const tercihRef = doc(db, 'havuzMailTercihleri', eposta);
+          const tercihSnap = await getDoc(tercihRef);
+          
+          if (tercihSnap.exists()) {
+            // Mevcut tercihleri yeni seçimle birleştir (tekrar etmesin)
+            const eskiTercihler = tercihSnap.data().ilgiliKategoriler || [];
+            const birlesik = [...new Set([...eskiTercihler, ...tercihler])];
+            await setDoc(tercihRef, {
+              ilgiliKategoriler: birlesik,
+              guncellemeZamani: serverTimestamp(),
+              mailAlmakIstiyor: true
+            }, { merge: true });
+          } else {
+            // Yeni tercih kaydı oluştur
+            await setDoc(tercihRef, {
+              adayEposta: eposta,
+              adayAdi: ad,
+              ilgiliKategoriler: tercihler,
+              mailAlmakIstiyor: true,
+              optOutToken: tokenUret(),
+              olusturmaZamani: serverTimestamp(),
+              guncellemeZamani: serverTimestamp()
+            });
+          }
+        } catch (e) {
+          console.warn('Mail tercihleri güncellenemedi:', e);
+        }
       }
       
       await setDoc(basvuruRef, guncellemeler, { merge: true });
