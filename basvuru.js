@@ -485,17 +485,22 @@ function durumPopupGoster(veri, adayAdi) {
         to { opacity: 1; transform: scale(1); }
       }
       @keyframes ciceklenme {
-        0% { transform: scale(0) rotate(-180deg); opacity: 0; }
-        50% { transform: scale(1.15) rotate(10deg); opacity: 1; }
+        0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+        60% { transform: scale(1.08) rotate(3deg); opacity: 1; }
         100% { transform: scale(1) rotate(0deg); opacity: 1; }
       }
-      @keyframes parla {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(44,85,48,0.4); }
-        50% { box-shadow: 0 0 30px 12px rgba(44,85,48,0.15); }
+      @keyframes rozetParla {
+        0%, 100% { 
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15), 0 0 0 0 rgba(44,85,48,0.4);
+          transform: scale(1);
+        }
+        50% { 
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15), 0 0 0 12px rgba(44,85,48,0);
+          transform: scale(1.05);
+        }
       }
       .durum-popup-cicek {
-        animation: ciceklenme 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-                   parla 2.5s ease-in-out 0.8s infinite;
+        animation: ciceklenme 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
       }
     </style>
     
@@ -513,18 +518,33 @@ function durumPopupGoster(veri, adayAdi) {
         text-align: center;
         position: relative;
       ">
-        <!-- Çiçek ikonu (animasyonlu) -->
+        <!-- BCK Kalkan Logo + durum rozeti (animasyonlu) -->
         <div class="durum-popup-cicek" style="
-          width: 110px; height: 110px;
-          background: white;
-          border-radius: 50%;
+          width: 130px; height: 145px;
           margin: 0 auto 20px;
+          position: relative;
           display: flex; align-items: center; justify-content: center;
-          font-size: 60px;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-          border: 4px solid ${config.renk};
         ">
-          ${config.ikon}
+          <img src="https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png" 
+               alt="Bir Çiçek Koleji" 
+               style="width: 100%; height: 100%; object-fit: contain;
+                      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));">
+          
+          <!-- Sağ üst köşede durum rozeti -->
+          <div style="
+            position: absolute;
+            top: -8px; right: -8px;
+            width: 48px; height: 48px;
+            background: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: 3px solid ${config.renk};
+            animation: rozetParla 2s ease-in-out infinite;
+          ">
+            ${config.ikon}
+          </div>
         </div>
         
         <h2 style="

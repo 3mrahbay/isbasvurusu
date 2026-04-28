@@ -4,6 +4,15 @@
 
 import { PROXY_URL } from './firebase-config.js';
 
+// 🌸 LOGO URL'LERİ - GitHub Pages üzerinden
+export const LOGO_URLS = {
+  kucuk: 'https://3mrahbay.github.io/isbasvurusu/logo_kalkan_kucuk.png',
+  orta: 'https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png',
+  buyuk: 'https://3mrahbay.github.io/isbasvurusu/logo_kalkan_buyuk.png',
+  // Yedek (eski): yenikayit reposundaki yuvarlak logo
+  yedek: 'https://3mrahbay.github.io/yenikayit/logo_bcka.png'
+};
+
 /**
  * Apps Script üzerinden mail gönderir
  */
