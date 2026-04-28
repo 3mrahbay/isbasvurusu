@@ -254,9 +254,8 @@ window.bilgileriKaydet = async function() {
       sonGuncellemeZamani: serverTimestamp()
     }, { merge: true });
     
-    // Test sayfasına yönlendir (Faz 2'de oluşturulacak)
-    // Şimdilik tamamlandi sayfasına gidiyoruz
-    window.location.href = 'tamamlandi.html';
+    // Test sayfasına yönlendir
+    window.location.href = 'test.html';
     
   } catch (hata) {
     console.error('Kaydetme hatası:', hata);

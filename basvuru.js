@@ -398,7 +398,7 @@ function durumPopupGoster(veri, adayAdi) {
       baslik: 'Sırada Değerlendirme Var',
       mesaj: 'Kişisel bilgilerinizi başarıyla aldık. Şimdi sizi tanımak istiyoruz — 20-25 dakikalık değerlendirme sürecimize davetlisiniz.',
       butonMetin: '🌟 Değerlendirmeye Başla',
-      butonHedef: 'tamamlandi.html', // Faz 2'de test.html olacak
+      butonHedef: 'test.html',
       ekstraMesaj: 'Yaklaşık 20-25 dakika sürer. Yarıda bırakırsanız devam edebilirsiniz.'
     },
     'tamamlandi': {

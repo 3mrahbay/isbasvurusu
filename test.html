@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Değerlendirme - Bir Çiçek Koleji</title>
+  <link rel="icon" type="image/png" href="https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png">
+  <link rel="stylesheet" href="stil.css">
+  <link rel="stylesheet" href="test-stil.css">
+</head>
+<body>
+  
+  <!-- NAVİGASYON -->
+  <nav class="nav-bar">
+    <div class="nav-icerik">
+      <a href="index.html" class="nav-logo">
+        <img src="https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png" alt="BCK">
+        <div class="ad">Bir Çiçek Koleji</div>
+      </a>
+      <ul class="nav-menu">
+        <li id="kullaniciInfo" style="font-size: 13px; color: var(--gri);"></li>
+        <li><a href="#" onclick="cikisYap(); return false;">🚪 Çıkış</a></li>
+      </ul>
+    </div>
+  </nav>
+  
+  <!-- İLERLEME ÇUBUĞU (Sticky) -->
+  <div class="ilerleme-bar" id="ilerlemeBar" style="display: none;">
+    <div class="ilerleme-icerik">
+      <div class="ilerleme-bilgi">
+        <div class="ilerleme-bolum">
+          <span id="bolumGosterge">Bölüm 1/6</span>
+          <span class="bolum-baslik-mini" id="bolumBaslikMini"></span>
+        </div>
+        <div class="ilerleme-yuzde">
+          <span id="ilerlemePuan">0/0</span>
+          <span class="yuzde" id="ilerlemeYuzde">%0</span>
+        </div>
+      </div>
+      <div class="ilerleme-cubuk-dis">
+        <div class="ilerleme-cubuk-ic" id="ilerlemeCubuk" style="width: 0%;"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="kapsayici" style="padding-top: 30px; max-width: 800px;">
+    
+    <!-- YÜKLENİYOR -->
+    <div id="yukleniyor" class="kart yukleniyor">
+      <div class="donme"></div>
+      <p>Yükleniyor...</p>
+    </div>
+    
+    <!-- YETKİSİZ ERİŞİM -->
+    <div id="yetkisiz" class="kart gizli" style="text-align: center;">
+      <h2>🔒 Erişim Yetkisi Gerekli</h2>
+      <p>Değerlendirmeye katılmak için önce başvuru yapmanız gerekir.</p>
+      <a href="basvuru.html" class="btn">Başvuru Sayfasına Git</a>
+    </div>
+    
+    <!-- BAŞLAMADAN ÖNCE - KARŞILAMA -->
+    <div id="karsilamaEkran" class="gizli">
+      <div class="kart" style="text-align: center;">
+        <div style="font-size: 64px; margin-bottom: 16px;">🌸</div>
+        <h2 style="color: var(--ana-yesil);">Hoş Geldiniz, <span id="adayIlk"></span>!</h2>
+        <p style="font-size: 16px; line-height: 1.7;">
+          Bilgilerinizi başarıyla aldık. Şimdi sıra <strong>sizi tanımakta</strong>!
+        </p>
+      </div>
+      
+      <div class="kart">
+        <h3>📋 Sürec Hakkında</h3>
+        <p>Aşağıdaki 6 kısa bölümden oluşan bir değerlendirme sürecine davetlisiniz:</p>
+        
+        <div class="bolum-onizleme">
+          <div class="bolum-card">
+            <div class="bolum-no">1</div>
+            <div class="bolum-info">
+              <h4>Sizi Tanıyalım</h4>
+              <p>Kişilik ve mizaç (5 dk)</p>
+            </div>
+          </div>
+          <div class="bolum-card">
+            <div class="bolum-no">2</div>
+            <div class="bolum-info">
+              <h4>Çocuğa Bakışınız</h4>
+              <p>İki seçenek arasında (4 dk)</p>
+            </div>
+          </div>
+          <div class="bolum-card">
+            <div class="bolum-no">3</div>
+            <div class="bolum-info">
+              <h4>Sınıf Senaryoları</h4>
+              <p>Gerçek durumlar (8 dk)</p>
+            </div>
+          </div>
+          <div class="bolum-card">
+            <div class="bolum-no">4</div>
+            <div class="bolum-info">
+              <h4>Sizinle Tanışalım</h4>
+              <p>Açık uçlu hikayeler (5 dk)</p>
+            </div>
+          </div>
+          <div class="bolum-card">
+            <div class="bolum-no">5</div>
+            <div class="bolum-info">
+              <h4>Çocuk Güvenliği</h4>
+              <p>Etik ve sınırlar (2 dk)</p>
+            </div>
+          </div>
+          <div class="bolum-card">
+            <div class="bolum-no">6</div>
+            <div class="bolum-info">
+              <h4>Hızlı Tepkiler</h4>
+              <p>İlk akla gelen (1 dk)</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bilgi-kutu" style="margin-top: 20px;">
+          <p>
+            <strong>⏱️ Toplam süre:</strong> Yaklaşık <strong>25 dakika</strong>.<br>
+            <strong>💾 Yarıda bırakırsanız:</strong> Kaldığınız yerden devam edebilirsiniz.<br>
+            <strong>💚 İpucu:</strong> Düşünüp aceleye getirmeyin, ama "doğru cevap" da aramayın. 
+            Samimi olmak en önemlisi.
+          </p>
+        </div>
+      </div>
+      
+      <div class="kart" style="text-align: center;">
+        <h3>Hazır mısınız?</h3>
+        <p style="color: var(--gri); margin-bottom: 20px;">
+          Sakin bir ortamda olduğunuzdan emin olun. Sizi tanımak için sabırsızız!
+        </p>
+        <button class="btn btn-buyuk" onclick="testiBaslat()">
+          🚀 Değerlendirmeye Başla
+        </button>
+      </div>
+    </div>
+    
+    <!-- AKTİF BÖLÜM -->
+    <div id="bolumEkran" class="gizli">
+      
+      <div class="bolum-baslik-buyuk">
+        <div class="bolum-numara">Bölüm <span id="bolumNoGoster"></span></div>
+        <h2 id="bolumBaslik"></h2>
+        <p class="alt-baslik" id="bolumAltBaslik"></p>
+      </div>
+      
+      <div class="kart">
+        <p id="bolumAciklama" style="color: var(--metin); line-height: 1.7;"></p>
+      </div>
+      
+      <div id="alertAlani"></div>
+      
+      <!-- SORULAR BURAYA RENDER EDİLECEK -->
+      <div id="sorularAlani"></div>
+      
+      <!-- DEVAM BUTONU -->
+      <div class="kart" style="text-align: center;">
+        <button class="btn btn-buyuk" id="bolumTamamlaBtn" onclick="bolumTamamla()" disabled>
+          ✓ Bu Bölümü Tamamla
+        </button>
+        <p style="color: var(--gri); font-size: 13px; margin-top: 12px;" id="bolumDurum">
+          Lütfen tüm soruları cevaplayın
+        </p>
+      </div>
+      
+    </div>
+    
+    <!-- MOTİVASYON EKRANI -->
+    <div id="motivasyonEkran" class="gizli">
+      <div class="kart" style="text-align: center; padding: 60px 30px;">
+        <div class="motivasyon-ikon" id="motIkon">🌟</div>
+        <h2 id="motBaslik" style="color: var(--ana-yesil); margin: 20px 0;"></h2>
+        <p id="motMesaj" style="font-size: 17px; line-height: 1.7; color: var(--metin); max-width: 500px; margin: 0 auto 32px;"></p>
+        
+        <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 32px;">
+          <span class="motivasyon-nokta" data-bolum="1"></span>
+          <span class="motivasyon-nokta" data-bolum="2"></span>
+          <span class="motivasyon-nokta" data-bolum="3"></span>
+          <span class="motivasyon-nokta" data-bolum="4"></span>
+          <span class="motivasyon-nokta" data-bolum="5"></span>
+          <span class="motivasyon-nokta" data-bolum="6"></span>
+        </div>
+        
+        <button class="btn btn-buyuk" onclick="sonrakiBolumeBasla()">
+          Sonraki Bölüme Geç →
+        </button>
+      </div>
+    </div>
+    
+    <!-- TAMAMLANDI -->
+    <div id="tamamlandiEkran" class="gizli">
+      <div class="kart" style="text-align: center; padding: 60px 30px;">
+        <div style="font-size: 80px; margin-bottom: 16px;">🎉</div>
+        <h2 style="color: var(--ana-yesil); font-size: 32px;">Tebrikler!</h2>
+        <p style="font-size: 18px; color: var(--metin); margin: 20px 0;">
+          Değerlendirme sürecini başarıyla <strong>tamamladınız</strong>!
+        </p>
+        
+        <div class="bilgi-kutu">
+          <p>
+            <strong>📋 Sıradaki Adım:</strong><br>
+            Cevaplarınız özenle incelenecek ve <strong>5-7 iş günü</strong> içinde size dönüş yapılacaktır.
+            Kabul olduğunuzda telefon veya WhatsApp ile aranacaksınız.
+          </p>
+        </div>
+        
+        <p style="color: var(--gri); margin: 24px 0;">
+          Bizi tercih ettiğiniz için içtenlikle teşekkür ederiz. 🌸
+        </p>
+        
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <a href="index.html" class="btn">🏠 Ana Sayfaya Dön</a>
+          <a href="https://www.instagram.com/bircicekkoleji" target="_blank" class="btn btn-ikincil">
+            📸 Bizi Takip Edin
+          </a>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  
+  <script type="module" src="test.js"></script>
+</body>
+</html>
