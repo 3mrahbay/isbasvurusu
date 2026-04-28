@@ -11,6 +11,7 @@ import {
   signInWithRedirect,
   getRedirectResult,
   onAuthStateChanged,
+  signOut,
   collection,
   query,
   where,
@@ -356,16 +357,17 @@ async function girisYapildi(kullanici) {
     sessionStorage.removeItem('basvuruPozisyon');
     sessionStorage.removeItem('basvuruMailTercihleri');
     
-    // Bilgiler sayfasına yönlendir
+    // Güncel veriyi al
     const veri = (await getDoc(basvuruRef)).data();
     
-    if (veri.durum === 'bilgilerEksik') {
+    // YENİ BAŞVURU → Direkt bilgiler sayfasına git (popup yok)
+    if (yeniBasvuru) {
       window.location.href = 'bilgiler.html';
-    } else if (veri.durum === 'testEksik') {
-      window.location.href = 'tamamlandi.html'; // Faz 2'de test.html olacak
-    } else {
-      window.location.href = 'tamamlandi.html';
+      return;
     }
+    
+    // MEVCUT BAŞVURU → Durum popup'ı göster
+    durumPopupGoster(veri, ad);
     
   } catch (hata) {
     console.error('Giriş işleme hatası:', hata);
@@ -373,3 +375,241 @@ async function girisYapildi(kullanici) {
     alert('Bir hata oluştu, lütfen sayfayı yenileyin.\n\n' + hata.message);
   }
 }
+
+// ───────────────────────────────────────────────
+// DURUM POPUP'I - Mevcut başvuru için güzel bilgilendirme
+// ───────────────────────────────────────────────
+function durumPopupGoster(veri, adayAdi) {
+  const durumlar = {
+    'bilgilerEksik': {
+      ikon: '🌱',
+      renk: '#f57c00',
+      bgRenk: '#fff8e1',
+      baslik: 'Hoş Geldiniz, ' + (adayAdi.split(' ')[0]) + '!',
+      mesaj: 'Başvurunuza kaldığımız yerden devam edelim. Kişisel bilgilerinizi tamamlamanız gerekiyor.',
+      butonMetin: '✏️ Bilgileri Tamamla',
+      butonHedef: 'bilgiler.html',
+      ekstraMesaj: 'Yaklaşık 3-5 dakika sürer.'
+    },
+    'testEksik': {
+      ikon: '🌿',
+      renk: '#1976d2',
+      bgRenk: '#e3f2fd',
+      baslik: 'Sırada Değerlendirme Var',
+      mesaj: 'Kişisel bilgilerinizi başarıyla aldık. Şimdi sizi tanımak istiyoruz — 20-25 dakikalık değerlendirme sürecimize davetlisiniz.',
+      butonMetin: '🌟 Değerlendirmeye Başla',
+      butonHedef: 'tamamlandi.html', // Faz 2'de test.html olacak
+      ekstraMesaj: 'Yaklaşık 20-25 dakika sürer. Yarıda bırakırsanız devam edebilirsiniz.'
+    },
+    'tamamlandi': {
+      ikon: '🌸',
+      renk: '#2c5530',
+      bgRenk: '#e8f5e9',
+      baslik: 'Başvurunuz Bizde!',
+      mesaj: 'Başvurunuz değerlendirme aşamasında. Ekibimiz başvurunuzu özenle inceliyor. <strong>5-7 iş günü içinde</strong> size dönüş yapacağız.',
+      butonMetin: '🏠 Ana Sayfaya Dön',
+      butonHedef: 'index.html',
+      ekstraMesaj: 'Sabırsızlığınızı anlıyoruz, ama her başvuruyu hak ettiği önemle değerlendiriyoruz. 💚'
+    },
+    'mulakat': {
+      ikon: '🌟',
+      renk: '#1976d2',
+      bgRenk: '#e3f2fd',
+      baslik: 'Tebrikler! Mülakat Aşamasındasınız',
+      mesaj: 'Başvurunuz çok beğenildi! Sizi daha yakından tanımak istiyoruz. <strong>Çok yakında</strong> sizinle iletişime geçeceğiz.',
+      butonMetin: '🏠 Ana Sayfaya Dön',
+      butonHedef: 'index.html',
+      ekstraMesaj: 'WhatsApp veya telefon yoluyla aranacaksınız. Lütfen bildirimlerinizi açık tutun.'
+    },
+    'kabul': {
+      ikon: '🎉',
+      renk: '#2c5530',
+      bgRenk: '#d4f5d4',
+      baslik: 'TEBRİKLER! 🌸',
+      mesaj: '<strong>Başvurunuz kabul edildi!</strong> Bir Çiçek Koleji ailesine adım attınız. Yüz yüze görüşmeye davet edileceksiniz — yakında sizinle iletişime geçilecek.',
+      butonMetin: '🏠 Ana Sayfaya Dön',
+      butonHedef: 'index.html',
+      ekstraMesaj: 'Hoş geldiniz! Birlikte çocukların hayatına dokunacağız. 💚'
+    },
+    'red': {
+      ikon: '🌾',
+      renk: '#6b4f3a',
+      bgRenk: '#f5e6d3',
+      baslik: 'Sevgili ' + (adayAdi.split(' ')[0]),
+      mesaj: 'Başvurunuz şu an için uygun bulunmadı, ancak <strong>aday havuzumuzdasınız</strong>. İlerleyen pozisyonlarda yeniden değerlendirilebilirsiniz.',
+      butonMetin: '🌊 Havuz Tercihlerimi Gör',
+      butonHedef: 'index.html',
+      ekstraMesaj: 'Her başvuruyu kıymetli buluyoruz. Sizi unutmuyoruz. 🌸'
+    },
+    'havuz': {
+      ikon: '🌊',
+      renk: '#1976d2',
+      bgRenk: '#e3f2fd',
+      baslik: 'Aday Havuzumuzdasınız',
+      mesaj: 'Başvurunuz başarıyla aday havuzumuza alındı. <strong>Bir sonraki işe alım ilanında size haber vereceğiz.</strong>',
+      butonMetin: '🏠 Ana Sayfaya Dön',
+      butonHedef: 'index.html',
+      ekstraMesaj: 'Mail bildirimlerinden çıkmak isterseniz alttaki "Mail Tercihleri" sayfasını kullanabilirsiniz.'
+    }
+  };
+  
+  const durum = veri.durum || 'bilgilerEksik';
+  const config = durumlar[durum] || durumlar['bilgilerEksik'];
+  
+  // Pozisyon bilgisi
+  const pozisyonBilgi = veri.pozisyonBaslik 
+    ? `<div style="font-size: 14px; color: #666; margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.04); border-radius: 8px;">
+         <strong>📋 Başvurduğunuz Pozisyon:</strong><br>${veri.pozisyonBaslik}
+       </div>`
+    : '';
+  
+  // Modal HTML
+  const modal = document.createElement('div');
+  modal.id = 'durumPopup';
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6); z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s ease;
+  `;
+  
+  modal.innerHTML = `
+    <style>
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.85); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes ciceklenme {
+        0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+        50% { transform: scale(1.15) rotate(10deg); opacity: 1; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+      }
+      @keyframes parla {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(44,85,48,0.4); }
+        50% { box-shadow: 0 0 30px 12px rgba(44,85,48,0.15); }
+      }
+      .durum-popup-cicek {
+        animation: ciceklenme 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+                   parla 2.5s ease-in-out 0.8s infinite;
+      }
+    </style>
+    
+    <div style="
+      background: white; max-width: 500px; width: 100%;
+      border-radius: 24px; padding: 0; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    ">
+      
+      <!-- ÜST RENKLİ BÖLGE -->
+      <div style="
+        background: ${config.bgRenk};
+        padding: 40px 30px 30px;
+        text-align: center;
+        position: relative;
+      ">
+        <!-- Çiçek ikonu (animasyonlu) -->
+        <div class="durum-popup-cicek" style="
+          width: 110px; height: 110px;
+          background: white;
+          border-radius: 50%;
+          margin: 0 auto 20px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 60px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+          border: 4px solid ${config.renk};
+        ">
+          ${config.ikon}
+        </div>
+        
+        <h2 style="
+          color: ${config.renk};
+          font-size: 24px; font-weight: 700;
+          margin: 0 0 8px; line-height: 1.3;
+        ">
+          ${config.baslik}
+        </h2>
+      </div>
+      
+      <!-- ALT İÇERİK BÖLGESİ -->
+      <div style="padding: 24px 30px 30px;">
+        <p style="
+          color: #2d2d2d; font-size: 16px;
+          line-height: 1.7; margin: 0 0 16px;
+        ">
+          ${config.mesaj}
+        </p>
+        
+        ${pozisyonBilgi}
+        
+        <div style="
+          font-size: 13px; color: #666;
+          font-style: italic; text-align: center;
+          margin: 16px 0 24px;
+        ">
+          ${config.ekstraMesaj}
+        </div>
+        
+        <button onclick="durumPopupKapat('${config.butonHedef}')" style="
+          width: 100%;
+          background: ${config.renk};
+          color: white;
+          border: none;
+          padding: 16px 24px;
+          font-size: 16px;
+          font-weight: 600;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: transform 0.2s;
+          font-family: inherit;
+        " onmouseover="this.style.transform='translateY(-2px)'"
+           onmouseout="this.style.transform='translateY(0)'">
+          ${config.butonMetin}
+        </button>
+        
+        <button onclick="durumPopupCikis()" style="
+          width: 100%;
+          background: transparent;
+          color: #999;
+          border: none;
+          padding: 12px;
+          font-size: 13px;
+          cursor: pointer;
+          margin-top: 8px;
+          font-family: inherit;
+        ">
+          🚪 Çıkış yap
+        </button>
+      </div>
+      
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+// Popup butonları
+window.durumPopupKapat = function(hedef) {
+  document.getElementById('durumPopup')?.remove();
+  if (hedef && hedef !== 'index.html') {
+    window.location.href = hedef;
+  } else {
+    // Ana sayfaya dön ama önce çıkış yap (temizlik)
+    window.location.href = 'index.html';
+  }
+};
+
+window.durumPopupCikis = async function() {
+  try {
+    await signOut(auth);
+    document.getElementById('durumPopup')?.remove();
+    window.location.href = 'index.html';
+  } catch (e) {
+    console.error('Çıkış hatası:', e);
+  }
+};
