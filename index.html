@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>İş Başvurusu - Bir Çiçek Koleji</title>
+  <meta name="description" content="Bir Çiçek Koleji Anaokulu iş başvurusu ve değerlendirme sistemi">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Bir Çiçek Koleji - İş Başvurusu">
+  <meta property="og:description" content="Bir Çiçek Koleji ailesine katılmak için başvurunuzu yapın">
+  <meta property="og:type" content="website">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="https://3mrahbay.github.io/yenikayit/logo_bcka.png">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+  <div class="kapsayici">
+    
+    <!-- ÜST BAR -->
+    <div class="ust-bar">
+      <img src="https://3mrahbay.github.io/yenikayit/logo_bcka.png" alt="Bir Çiçek Koleji" class="logo">
+      <h1>Bir Çiçek Koleji Anaokulu</h1>
+      <p>İş Başvurusu ve Değerlendirme Sistemi</p>
+    </div>
+    
+    <!-- YÜKLENİYOR -->
+    <div id="yukleniyor" class="kart yukleniyor">
+      <div class="donme"></div>
+      <p>Yükleniyor...</p>
+    </div>
+    
+    <!-- GİRİŞ ALANI -->
+    <div id="girisAlani" class="gizli">
+      
+      <div class="kart">
+        <h2>🌸 Hoş Geldiniz</h2>
+        <p>
+          Bir Çiçek Koleji ailesine katılmak için başvurunuza burada başlayabilirsiniz. 
+          Sizi daha yakından tanımak için hazırladığımız değerlendirme sürecimiz, 
+          yaklaşık <strong>20-25 dakika</strong> sürmektedir.
+        </p>
+        
+        <div class="bilgi-kutu">
+          <p>
+            <strong>Süreç nasıl işliyor?</strong><br>
+            1. Google hesabınızla giriş yapın<br>
+            2. Kişisel bilgilerinizi girin ve CV'nizi yükleyin<br>
+            3. Değerlendirme sorularını yanıtlayın<br>
+            4. Başvurunuz incelenecek ve size dönüş yapılacaktır
+          </p>
+        </div>
+        
+        <h3>Açık Pozisyon</h3>
+        <div class="bilgi-kutu" style="background: var(--pastel-yesil); border-left-color: var(--ana-yesil);">
+          <p>
+            <strong>📚 Okul Öncesi Öğretmeni</strong><br>
+            <span style="font-size: 13px; color: var(--gri);">
+              MACTE sertifikalı Montessori ve Level 3 Forest School felsefesiyle çalışan okulumuza, 
+              çocuk merkezli yaklaşıma sahip, gelişime açık öğretmenler arıyoruz.
+            </span>
+          </p>
+        </div>
+        
+        <h3>Başvuruya Başla</h3>
+        <p style="font-size: 14px; color: var(--gri);">
+          Süreci başlatmak için Google hesabınızla giriş yapın. Bilgileriniz güvendedir 
+          ve sadece okul yönetimi tarafından görülecektir.
+        </p>
+        
+        <button id="btnGoogleGiris" class="btn btn-google" onclick="googleIleGiris()">
+          <img src="https://www.google.com/favicon.ico" alt="Google">
+          <span>Google ile Giriş Yap</span>
+        </button>
+        
+        <p style="text-align: center; font-size: 12px; color: var(--acik-gri); margin-top: 16px;">
+          Giriş yaparak <a href="https://bircicekkoleji.com" style="color: var(--ana-yesil);">Bir Çiçek Koleji</a>'nin 
+          gizlilik prensiplerini kabul etmiş olursunuz.
+        </p>
+      </div>
+      
+      <div class="kart">
+        <h3>📞 İletişim</h3>
+        <p style="font-size: 14px; line-height: 2;">
+          <strong>Adres:</strong> Aydınlı, Tuzla / İstanbul<br>
+          <strong>Telefon:</strong> 0216 393 54 57<br>
+          <strong>WhatsApp:</strong> 0555 103 54 57<br>
+          <strong>E-posta:</strong> eposta@bircicekkoleji.com<br>
+          <strong>Instagram:</strong> @bircicekkoleji
+        </p>
+      </div>
+      
+    </div>
+    
+    <!-- ALT BAR -->
+    <div class="alt-bar">
+      © 2026 Bir Çiçek Koleji Anaokulu &nbsp;•&nbsp; 
+      <a href="https://bircicekkoleji.com">Ana Site</a>
+    </div>
+    
+  </div>
+  
+  <!-- AUTH SCRIPT -->
+  <script type="module" src="auth.js"></script>
+</body>
+</html>

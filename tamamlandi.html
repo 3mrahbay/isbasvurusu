@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bilgiler Alındı - Bir Çiçek Koleji</title>
+  <link rel="icon" type="image/png" href="https://3mrahbay.github.io/yenikayit/logo_bcka.png">
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+  <div class="kapsayici">
+    
+    <div class="ust-bar">
+      <img src="https://3mrahbay.github.io/yenikayit/logo_bcka.png" alt="Bir Çiçek Koleji" class="logo">
+      <h1>Bir Çiçek Koleji Anaokulu</h1>
+      <p>Bilgileriniz Alındı</p>
+    </div>
+    
+    <!-- ADIMLAR -->
+    <div class="adimlar">
+      <div class="adim tamamlandi">
+        <div class="nokta">✓</div>
+        <div class="etiket">Bilgiler</div>
+      </div>
+      <div class="adim aktif">
+        <div class="nokta">2</div>
+        <div class="etiket">Değerlendirme</div>
+      </div>
+      <div class="adim">
+        <div class="nokta">3</div>
+        <div class="etiket">Tamamlandı</div>
+      </div>
+    </div>
+    
+    <div class="kart">
+      <div class="basari-kutu">
+        <div class="ikon">🌸</div>
+        <h2 style="color: var(--ana-yesil); margin-bottom: 12px;">Bilgileriniz Başarıyla Alındı!</h2>
+        <p style="color: var(--gri);">
+          Başvurunuz sistemimize kaydedilmiştir.
+        </p>
+      </div>
+      
+      <h3>📋 Sıradaki Adım: Değerlendirme Süreci</h3>
+      <p>
+        Sizi daha yakından tanımak için hazırladığımız <strong>20-25 dakikalık</strong> 
+        değerlendirme sürecimize çok yakında başlayabileceksiniz.
+      </p>
+      
+      <div class="bilgi-kutu">
+        <p>
+          <strong>🎯 Değerlendirme süreci hakkında:</strong><br>
+          • Çocuklarla çalışma yaklaşımınızı anlamamızı sağlayacak senaryolar<br>
+          • Pedagojik yaklaşımınız hakkında sorular<br>
+          • Açık uçlu kişisel deneyim soruları<br>
+          • Sakin bir ortamda, samimi cevaplarla yanıtlamanız önerilir
+        </p>
+      </div>
+      
+      <div class="uyari-kutu">
+        <p>
+          <strong>⏳ Şu an:</strong> Değerlendirme modülümüz son hazırlık aşamasındadır. 
+          Hazır olduğunda size mail ile haber vereceğiz. Lütfen e-postanızı kontrol etmeyi unutmayın.
+        </p>
+      </div>
+      
+      <h3>📞 Sorularınız İçin</h3>
+      <p style="font-size: 14px; line-height: 2;">
+        <strong>Telefon:</strong> 0216 393 54 57<br>
+        <strong>WhatsApp:</strong> 0555 103 54 57<br>
+        <strong>E-posta:</strong> eposta@bircicekkoleji.com
+      </p>
+      
+      <button class="btn btn-ikincil" onclick="cikisYap()" style="margin-top: 20px;">
+        Çıkış Yap
+      </button>
+    </div>
+    
+    <div class="alt-bar">
+      © 2026 Bir Çiçek Koleji Anaokulu &nbsp;•&nbsp; 
+      <a href="https://bircicekkoleji.com">Ana Site</a>
+    </div>
+    
+  </div>
+  
+  <script type="module">
+    import { auth, signOut, onAuthStateChanged } from './firebase-config.js';
+    
+    // Giriş yapılmamışsa ana sayfaya gönder
+    onAuthStateChanged(auth, (kullanici) => {
+      if (!kullanici) window.location.href = 'index.html';
+    });
+    
+    window.cikisYap = async function() {
+      await signOut(auth);
+      window.location.href = 'index.html';
+    };
+  </script>
+</body>
+</html>

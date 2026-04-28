@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kişisel Bilgiler - Bir Çiçek Koleji İş Başvurusu</title>
+  <link rel="icon" type="image/png" href="https://3mrahbay.github.io/yenikayit/logo_bcka.png">
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+  <div class="kapsayici">
+    
+    <!-- ÜST BAR -->
+    <div class="ust-bar">
+      <img src="https://3mrahbay.github.io/yenikayit/logo_bcka.png" alt="Bir Çiçek Koleji" class="logo">
+      <h1>Bir Çiçek Koleji Anaokulu</h1>
+      <p>Kişisel Bilgiler</p>
+    </div>
+    
+    <!-- KULLANICI BAR -->
+    <div id="kullaniciBar" class="kullanici-bar gizli">
+      <div class="bilgi">
+        <img id="kullaniciFoto" class="avatar" src="" alt="">
+        <div>
+          <div class="ad" id="kullaniciAd"></div>
+          <div class="eposta" id="kullaniciEposta"></div>
+        </div>
+      </div>
+      <button class="cikis" onclick="cikisYap()">Çıkış</button>
+    </div>
+    
+    <!-- ADIMLAR -->
+    <div class="adimlar">
+      <div class="adim aktif">
+        <div class="nokta">1</div>
+        <div class="etiket">Bilgiler</div>
+      </div>
+      <div class="adim">
+        <div class="nokta">2</div>
+        <div class="etiket">Değerlendirme</div>
+      </div>
+      <div class="adim">
+        <div class="nokta">3</div>
+        <div class="etiket">Tamamlandı</div>
+      </div>
+    </div>
+    
+    <!-- YÜKLENİYOR -->
+    <div id="yukleniyor" class="kart yukleniyor">
+      <div class="donme"></div>
+      <p>Yükleniyor...</p>
+    </div>
+    
+    <!-- FORM ALANI -->
+    <div id="formAlani" class="gizli">
+      
+      <div class="kart">
+        <h2>👤 Kişisel Bilgileriniz</h2>
+        <p style="font-size: 14px; color: var(--gri);">
+          Lütfen aşağıdaki bilgileri eksiksiz doldurun. Yıldızlı (*) alanlar zorunludur.
+        </p>
+        
+        <form id="bilgiFormu">
+          
+          <!-- AD SOYAD -->
+          <div class="iki-kolon">
+            <div class="form-grup">
+              <label for="ad">Ad <span class="zorunlu">*</span></label>
+              <input type="text" id="ad" required maxlength="50">
+            </div>
+            <div class="form-grup">
+              <label for="soyad">Soyad <span class="zorunlu">*</span></label>
+              <input type="text" id="soyad" required maxlength="50">
+            </div>
+          </div>
+          
+          <!-- TELEFON -->
+          <div class="form-grup">
+            <label for="telefon">Telefon (GSM) <span class="zorunlu">*</span></label>
+            <input type="tel" id="telefon" placeholder="5XX XXX XX XX" maxlength="14" required>
+            <div class="yardim-metni">Sadece cep telefonu numaranızı yazın</div>
+          </div>
+          
+          <!-- DOĞUM TARİHİ + CİNSİYET -->
+          <div class="iki-kolon">
+            <div class="form-grup">
+              <label for="dogumTarihi">Doğum Tarihi <span class="zorunlu">*</span></label>
+              <input type="date" id="dogumTarihi" required>
+            </div>
+            <div class="form-grup">
+              <label for="cinsiyet">Cinsiyet <span class="zorunlu">*</span></label>
+              <select id="cinsiyet" required>
+                <option value="">Seçiniz</option>
+                <option value="kadin">Kadın</option>
+                <option value="erkek">Erkek</option>
+                <option value="belirtmek istemiyorum">Belirtmek istemiyorum</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- ADRES -->
+          <div class="form-grup">
+            <label for="adres">İkamet Adresi (İlçe/İl) <span class="zorunlu">*</span></label>
+            <input type="text" id="adres" placeholder="Örn: Kadıköy / İstanbul" required maxlength="200">
+            <div class="yardim-metni">Tam adres gerekmiyor, ilçe ve il yeterli</div>
+          </div>
+          
+          <!-- MEDENİ DURUM + ÇOCUK -->
+          <div class="iki-kolon">
+            <div class="form-grup">
+              <label for="medeniDurum">Medeni Durum</label>
+              <select id="medeniDurum">
+                <option value="">Belirtmek istemiyorum</option>
+                <option value="bekar">Bekâr</option>
+                <option value="evli">Evli</option>
+                <option value="bosanmis">Boşanmış</option>
+                <option value="dul">Dul</option>
+              </select>
+            </div>
+            <div class="form-grup">
+              <label for="cocukSayisi">Çocuk Sayısı</label>
+              <input type="number" id="cocukSayisi" min="0" max="10" placeholder="0">
+            </div>
+          </div>
+        </form>
+      </div>
+      
+      <div class="kart">
+        <h2>🎓 Eğitim ve Deneyim</h2>
+        
+        <form id="egitimFormu">
+          
+          <!-- EĞİTİM DURUMU -->
+          <div class="form-grup">
+            <label for="egitimDurumu">En Son Mezun Olduğunuz Eğitim Durumu <span class="zorunlu">*</span></label>
+            <select id="egitimDurumu" required>
+              <option value="">Seçiniz</option>
+              <option value="lise">Lise</option>
+              <option value="onlisans">Önlisans</option>
+              <option value="lisans">Lisans</option>
+              <option value="yuksekLisans">Yüksek Lisans</option>
+              <option value="doktora">Doktora</option>
+            </select>
+          </div>
+          
+          <!-- MEZUN BÖLÜM -->
+          <div class="form-grup">
+            <label for="bolum">Mezun Olduğunuz Bölüm <span class="zorunlu">*</span></label>
+            <input type="text" id="bolum" placeholder="Örn: Okul Öncesi Öğretmenliği" required maxlength="150">
+          </div>
+          
+          <!-- OKUL -->
+          <div class="form-grup">
+            <label for="okul">Mezun Olduğunuz Okul/Üniversite <span class="zorunlu">*</span></label>
+            <input type="text" id="okul" placeholder="Örn: Marmara Üniversitesi" required maxlength="150">
+          </div>
+          
+          <!-- MEZUNIYET YILI -->
+          <div class="form-grup">
+            <label for="mezuniyetYili">Mezuniyet Yılı <span class="zorunlu">*</span></label>
+            <input type="number" id="mezuniyetYili" min="1980" max="2030" placeholder="Örn: 2020" required>
+          </div>
+          
+          <!-- DENEYİM YILI -->
+          <div class="form-grup">
+            <label for="deneyimYili">Toplam Mesleki Deneyiminiz (Yıl) <span class="zorunlu">*</span></label>
+            <select id="deneyimYili" required>
+              <option value="">Seçiniz</option>
+              <option value="0">Deneyimim yok / Yeni mezunum</option>
+              <option value="1">0-1 yıl (staj dahil)</option>
+              <option value="2">1-3 yıl</option>
+              <option value="5">3-5 yıl</option>
+              <option value="10">5-10 yıl</option>
+              <option value="15">10+ yıl</option>
+            </select>
+          </div>
+          
+          <!-- SON İŞYERİ -->
+          <div class="form-grup">
+            <label for="sonIsyeri">Son Çalıştığınız Kurum (varsa)</label>
+            <input type="text" id="sonIsyeri" placeholder="Örn: ABC Anaokulu" maxlength="150">
+            <div class="yardim-metni">Yeni mezunsanız boş bırakabilirsiniz</div>
+          </div>
+          
+          <!-- MONTESSORI / FOREST SCHOOL DENEYİMİ -->
+          <div class="form-grup">
+            <label for="ozelEgitim">Aşağıdaki Konulardaki Eğitim/Deneyiminiz</label>
+            <select id="ozelEgitim">
+              <option value="hicbiri">Hiçbiri</option>
+              <option value="montessori">Montessori eğitimi aldım</option>
+              <option value="forestSchool">Forest School eğitimi aldım</option>
+              <option value="hepsi">Hem Montessori hem Forest School</option>
+              <option value="diger">Diğer alternatif eğitim modelleri</option>
+            </select>
+            <div class="yardim-metni">MACTE / AMI / AMS sertifikası veya Forest School Level deneyimi</div>
+          </div>
+          
+          <!-- YABANCI DİL -->
+          <div class="form-grup">
+            <label for="yabanciDil">Yabancı Dil Bilginiz</label>
+            <select id="yabanciDil">
+              <option value="hicbiri">Hiçbiri</option>
+              <option value="ingilizceTemel">İngilizce - Temel</option>
+              <option value="ingilizceOrta">İngilizce - Orta</option>
+              <option value="ingilizceIyi">İngilizce - İyi</option>
+              <option value="ingilizceIleri">İngilizce - İleri/Akıcı</option>
+              <option value="diger">Başka bir dil</option>
+            </select>
+          </div>
+          
+          <!-- SERTİFİKALAR -->
+          <div class="form-grup">
+            <label for="sertifikalar">Sahip Olduğunuz Sertifikalar / Kurslar</label>
+            <textarea id="sertifikalar" rows="3" maxlength="500" 
+              placeholder="Örn: İlk yardım sertifikası, MEB onaylı pedagojik formasyon, çocuk gelişimi sertifikası..."></textarea>
+          </div>
+          
+        </form>
+      </div>
+      
+      <div class="kart">
+        <h2>💼 Çalışma Tercihleri</h2>
+        
+        <form id="tercihFormu">
+          
+          <!-- BAŞLAMA TARİHİ -->
+          <div class="form-grup">
+            <label for="baslamaTarihi">En Erken İşe Başlayabileceğiniz Tarih <span class="zorunlu">*</span></label>
+            <input type="date" id="baslamaTarihi" required>
+          </div>
+          
+          <!-- ÜCRET BEKLENTİSİ -->
+          <div class="form-grup">
+            <label for="ucretBeklenti">Aylık Net Ücret Beklentiniz (TL)</label>
+            <input type="number" id="ucretBeklenti" min="0" max="200000" placeholder="Örn: 35000">
+            <div class="yardim-metni">Karşılıklı görüşme için fikir verir, kesin değildir</div>
+          </div>
+          
+          <!-- MEVCUT İŞ DURUMU -->
+          <div class="form-grup">
+            <label for="mevcutIsDurumu">Şu Anki İş Durumunuz <span class="zorunlu">*</span></label>
+            <select id="mevcutIsDurumu" required>
+              <option value="">Seçiniz</option>
+              <option value="issiz">Şu anda çalışmıyorum</option>
+              <option value="aktif">Çalışıyorum, iş arıyorum</option>
+              <option value="staj">Staj yapıyorum</option>
+              <option value="ogrenci">Öğrenciyim</option>
+            </select>
+          </div>
+          
+          <!-- BCK'YI NEREDEN DUYDUNUZ -->
+          <div class="form-grup">
+            <label for="duyumKaynagi">Bizi Nereden Duydunuz?</label>
+            <select id="duyumKaynagi">
+              <option value="">Seçiniz</option>
+              <option value="instagram">Instagram</option>
+              <option value="google">Google araması</option>
+              <option value="kariyerSitesi">Kariyer sitesi (Kariyer.net, LinkedIn vb.)</option>
+              <option value="tavsiye">Tanıdık tavsiyesi</option>
+              <option value="ilan">İş ilanı gördüm</option>
+              <option value="diger">Diğer</option>
+            </select>
+          </div>
+          
+          <!-- NEDEN BCK -->
+          <div class="form-grup">
+            <label for="nedenBCK">Bir Çiçek Koleji'nde Çalışmayı Neden Tercih Ediyorsunuz? <span class="zorunlu">*</span></label>
+            <textarea id="nedenBCK" rows="4" maxlength="800" required
+              placeholder="Bizi tanıdığınızda dikkatinizi çeken neydi? Neden bu kurumu seçtiniz?"></textarea>
+            <div class="yardim-metni">En az 50, en fazla 800 karakter</div>
+          </div>
+          
+        </form>
+      </div>
+      
+      <!-- DEVAM ET -->
+      <div class="kart">
+        <div class="bilgi-kutu">
+          <p>
+            <strong>📌 Önemli:</strong> Devam ettiğinizde bilgileriniz kaydedilecek ve 
+            <strong>20-25 dakikalık değerlendirme sürecimize</strong> başlayacaksınız. 
+            Süreci yarıda bırakırsanız kaldığınız yerden devam edebilirsiniz.
+          </p>
+        </div>
+        
+        <button id="btnDevamEt" class="btn" onclick="bilgileriKaydet()">
+          Bilgileri Kaydet ve Değerlendirmeye Geç →
+        </button>
+      </div>
+      
+    </div>
+    
+    <!-- ALT BAR -->
+    <div class="alt-bar">
+      © 2026 Bir Çiçek Koleji Anaokulu &nbsp;•&nbsp; 
+      <a href="https://bircicekkoleji.com">Ana Site</a>
+    </div>
+    
+  </div>
+  
+  <!-- SCRIPT -->
+  <script type="module" src="bilgiler.js"></script>
+</body>
+</html>
