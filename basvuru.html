@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Başvuru - Bir Çiçek Koleji</title>
+  <link rel="icon" type="image/png" href="https://3mrahbay.github.io/yenikayit/logo_bcka.png">
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+  
+  <!-- NAVİGASYON -->
+  <nav class="nav-bar">
+    <div class="nav-icerik">
+      <a href="index.html" class="nav-logo">
+        <img src="https://3mrahbay.github.io/yenikayit/logo_bcka.png" alt="BCK">
+        <div class="ad">Bir Çiçek Koleji</div>
+      </a>
+      <ul class="nav-menu">
+        <li><a href="index.html">← Ana Sayfaya Dön</a></li>
+      </ul>
+    </div>
+  </nav>
+  
+  <div class="kapsayici" style="padding-top: 30px;">
+    
+    <!-- ADIMLAR -->
+    <div class="adimlar">
+      <div class="adim aktif">
+        <div class="nokta">1</div>
+        <div class="etiket">Başvuru</div>
+      </div>
+      <div class="adim">
+        <div class="nokta">2</div>
+        <div class="etiket">Bilgiler</div>
+      </div>
+      <div class="adim">
+        <div class="nokta">3</div>
+        <div class="etiket">Değerlendirme</div>
+      </div>
+      <div class="adim">
+        <div class="nokta">4</div>
+        <div class="etiket">Tamamlandı</div>
+      </div>
+    </div>
+    
+    <!-- YÜKLENİYOR -->
+    <div id="yukleniyor" class="kart yukleniyor">
+      <div class="donme"></div>
+      <p>Yükleniyor...</p>
+    </div>
+    
+    <!-- ANA İÇERİK -->
+    <div id="anaIcerik" class="gizli">
+      
+      <div class="kart">
+        <h2>🌸 Hoş Geldiniz, Sevgili Aday!</h2>
+        <p>
+          Bir Çiçek Koleji ailesine ilgi gösterdiğiniz için teşekkür ederiz. 
+          Aşağıda hangi pozisyona başvurmak istediğinizi seçin, sonra Google 
+          hesabınızla giriş yaparak süreci başlatın.
+        </p>
+        
+        <div class="bilgi-kutu">
+          <p>
+            <strong>📌 Süreç hakkında:</strong> Toplam 25-30 dakika sürer. 
+            Kişisel bilgileriniz + samimi bir değerlendirme. 
+            Yarıda bırakırsanız kaldığınız yerden devam edebilirsiniz.
+          </p>
+        </div>
+      </div>
+      
+      <div class="kart">
+        <h2>📋 Pozisyon Seçimi</h2>
+        <p>Hangi alana başvurmak istiyorsunuz?</p>
+        
+        <div class="form-grup">
+          <label for="pozisyonSecim">Başvurulacak Pozisyon <span class="zorunlu">*</span></label>
+          <select id="pozisyonSecim" required>
+            <option value="">Yükleniyor...</option>
+          </select>
+          <div class="yardim-metni" id="pozisyonAciklama"></div>
+        </div>
+        
+        <div id="havuzBildirim" class="bilgi-kutu gizli">
+          <p>
+            <strong>🌊 Havuz Başvurusu:</strong> Şu an aktif ilanımız olmasa da 
+            sizi havuzumuza alıyoruz. Uygun bir pozisyon açıldığında ilk size 
+            mail göndereceğiz.
+          </p>
+        </div>
+      </div>
+      
+      <div class="kart" id="havuzMailKart">
+        <h3>📬 Mail Bildirimleri</h3>
+        <p style="font-size: 14px; color: var(--gri);">
+          Aşağıda işaretlediğiniz pozisyon türlerinden biri açıldığında size mail 
+          gönderelim. İstediğiniz zaman bu mailler için "abonelikten çık" yapabilirsiniz.
+        </p>
+        
+        <div id="mailTercihListesi" style="max-height: 280px; overflow-y: auto; padding: 8px; background: var(--cok-acik-gri); border-radius: 8px;">
+          <!-- JS ile doldurulacak -->
+        </div>
+      </div>
+      
+      <div class="kart">
+        <h2>🚀 Sürece Başla</h2>
+        <p>
+          Başvurunuzu güvenli bir şekilde tamamlayabilmek için Google hesabınızla 
+          giriş yapın. Google hesabınız sadece kimliğinizi doğrulamak içindir, 
+          başka bir bilginize erişilmez.
+        </p>
+        
+        <button id="btnGoogleGiris" class="btn btn-google tam-genislik" onclick="googleIleGiris()" disabled>
+          <img src="https://www.google.com/favicon.ico" alt="Google">
+          <span>Önce pozisyon seçin</span>
+        </button>
+        
+        <p style="font-size: 12px; color: var(--acik-gri); margin-top: 16px; text-align: center;">
+          Devam ederek <strong>KVKK</strong> kapsamında verilerinizin işlenmesini 
+          kabul etmiş olursunuz.
+        </p>
+      </div>
+      
+    </div>
+    
+  </div>
+  
+  <!-- FOOTER (kısa) -->
+  <footer class="footer" style="padding: 30px 20px;">
+    <div class="footer-alt">
+      © 2026 Bir Çiçek Koleji Anaokulu • 
+      <a href="index.html">Ana Sayfa</a> • 
+      <a href="tel:02163935457">0216 393 54 57</a>
+    </div>
+  </footer>
+  
+  <script type="module" src="basvuru.js"></script>
+</body>
+</html>

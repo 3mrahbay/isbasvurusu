@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Bir Çiçek Koleji</title>
+  <link rel="icon" type="image/png" href="https://3mrahbay.github.io/yenikayit/logo_bcka.png">
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+  
+  <!-- YÜKLENİYOR -->
+  <div id="yukleniyor" class="kart yukleniyor" style="margin: 100px auto; max-width: 400px;">
+    <div class="donme"></div>
+    <p>Yetki kontrol ediliyor...</p>
+  </div>
+  
+  <!-- YETKİSİZ ERİŞİM -->
+  <div id="yetkisiz" class="kart gizli" style="margin: 100px auto; max-width: 500px; text-align: center;">
+    <h2>🔒 Yetkisiz Erişim</h2>
+    <p>Bu sayfaya erişim yetkiniz bulunmuyor.</p>
+    <a href="index.html" class="btn">Ana Sayfaya Dön</a>
+  </div>
+  
+  <!-- ADMIN LAYOUT -->
+  <div id="adminLayout" class="admin-layout gizli">
+    
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+      <div class="logo-alani">
+        <img src="https://3mrahbay.github.io/yenikayit/logo_bcka.png" alt="BCK">
+        <div class="baslik">Bir Çiçek Koleji</div>
+        <div class="alt">Admin Panel</div>
+      </div>
+      
+      <ul class="admin-menu">
+        <li><a href="admin.html" class="aktif">📊 Genel Bakış</a></li>
+        <li><a href="admin-pozisyonlar.html">💼 Pozisyonlar</a></li>
+        <li><a href="admin-icerik.html">📝 Site İçerikleri</a></li>
+        <li><a href="admin-havuz.html">👥 Aday Havuzu</a></li>
+        <li><a href="admin-mail.html">📬 Toplu Mail</a></li>
+        <li><a href="index.html" target="_blank">🌸 Ana Site</a></li>
+        <li><a href="#" onclick="cikisYap(); return false;">🚪 Çıkış</a></li>
+      </ul>
+    </aside>
+    
+    <!-- İÇERİK -->
+    <main class="admin-icerik">
+      
+      <div class="admin-baslik">
+        <h1>📊 Genel Bakış</h1>
+        <div id="kullaniciInfo" style="font-size: 14px; color: var(--gri);"></div>
+      </div>
+      
+      <div id="alertAlani"></div>
+      
+      <!-- İSTATİSTİK KARTLARI -->
+      <div class="istatistik-grid">
+        <div class="istatistik-kart">
+          <div class="etiket">Toplam Başvuru</div>
+          <div class="deger" id="statToplamBasvuru">-</div>
+          <div class="alt-bilgi">Tüm zamanlar</div>
+        </div>
+        
+        <div class="istatistik-kart">
+          <div class="etiket">Bu Ay Yeni</div>
+          <div class="deger" id="statBuAyYeni">-</div>
+          <div class="alt-bilgi">Son 30 gün</div>
+        </div>
+        
+        <div class="istatistik-kart">
+          <div class="etiket">Aktif Pozisyon</div>
+          <div class="deger" id="statAktifPozisyon">-</div>
+          <div class="alt-bilgi">Yayında olan ilanlar</div>
+        </div>
+        
+        <div class="istatistik-kart">
+          <div class="etiket">Havuzdaki Aday</div>
+          <div class="deger" id="statHavuzAday">-</div>
+          <div class="alt-bilgi">Mail bildirimi açık</div>
+        </div>
+      </div>
+      
+      <!-- SON BAŞVURULAR -->
+      <div class="kart">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+          <h2>📋 Son Başvurular</h2>
+          <a href="admin-havuz.html" class="btn btn-ikincil btn-kucuk">Tümünü Gör →</a>
+        </div>
+        
+        <div id="sonBasvurular">
+          <div class="yukleniyor">
+            <div class="donme"></div>
+            <p>Başvurular yükleniyor...</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- HIZLI EYLEMLER -->
+      <div class="kart">
+        <h2>⚡ Hızlı Eylemler</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 16px;">
+          <a href="admin-pozisyonlar.html" class="btn">➕ Yeni Pozisyon Aç</a>
+          <a href="admin-icerik.html" class="btn btn-ikincil">📝 Site İçeriği Düzenle</a>
+          <a href="admin-mail.html" class="btn btn-ikincil">📬 Toplu Mail Gönder</a>
+          <a href="admin-havuz.html" class="btn btn-ikincil">👥 Aday Havuzu</a>
+        </div>
+      </div>
+      
+    </main>
+  </div>
+  
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

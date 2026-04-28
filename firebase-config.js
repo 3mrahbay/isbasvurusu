@@ -18,16 +18,20 @@ import {
   collection, 
   doc, 
   setDoc, 
+  addDoc,
   getDoc, 
   getDocs,
   updateDoc,
+  deleteDoc,
   query, 
   where, 
   orderBy,
+  limit,
   serverTimestamp,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+// ⚠️ DOĞRU API KEY (yenikayit projesinden)
 const firebaseConfig = {
   apiKey: "AIzaSyARlqAoh-HRBC9xPwj7qRgG-IuZFSH39Uc",
   authDomain: "bcka-site.firebaseapp.com",
@@ -60,12 +64,15 @@ export {
   collection,
   doc,
   setDoc,
+  addDoc,
   getDoc,
   getDocs,
   updateDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
+  limit,
   serverTimestamp,
   Timestamp,
   PROXY_URL,

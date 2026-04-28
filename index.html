@@ -3,107 +3,505 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>İş Başvurusu - Bir Çiçek Koleji</title>
-  <meta name="description" content="Bir Çiçek Koleji Anaokulu iş başvurusu ve değerlendirme sistemi">
+  <title>Bir Çiçek Koleji - İş Başvurusu | Çocukların Hayatında İz Bırakın</title>
+  <meta name="description" content="Bir Çiçek Koleji Anaokulu - MACTE sertifikalı Montessori ve Forest School felsefesiyle çalışan ailemize katılın. Tuzla Aydınlı'da çocukların hayatına dokunan bir kariyer.">
+  <meta name="keywords" content="okul öncesi öğretmen iş ilanı, montessori öğretmen, forest school, tuzla anaokulu öğretmen, bir çiçek koleji">
   
-  <!-- Open Graph -->
   <meta property="og:title" content="Bir Çiçek Koleji - İş Başvurusu">
-  <meta property="og:description" content="Bir Çiçek Koleji ailesine katılmak için başvurunuzu yapın">
+  <meta property="og:description" content="Bir Çiçek Koleji ailesine katılarak çocukların hayatına dokunan bir öğretmen olun.">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="https://3mrahbay.github.io/yenikayit/logo_bcka.png">
   
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="https://3mrahbay.github.io/yenikayit/logo_bcka.png">
-  
-  <!-- CSS -->
   <link rel="stylesheet" href="stil.css">
 </head>
 <body>
-  <div class="kapsayici">
-    
-    <!-- ÜST BAR -->
-    <div class="ust-bar">
-      <img src="https://3mrahbay.github.io/yenikayit/logo_bcka.png" alt="Bir Çiçek Koleji" class="logo">
-      <h1>Bir Çiçek Koleji Anaokulu</h1>
-      <p>İş Başvurusu ve Değerlendirme Sistemi</p>
-    </div>
-    
-    <!-- YÜKLENİYOR -->
-    <div id="yukleniyor" class="kart yukleniyor">
-      <div class="donme"></div>
-      <p>Yükleniyor...</p>
-    </div>
-    
-    <!-- GİRİŞ ALANI -->
-    <div id="girisAlani" class="gizli">
-      
-      <div class="kart">
-        <h2>🌸 Hoş Geldiniz</h2>
-        <p>
-          Bir Çiçek Koleji ailesine katılmak için başvurunuza burada başlayabilirsiniz. 
-          Sizi daha yakından tanımak için hazırladığımız değerlendirme sürecimiz, 
-          yaklaşık <strong>20-25 dakika</strong> sürmektedir.
-        </p>
-        
-        <div class="bilgi-kutu">
-          <p>
-            <strong>Süreç nasıl işliyor?</strong><br>
-            1. Google hesabınızla giriş yapın<br>
-            2. Kişisel bilgilerinizi girin ve CV'nizi yükleyin<br>
-            3. Değerlendirme sorularını yanıtlayın<br>
-            4. Başvurunuz incelenecek ve size dönüş yapılacaktır
-          </p>
-        </div>
-        
-        <h3>Açık Pozisyon</h3>
-        <div class="bilgi-kutu" style="background: var(--pastel-yesil); border-left-color: var(--ana-yesil);">
-          <p>
-            <strong>📚 Okul Öncesi Öğretmeni</strong><br>
-            <span style="font-size: 13px; color: var(--gri);">
-              MACTE sertifikalı Montessori ve Level 3 Forest School felsefesiyle çalışan okulumuza, 
-              çocuk merkezli yaklaşıma sahip, gelişime açık öğretmenler arıyoruz.
-            </span>
-          </p>
-        </div>
-        
-        <h3>Başvuruya Başla</h3>
-        <p style="font-size: 14px; color: var(--gri);">
-          Süreci başlatmak için Google hesabınızla giriş yapın. Bilgileriniz güvendedir 
-          ve sadece okul yönetimi tarafından görülecektir.
-        </p>
-        
-        <button id="btnGoogleGiris" class="btn btn-google" onclick="googleIleGiris()">
-          <img src="https://www.google.com/favicon.ico" alt="Google">
-          <span>Google ile Giriş Yap</span>
-        </button>
-        
-        <p style="text-align: center; font-size: 12px; color: var(--acik-gri); margin-top: 16px;">
-          Giriş yaparak <a href="https://bircicekkoleji.com" style="color: var(--ana-yesil);">Bir Çiçek Koleji</a>'nin 
-          gizlilik prensiplerini kabul etmiş olursunuz.
-        </p>
-      </div>
-      
-      <div class="kart">
-        <h3>📞 İletişim</h3>
-        <p style="font-size: 14px; line-height: 2;">
-          <strong>Adres:</strong> Aydınlı, Tuzla / İstanbul<br>
-          <strong>Telefon:</strong> 0216 393 54 57<br>
-          <strong>WhatsApp:</strong> 0555 103 54 57<br>
-          <strong>E-posta:</strong> eposta@bircicekkoleji.com<br>
-          <strong>Instagram:</strong> @bircicekkoleji
-        </p>
-      </div>
-      
-    </div>
-    
-    <!-- ALT BAR -->
-    <div class="alt-bar">
-      © 2026 Bir Çiçek Koleji Anaokulu &nbsp;•&nbsp; 
-      <a href="https://bircicekkoleji.com">Ana Site</a>
-    </div>
-    
-  </div>
   
-  <!-- AUTH SCRIPT -->
-  <script type="module" src="auth.js"></script>
+  <!-- NAVİGASYON -->
+  <nav class="nav-bar">
+    <div class="nav-icerik">
+      <a href="#" class="nav-logo">
+        <img src="https://3mrahbay.github.io/yenikayit/logo_bcka.png" alt="BCK">
+        <div class="ad">Bir Çiçek Koleji</div>
+      </a>
+      <button class="nav-mobil-buton" onclick="mobilMenuToggle()">☰</button>
+      <ul class="nav-menu">
+        <li><a href="#pozisyonlar">Açık Pozisyonlar</a></li>
+        <li><a href="#hakkimizda">Hakkımızda</a></li>
+        <li><a href="#felsefemiz">Felsefemiz</a></li>
+        <li><a href="#degerler">Değerlerimiz</a></li>
+        <li><a href="#sss">SSS</a></li>
+        <li><a href="basvuru.html" class="nav-cta">Başvuru Yap</a></li>
+      </ul>
+    </div>
+  </nav>
+  
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-icerik">
+      <div class="hero-rozet">🌸 Bir Çiçek Koleji Anaokulu • Tuzla Aydınlı</div>
+      <h1 id="heroBaslik">Çocukların Hayatında İz Bırakın</h1>
+      <p class="alt-baslik" id="heroAltBaslik">
+        MACTE sertifikalı Montessori ve Level 3 Forest School felsefesiyle 
+        çocukların kendilerini keşfettiği bir okulda, onların yolunu aydınlatan 
+        ışıklardan biri olmaya ne dersiniz?
+      </p>
+      <div class="hero-butonlar">
+        <a href="#pozisyonlar" class="btn btn-beyaz btn-buyuk">📋 Açık Pozisyonları Gör</a>
+        <a href="basvuru.html" class="btn btn-buyuk" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white;">
+          ✨ Hemen Başvuru Yap
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <!-- AÇIK POZİSYONLAR -->
+  <section class="bolum" id="pozisyonlar">
+    <div class="bolum-icerik">
+      <div class="bolum-baslik">
+        <div class="ust-yazi">Açık İş İlanları</div>
+        <h2>Sevgili Öğretmen Adayımız</h2>
+        <p>
+          Şu an açık olan pozisyonlarımızı aşağıda görebilir, size uygun olana 
+          başvurabilirsiniz. Aktif ilanımız yoksa havuzumuza katılarak 
+          ilk açılışta haberdar olabilirsiniz.
+        </p>
+      </div>
+      
+      <div id="pozisyonListesi" class="pozisyon-listesi">
+        <div class="yukleniyor">
+          <div class="donme"></div>
+          <p>Açık pozisyonlar yükleniyor...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- HAKKIMIZDA -->
+  <section class="bolum koyu" id="hakkimizda">
+    <div class="bolum-icerik">
+      <div class="bolum-baslik">
+        <div class="ust-yazi">Hakkımızda</div>
+        <h2>Bir Çiçek Koleji'nde Hayat</h2>
+      </div>
+      
+      <div class="yazi-bloku" id="hakkimizdaIcerik">
+        <h3>🌸 Adımız Hikâyemizdir</h3>
+        <p>
+          Maria Montessori'nin "Eğitim, hayatın yardımıdır" sözünden ilham alarak doğan 
+          Bir Çiçek Koleji, Tuzla Aydınlı'da her çocuğun kendine özgü bir tohum olduğuna 
+          inanan bir ailenin kurduğu bir okuldur.
+        </p>
+        
+        <p>
+          Adımızı bilinçli seçtik: <strong>"Her bahar bir çiçekle başlar"</strong> sloganımız, 
+          büyük değişimlerin küçük başlangıçlardan geldiğine olan inancımızı yansıtır. 
+          Her çocuk farklı zamanda, farklı şekilde açan bir çiçek gibidir — 
+          biz sadece doğru toprağı, ışığı ve sevgiyi sunarız.
+        </p>
+        
+        <div class="alinti">
+          <p>
+            "Çocuğa yaklaşımımız, ona ne öğretmemiz gerektiğini değil, 
+            zaten içinde olan potansiyeli nasıl ortaya çıkaracağımızı sorgulamaktan başlar."
+          </p>
+        </div>
+        
+        <h4>🏫 Okulumuz</h4>
+        <p>
+          Üç sınıflı, her biri 150 metrekarelik geniş alanlarımızda her çocuğa 
+          <strong>6 metrekarelik kişisel alan</strong> sunuyoruz. Bu, bir çocuğun rahatça 
+          hareket edebilmesi, kendi seçimini yapabilmesi ve bağımsızlığını kazanabilmesi için 
+          ihtiyaç duyduğu fiziksel özgürlüktür.
+        </p>
+        
+        <ul>
+          <li><strong>1 Toddler Sınıfı</strong> (25-36 ay) - Bağımsızlığın ilk adımları</li>
+          <li><strong>2 Preschool Sınıfı</strong> (36-72 ay) - Kendini ifade etme yolculuğu</li>
+          <li><strong>Marangoz Çocuk Atölyesi</strong> - Ahşap ve yaratıcılık buluşması</li>
+          <li><strong>Native English Speaker</strong> - Doğal dil ediniminin köprüsü</li>
+          <li><strong>Forest School Alanı</strong> - Doğanın kendisi öğretmendir</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  
+  <!-- EĞİTİM FELSEFEMİZ -->
+  <section class="bolum bej" id="felsefemiz">
+    <div class="bolum-icerik">
+      <div class="bolum-baslik">
+        <div class="ust-yazi">Eğitim Felsefemiz</div>
+        <h2>Üç Pencereden Çocuğa Bakıyoruz</h2>
+        <p>Birbirini tamamlayan üç pedagojik yaklaşımla çocukları besliyoruz</p>
+      </div>
+      
+      <div class="ozellik-grid">
+        <div class="ozellik-kart">
+          <span class="ikon">🌱</span>
+          <h3>Montessori Felsefesi</h3>
+          <p>
+            MACTE sertifikalı yaklaşımımızla çocuğun bağımsızlık, sorumluluk ve 
+            içsel disiplin geliştirmesini destekleriz. "Bana yardım et, kendim yapayım" 
+            ilkesiyle hareket ederiz.
+          </p>
+        </div>
+        
+        <div class="ozellik-kart">
+          <span class="ikon">🌳</span>
+          <h3>Forest School (Level 3)</h3>
+          <p>
+            Doğanın kendisi en büyük öğretmendir. Çocuklarımız haftada belirli zamanlar 
+            doğada vakit geçirir, mevsimleri hisseder, riskleri öğrenir, doğayla 
+            arkadaş olur.
+          </p>
+        </div>
+        
+        <div class="ozellik-kart">
+          <span class="ikon">💚</span>
+          <h3>Değerler Eğitimi</h3>
+          <p>
+            Karakter, mizaç ve değerler küçük yaşta filizlenir. Empati, dürüstlük, 
+            sorumluluk, paylaşma ve doğa sevgisi günlük yaşamımızın doğal bir parçasıdır.
+          </p>
+        </div>
+        
+        <div class="ozellik-kart">
+          <span class="ikon">🎨</span>
+          <h3>Yaratıcı Atölyeler</h3>
+          <p>
+            Marangoz Çocuk atölyemizde gerçek aletlerle ahşap işler. Sanat, müzik, 
+            drama ve hikâye anlatımıyla çocukların yaratıcılığını besleriz.
+          </p>
+        </div>
+        
+        <div class="ozellik-kart">
+          <span class="ikon">🌍</span>
+          <h3>İki Dilli Eğitim</h3>
+          <p>
+            Native English speaker öğretmenlerimizle çocuklar İngilizceyi bir dil dersi 
+            olarak değil, hayatın doğal bir parçası olarak öğrenir. 
+          </p>
+        </div>
+        
+        <div class="ozellik-kart">
+          <span class="ikon">🤝</span>
+          <h3>Aile Ortaklığı</h3>
+          <p>
+            Velilerimiz bizim eğitim yolculuğumuzun ortağıdır. Düzenli atölyeler, 
+            seminerler ve şeffaf iletişimle birlikte büyüyoruz.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- DEĞERLER & ÇOCUĞA BAKIŞ -->
+  <section class="bolum" id="degerler">
+    <div class="bolum-icerik">
+      <div class="bolum-baslik">
+        <div class="ust-yazi">Çocuğa Bakışımız</div>
+        <h2>Her Çocuk Bir Mucizedir</h2>
+      </div>
+      
+      <div class="yazi-bloku" id="degerlerIcerik">
+        <h3>🌟 Çocuğa Verdiğimiz Değer</h3>
+        <p>
+          Bizim için çocuk, geleceğin yetişkini değil, <strong>şimdinin tam ve 
+          değerli bir insanıdır</strong>. Onu bir "yapılması gereken iş" olarak değil, 
+          birlikte yürüdüğümüz bir yol arkadaşı olarak görürüz.
+        </p>
+        
+        <div class="alinti">
+          <p>
+            "Çocuk asla şımarık değildir, sadece anlaşılmamıştır."<br>
+            <em>— Maria Montessori</em>
+          </p>
+        </div>
+        
+        <h4>💎 Temel Değerlerimiz</h4>
+        <ul>
+          <li><strong>Saygı:</strong> Her çocuğun kendi tempoları, ilgi alanları ve 
+          gelişim yolları vardır. Onlara saygı duymakla başlarız.</li>
+          
+          <li><strong>Bağımsızlık:</strong> Çocuğa "yap" demek yerine, "yapabilmesi için 
+          ortam hazırlamak" görevimizdir.</li>
+          
+          <li><strong>Şefkat:</strong> Disiplinin ve sınırların yerine, anlayışın ve 
+          sınırların kaynağında sevgi vardır.</li>
+          
+          <li><strong>Doğallık:</strong> Plastik oyuncaklar yerine doğal malzemeler, 
+          yapay ortamlar yerine gerçek deneyimler.</li>
+          
+          <li><strong>Sabır:</strong> Çocuğun zamanı yetişkinin zamanından farklıdır. 
+          Acelemiz yok, biz çocukla aynı tempoda yürürüz.</li>
+          
+          <li><strong>Şeffaflık:</strong> Veliyle, çocukla, ekipçe açık ve dürüst 
+          iletişim her şeyin temelidir.</li>
+        </ul>
+        
+        <h4>🌸 Pedagojik Yaklaşımımız</h4>
+        <p>
+          Sınıflarımızda <strong>"hazırlanmış çevre"</strong> kavramı temeldir — yani 
+          çocuğun ihtiyaç duyduğu her şey, onun seviyesinde, ona uygun şekilde, 
+          dikkatlice düzenlenmiş halde durur. Çocuk seçer, yapar, deneyimler.
+        </p>
+        
+        <p>
+          Öğretmenlerimiz <strong>gözlemcidir</strong>. Çocuğa "doğru cevabı" söylemek 
+          yerine, doğru soruyu sormayı bilir. Müdahale etmeden önce gözlemler, 
+          gerektiğinde adım atar, gerektiğinde geri çekilir.
+        </p>
+        
+        <p>
+          <strong>Hata, öğrenmenin parçasıdır.</strong> Bizde "yanlış yaptın" diye azarlamak 
+          yoktur. Bunun yerine "bir daha deneyelim mi?" der, çocukla birlikte düşünürüz.
+        </p>
+      </div>
+    </div>
+  </section>
+  
+  <!-- NEDEN BCK'DA ÇALIŞMALISINIZ -->
+  <section class="bolum koyu">
+    <div class="bolum-icerik">
+      <div class="bolum-baslik">
+        <div class="ust-yazi">Çalışan Deneyimi</div>
+        <h2>Neden Bir Çiçek Koleji?</h2>
+        <p>Sadece bir iş değil, bir aile olmaya davet ediyoruz</p>
+      </div>
+      
+      <div class="ozellik-grid" id="nedenBCK">
+        <div class="ozellik-kart">
+          <span class="ikon">📚</span>
+          <h3>Sürekli Gelişim</h3>
+          <p>
+            MACTE sertifika programları, Forest School eğitimleri ve düzenli pedagojik 
+            seminerlerle profesyonel gelişiminizi destekleriz.
+          </p>
+        </div>
+        
+        <div class="ozellik-kart">
+          <span class="ikon">🤗</span>
+          <h3>Aile Atmosferi</h3>
+          <p>
+            Bir takımız, bir aileyiz. Hiyerarşi yerine işbirliği, baskı yerine 
+            anlayış vardır. Her sesin değeri vardır.
+          </p>
+        </div>
+        
+        <div class="ozellik-kart">
+          <span class="ikon">🌟</span>
+          <h3>Anlamlı İş</h3>
+          <p>
+            Sabah uyandığınızda "bugün bir çocuğun hayatında fark yaratacağım" 
+            diye düşünmenin verdiği o özel hissi bilirsiniz.
+          </p>
+        </div>
+        
+        <div class="ozellik-kart">
+          <span class="ikon">🎯</span>
+          <h3>Yenilikçi Yaklaşım</h3>
+          <p>
+            Geleneksel okul kalıplarının dışında, modern pedagojik yaklaşımları 
+            harmanlayarak çalışırız. Her zaman gelişen bir okul.
+          </p>
+        </div>
+        
+        <div class="ozellik-kart">
+          <span class="ikon">💚</span>
+          <h3>Geniş Sınıflar</h3>
+          <p>
+            Bunaltıcı kalabalık değil, çocuk başına 6m² rahat alan. Hem çocuklar hem 
+            öğretmenler nefes alır.
+          </p>
+        </div>
+        
+        <div class="ozellik-kart">
+          <span class="ikon">🌳</span>
+          <h3>Doğayla İç İçe</h3>
+          <p>
+            Forest School alanımızda ve bahçemizde haftada belirli zamanlar doğanın 
+            içinde geçer. Şehirde olmasına rağmen doğayla bağlantılı.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- SSS -->
+  <section class="bolum" id="sss">
+    <div class="bolum-icerik">
+      <div class="bolum-baslik">
+        <div class="ust-yazi">Sıkça Sorulan Sorular</div>
+        <h2>Aklınızda Sorular mı Var?</h2>
+      </div>
+      
+      <div class="sss-listesi" id="sssListesi">
+        <div class="sss-item">
+          <button class="sss-baslik" onclick="this.parentElement.classList.toggle('acik')">
+            <span>Başvuru süreci nasıl işliyor?</span>
+            <span class="ok">⌄</span>
+          </button>
+          <div class="sss-icerik">
+            <p>
+              Google hesabınızla giriş yaparak başlarsınız. Önce kişisel bilgilerinizi 
+              dolduracaksınız (yaklaşık 3-5 dk), sonra 20-25 dakikalık değerlendirme 
+              sürecimize katılacaksınız. Cevaplarınız özenle incelenir ve size dönüş 
+              yapılır. Süreç tamamen dijitaldir.
+            </p>
+          </div>
+        </div>
+        
+        <div class="sss-item">
+          <button class="sss-baslik" onclick="this.parentElement.classList.toggle('acik')">
+            <span>Değerlendirme sürecinde neler soruluyor?</span>
+            <span class="ok">⌄</span>
+          </button>
+          <div class="sss-icerik">
+            <p>
+              "Çocukları sever misiniz?" gibi yüzeysel sorular sormuyoruz. Sınıfta 
+              karşılaşabileceğiniz gerçek senaryolar, pedagojik yaklaşımınızı ortaya 
+              koyacak durumlar ve kişisel deneyimlerinizi paylaşacağınız açık uçlu 
+              sorular sunuyoruz. Doğru cevap aramayın, samimi olun yeterli.
+            </p>
+          </div>
+        </div>
+        
+        <div class="sss-item">
+          <button class="sss-baslik" onclick="this.parentElement.classList.toggle('acik')">
+            <span>Montessori sertifikam yok, başvurabilir miyim?</span>
+            <span class="ok">⌄</span>
+          </button>
+          <div class="sss-icerik">
+            <p>
+              Tabii ki! Montessori veya Forest School sertifikası bir avantajdır ama 
+              olmazsa olmaz değildir. Çocuk merkezli bir bakış açısına sahip, gelişime 
+              açık, ekibimize katılarak birlikte öğrenmek isteyen herkesi bekliyoruz. 
+              Sertifika eğitimleri için size destek de sağlayabiliriz.
+            </p>
+          </div>
+        </div>
+        
+        <div class="sss-item">
+          <button class="sss-baslik" onclick="this.parentElement.classList.toggle('acik')">
+            <span>Aktif ilanınız yoksa havuza katılabilir miyim?</span>
+            <span class="ok">⌄</span>
+          </button>
+          <div class="sss-icerik">
+            <p>
+              Kesinlikle! Hatta tavsiye ederiz. Aday havuzumuza katıldığınızda, ilgili 
+              pozisyon açıldığında size mail göndererek haberdar ediyoruz. Yıl içinde 
+              sürekli ihtiyacımız olabiliyor.
+            </p>
+          </div>
+        </div>
+        
+        <div class="sss-item">
+          <button class="sss-baslik" onclick="this.parentElement.classList.toggle('acik')">
+            <span>Başvurum sonuçlanmazsa ne olur?</span>
+            <span class="ok">⌄</span>
+          </button>
+          <div class="sss-icerik">
+            <p>
+              Her başvuruyu değerli buluyoruz. Bu süreçte aday havuzumuza eklenirsiniz 
+              ve ileride uygun pozisyon açıldığında ilk size bildiririz. İstemediğiniz 
+              durumda, mail bildirimlerinden tek tıkla çıkabilirsiniz.
+            </p>
+          </div>
+        </div>
+        
+        <div class="sss-item">
+          <button class="sss-baslik" onclick="this.parentElement.classList.toggle('acik')">
+            <span>Süreç ne kadar sürer?</span>
+            <span class="ok">⌄</span>
+          </button>
+          <div class="sss-icerik">
+            <p>
+              Başvurunuzu yapmanız 25-30 dakika sürer. Ardından 5-7 iş günü içinde size 
+              dönüş yaparız. Eğer mülakat aşamasına geçmek istersek, telefon veya 
+              WhatsApp ile sizinle iletişime geçilir.
+            </p>
+          </div>
+        </div>
+        
+        <div class="sss-item">
+          <button class="sss-baslik" onclick="this.parentElement.classList.toggle('acik')">
+            <span>Bilgilerim güvende mi?</span>
+            <span class="ok">⌄</span>
+          </button>
+          <div class="sss-icerik">
+            <p>
+              Kesinlikle. Bilgileriniz Google'ın güvenli sunucularında saklanır ve 
+              sadece okul yönetimi tarafından görülür. Üçüncü taraflarla paylaşılmaz. 
+              KVKK kapsamında haklarınız korunur.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- CTA SON -->
+  <section class="bolum" style="text-align: center;">
+    <div class="bolum-icerik">
+      <div class="kart" style="background: var(--ana-yesil); color: white; text-align: center; padding: 50px 30px;">
+        <h2 style="color: white; font-size: 32px; margin-bottom: 12px;">Hazır mısınız?</h2>
+        <p style="color: rgba(255,255,255,0.9); font-size: 18px; margin-bottom: 28px;">
+          Bir Çiçek Koleji ailesine katılma yolculuğunuza başlayın
+        </p>
+        <a href="basvuru.html" class="btn btn-beyaz btn-buyuk">
+          ✨ Başvuruya Başla
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-icerik">
+      <div class="footer-bolum">
+        <h4>🌸 Bir Çiçek Koleji</h4>
+        <p>
+          MACTE sertifikalı Montessori ve Level 3 Forest School felsefesiyle 
+          çocukların hayatına dokunan bir okul.
+        </p>
+      </div>
+      
+      <div class="footer-bolum">
+        <h4>📍 Adres & İletişim</h4>
+        <p>Aydınlı, Tuzla / İstanbul</p>
+        <a href="tel:02163935457">📞 0216 393 54 57</a>
+        <a href="https://wa.me/905551035457">💬 WhatsApp: 0555 103 54 57</a>
+        <a href="mailto:eposta@bircicekkoleji.com">✉️ eposta@bircicekkoleji.com</a>
+      </div>
+      
+      <div class="footer-bolum">
+        <h4>🔗 Bağlantılar</h4>
+        <a href="https://bircicekkoleji.com">Ana Site</a>
+        <a href="https://www.instagram.com/bircicekkoleji" target="_blank">Instagram @bircicekkoleji</a>
+        <a href="basvuru.html">Hemen Başvur</a>
+        <a href="tercihler.html">Mail Tercihleri</a>
+      </div>
+      
+      <div class="footer-bolum">
+        <h4>📋 Süreç</h4>
+        <a href="#pozisyonlar">Açık Pozisyonlar</a>
+        <a href="#hakkimizda">Hakkımızda</a>
+        <a href="#felsefemiz">Eğitim Felsefemiz</a>
+        <a href="#sss">Sıkça Sorulanlar</a>
+      </div>
+    </div>
+    
+    <div class="footer-alt">
+      © 2026 Bir Çiçek Koleji Anaokulu • Tüm hakları saklıdır
+    </div>
+  </footer>
+  
+  <script type="module" src="anasayfa.js"></script>
+  <script>
+    // Mobil menü toggle (modül dışında çalışsın)
+    function mobilMenuToggle() {
+      document.querySelector('.nav-menu').classList.toggle('acik');
+    }
+  </script>
 </body>
 </html>

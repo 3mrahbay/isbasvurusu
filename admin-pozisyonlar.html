@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pozisyon Yönetimi - Admin</title>
+  <link rel="icon" type="image/png" href="https://3mrahbay.github.io/yenikayit/logo_bcka.png">
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+  
+  <!-- YÜKLENİYOR -->
+  <div id="yukleniyor" class="kart yukleniyor" style="margin: 100px auto; max-width: 400px;">
+    <div class="donme"></div>
+    <p>Yetki kontrol ediliyor...</p>
+  </div>
+  
+  <!-- YETKİSİZ -->
+  <div id="yetkisiz" class="kart gizli" style="margin: 100px auto; max-width: 500px; text-align: center;">
+    <h2>🔒 Yetkisiz Erişim</h2>
+    <p>Bu sayfaya erişmek için admin olarak giriş yapmalısınız.</p>
+    <a href="admin.html" class="btn">Admin Girişi</a>
+  </div>
+  
+  <!-- ADMIN LAYOUT -->
+  <div id="adminLayout" class="admin-layout gizli">
+    
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+      <div class="logo-alani">
+        <img src="https://3mrahbay.github.io/yenikayit/logo_bcka.png" alt="BCK">
+        <div class="baslik">Bir Çiçek Koleji</div>
+        <div class="alt">Admin Panel</div>
+      </div>
+      
+      <ul class="admin-menu">
+        <li><a href="admin.html">📊 Genel Bakış</a></li>
+        <li><a href="admin-pozisyonlar.html" class="aktif">💼 Pozisyonlar</a></li>
+        <li><a href="admin-icerik.html">📝 Site İçerikleri</a></li>
+        <li><a href="admin-havuz.html">👥 Aday Havuzu</a></li>
+        <li><a href="admin-mail.html">📬 Toplu Mail</a></li>
+        <li><a href="index.html" target="_blank">🌸 Ana Site</a></li>
+        <li><a href="#" onclick="cikisYap(); return false;">🚪 Çıkış</a></li>
+      </ul>
+    </aside>
+    
+    <!-- İÇERİK -->
+    <main class="admin-icerik">
+      
+      <!-- LİSTE GÖRÜNÜMÜ -->
+      <div id="listeGorunumu">
+        <div class="admin-baslik">
+          <h1>💼 Pozisyon Yönetimi</h1>
+          <button class="btn" onclick="yeniPozisyon()">➕ Yeni Pozisyon Ekle</button>
+        </div>
+        
+        <div id="alertAlani"></div>
+        
+        <div class="kart">
+          <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+            <button class="btn btn-kucuk btn-ikincil filtre-btn aktif" data-filtre="hepsi">
+              Hepsi
+            </button>
+            <button class="btn btn-kucuk btn-ikincil filtre-btn" data-filtre="aktif">
+              ✨ Aktif İlanlar
+            </button>
+            <button class="btn btn-kucuk btn-ikincil filtre-btn" data-filtre="pasif">
+              ⏸️ Pasif İlanlar
+            </button>
+            <button class="btn btn-kucuk btn-ikincil filtre-btn" data-filtre="havuz">
+              🌊 Havuz Modu
+            </button>
+          </div>
+          
+          <div id="pozisyonTablosu">
+            <div class="yukleniyor">
+              <div class="donme"></div>
+              <p>Pozisyonlar yükleniyor...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- DÜZENLEME GÖRÜNÜMÜ -->
+      <div id="duzenlemeGorunumu" class="gizli">
+        <button class="geri-don" onclick="listeyeDon()">← Listeye Dön</button>
+        
+        <div class="admin-baslik">
+          <h1 id="duzenlemeBaslik">Yeni Pozisyon</h1>
+        </div>
+        
+        <div id="formAlertAlani"></div>
+        
+        <div class="kart">
+          <h3>📋 Temel Bilgiler</h3>
+          
+          <div class="form-grup">
+            <label for="kategoriId">
+              Pozisyon Kategorisi <span class="zorunlu">*</span>
+            </label>
+            <select id="kategoriId" required>
+              <option value="">Kategori seçiniz...</option>
+            </select>
+            <div class="yardim-metni">
+              Kategori, adayların mail bildirimi tercihinde de görünür.
+            </div>
+          </div>
+          
+          <div class="form-grup">
+            <label for="baslik">
+              İlan Başlığı <span class="zorunlu">*</span>
+            </label>
+            <input type="text" id="baslik" placeholder="Örn: Okul Öncesi Öğretmeni - Toddler Sınıfı">
+            <div class="yardim-metni">
+              Bu başlık aday tarafından ilanda görünür. Spesifik olun (örn: "Toddler", "Preschool").
+            </div>
+          </div>
+          
+          <div class="form-grup">
+            <label for="kisaAciklama">
+              Kısa Açıklama <span class="zorunlu">*</span>
+            </label>
+            <textarea id="kisaAciklama" rows="3" 
+              placeholder="2-3 cümlelik özet. İlan kartlarında görünür."></textarea>
+          </div>
+          
+          <div class="form-grup">
+            <label for="detayAciklama">Detay Açıklama</label>
+            <textarea id="detayAciklama" rows="10" 
+              placeholder="Pozisyonun tüm detayları, gerekli özellikler, sorumluluklar, sunduklarımız..."></textarea>
+            <div class="yardim-metni">
+              "Detayları Gör" butonuna basıldığında açılır. Boş bırakabilirsiniz.
+            </div>
+          </div>
+          
+          <div class="iki-kolon">
+            <div class="form-grup">
+              <label for="lokasyon">Lokasyon</label>
+              <input type="text" id="lokasyon" value="Tuzla Aydınlı / İstanbul">
+            </div>
+            
+            <div class="form-grup">
+              <label for="calismaTipi">Çalışma Tipi</label>
+              <select id="calismaTipi">
+                <option value="Tam zamanlı">Tam zamanlı</option>
+                <option value="Yarı zamanlı">Yarı zamanlı</option>
+                <option value="Stajyer">Stajyer</option>
+                <option value="Sözleşmeli">Sözleşmeli</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="kart">
+          <h3>📅 Başvuru Süresi</h3>
+          
+          <div class="checkbox-grup" style="margin-bottom: 16px;">
+            <input type="checkbox" id="havuzModu" onchange="havuzModuDegisti()">
+            <label for="havuzModu">
+              <strong>🌊 Havuz Modu (Sürekli Açık)</strong><br>
+              <span style="font-size: 13px; color: var(--gri);">
+                Son tarih olmadan, devamlı başvuru kabul edilir. 
+                Aday havuzunda biriktirilir.
+              </span>
+            </label>
+          </div>
+          
+          <div id="sonTarihAlani" class="form-grup">
+            <label for="sonBasvuruTarihi">
+              Son Başvuru Tarihi <span class="zorunlu">*</span>
+            </label>
+            <input type="datetime-local" id="sonBasvuruTarihi">
+            <div class="yardim-metni">
+              Bu tarih ve saatte ilan otomatik olarak kapanır.
+            </div>
+          </div>
+        </div>
+        
+        <div class="kart">
+          <h3>⚡ Yayın Durumu</h3>
+          
+          <div class="checkbox-grup">
+            <input type="checkbox" id="aktif" checked>
+            <label for="aktif">
+              <strong>✨ Yayında (Aktif)</strong><br>
+              <span style="font-size: 13px; color: var(--gri);">
+                İşaretlenmezse ilan adaylara görünmez (taslak olarak kalır).
+              </span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- KAYDET / SİL -->
+        <div class="kart">
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button class="btn" onclick="pozisyonKaydet()">
+              💾 Kaydet
+            </button>
+            <button class="btn btn-ikincil" onclick="listeyeDon()">
+              ❌ İptal
+            </button>
+            <button id="silBtn" class="btn btn-tehlike gizli" onclick="pozisyonSil()" style="margin-left: auto;">
+              🗑️ Sil
+            </button>
+          </div>
+        </div>
+      </div>
+      
+    </main>
+  </div>
+  
+  <script type="module" src="admin-pozisyonlar.js"></script>
+</body>
+</html>
