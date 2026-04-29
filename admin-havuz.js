@@ -6,7 +6,7 @@ import {
   auth, db,
   onAuthStateChanged,
   signOut,
-  collection, doc, getDoc, getDocs, updateDoc, setDoc,
+  collection, doc, getDoc, getDocs, updateDoc, setDoc, deleteDoc,
   query, orderBy,
   serverTimestamp,
   PROXY_URL,
@@ -292,6 +292,19 @@ function detayCiz() {
       </div>
       
       <button class="btn" onclick="durumGuncelle()">💾 Durumu Kaydet</button>
+    </div>
+    
+    <!-- 🔄 TEST SIFIRLAMA -->
+    <div class="kart" style="background: #fff3e0; border-left: 4px solid #f57c00;">
+      <h3 style="color: #e65100;">🔄 Adayın Testini Sıfırla</h3>
+      <p style="color: var(--gri); font-size: 14px;">
+        Adayın test cevaplarını ve AI analizini SİLER. Aday tekrar giriş yaptığında 
+        baştan test çözmek zorunda kalır. Bu adayın cevaplarında problem varsa kullanın.
+      </p>
+      <button class="btn" onclick="testiSifirla('${a.adayEposta}')" 
+              style="background: #f57c00;">
+        🗑️ Test Cevaplarını ve Analizi Sil
+      </button>
     </div>
   `;
   
@@ -676,8 +689,84 @@ function mulakatProfiliButonHTML(aday) {
         🎙️ Mülakat Profilini Aç
       </a>
     </div>
+    
+    <!-- 🔄 TESTI SIFIRLAMA - Tehlikeli alan -->
+    <div class="kart" style="background: #fff3e0; border-left: 4px solid var(--turuncu);">
+      <h3 style="color: var(--turuncu);">🔄 Test Sıfırlama</h3>
+      <p style="color: var(--gri); font-size: 14px; line-height: 1.6;">
+        Eğer adayın test cevapları bozuksa veya yeniden test alması gerekiyorsa, 
+        cevapları ve AI analizini silebilirsiniz. Bu işlem <strong>geri alınamaz</strong>.
+      </p>
+      <button class="btn btn-tehlike btn-kucuk" onclick="testiSifirla('${aday.adayEposta}')">
+        🗑️ Test Cevaplarını ve AI Analizini Sil (Yeniden Test)
+      </button>
+    </div>
   `;
 }
+
+// ───────────────────────────────────────────────
+// Testi Sıfırla (admin için)
+// ───────────────────────────────────────────────
+window.testiSifirla = async function(adayEposta) {
+  const onay = confirm(
+    '⚠️ DİKKAT: BU İŞLEM GERİ ALINAMAZ!\n\n' +
+    'Bu adayın TÜM test cevapları, AI analizi ve mülakat notları silinecek.\n' +
+    'Aday durumu "testEksik" olarak değişecek ve baştan test alabilecek.\n\n' +
+    'Devam etmek istiyor musunuz?'
+  );
+  if (!onay) return;
+  
+  const onay2 = prompt(
+    'Onaylamak için aday email\'ini yazınız:\n\n' + adayEposta
+  );
+  if (onay2 !== adayEposta) {
+    alertGoster('uyari', 'Email eşleşmedi, işlem iptal edildi.', 'detayAlertAlani');
+    return;
+  }
+  
+  try {
+    // testCevaplari sil
+    try {
+      await deleteDoc(doc(db, 'testCevaplari', adayEposta));
+      console.log('✅ Test cevapları silindi');
+    } catch (e) { console.warn('Test cevapları silinemedi:', e); }
+    
+    // analizler sil
+    try {
+      await deleteDoc(doc(db, 'analizler', adayEposta));
+      console.log('✅ AI analizi silindi');
+    } catch (e) { console.warn('AI analizi silinemedi:', e); }
+    
+    // mulakatNotlari sil
+    try {
+      await deleteDoc(doc(db, 'mulakatNotlari', adayEposta));
+      console.log('✅ Mülakat notları silindi');
+    } catch (e) { console.warn('Mülakat notları silinemedi:', e); }
+    
+    // Aday durumunu testEksik'e çevir
+    await updateDoc(doc(db, 'isBasvurulari', adayEposta), {
+      durum: 'testEksik',
+      testTamamlanmaZamani: null,
+      adminSifirlamaZamani: serverTimestamp()
+    });
+    
+    alertGoster(
+      'basarili', 
+      '✅ Test verileri başarıyla silindi! Aday giriş yaptığında yeni baştan test alabilecek.', 
+      'detayAlertAlani'
+    );
+    
+    // 2 saniye sonra listeye dön
+    setTimeout(() => {
+      listeyeDon();
+      adaylariYukle();
+    }, 2000);
+    
+  } catch (hata) {
+    console.error('Sıfırlama hatası:', hata);
+    alertGoster('hata', 'İşlem başarısız: ' + hata.message, 'detayAlertAlani');
+  }
+};
 
 // ───────────────────────────────────────────────
 // AI Analizini manuel tetikle
@@ -889,4 +978,52 @@ window.durumGuncelle = async function() {
 window.cikisYap = async function() {
   await signOut(auth);
   window.location.href = 'index.html';
+};
+
+// ───────────────────────────────────────────────
+// 🔄 Adayın testini sıfırla (cevap + analiz + mülakat notu sil)
+// ───────────────────────────────────────────────
+window.testiSifirla = async function(adayEposta) {
+  const onay = confirm(
+    '⚠️ Bu adayın TÜM TEST VERİLERİ silinecek:\n\n' +
+    '• Test cevapları\n' +
+    '• AI analizi\n' +
+    '• Mülakat notları\n\n' +
+    'Aday tekrar giriş yaptığında baştan test çözmek zorunda kalacak.\n\n' +
+    'Devam etmek istiyor musunuz?'
+  );
+  if (!onay) return;
+  
+  try {
+    // testCevaplari, analizler, mulakatNotlari koleksiyonlarından sil
+    await deleteDoc(doc(db, 'testCevaplari', adayEposta));
+    
+    try { await deleteDoc(doc(db, 'analizler', adayEposta)); } catch(e) { console.warn('Analiz yok:', e); }
+    try { await deleteDoc(doc(db, 'mulakatNotlari', adayEposta)); } catch(e) { console.warn('Mülakat notu yok:', e); }
+    
+    // Başvuru durumunu testEksik'e döndür
+    await updateDoc(doc(db, 'isBasvurulari', adayEposta), {
+      durum: 'testEksik',
+      testTamamlanmaZamani: null,
+      adminNotu: (aktifAday?.adminNotu || '') + '\n[Admin tarafından test sıfırlandı: ' + new Date().toLocaleDateString('tr-TR') + ']'
+    });
+    
+    alertGoster('basarili', 
+      '✅ Test verileri başarıyla silindi! Aday "Test Bekleniyor" durumuna alındı. ' +
+      'Aday tekrar giriş yaptığında baştan test çözebilir.', 
+      'detayAlertAlani'
+    );
+    
+    // Listeyi yenile
+    await adaylariYukle();
+    
+    // Sayfayı 2 saniye sonra listeye döndür
+    setTimeout(() => {
+      listeyeDon();
+    }, 2000);
+    
+  } catch (hata) {
+    console.error('Test sıfırlama hatası:', hata);
+    alertGoster('hata', 'Sıfırlama başarısız: ' + hata.message, 'detayAlertAlani');
+  }
 };

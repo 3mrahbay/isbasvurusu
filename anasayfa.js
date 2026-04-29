@@ -37,11 +37,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 async function pozisyonlariYukle() {
   try {
     const pozisyonRef = collection(db, 'pozisyonlar');
-    // Sadece aktif olanları çek (sıralı)
+    // Sadece aktif olanları çek (composite index gerektirmesin diye orderBy yok)
     const q = query(
       pozisyonRef,
-      where('aktif', '==', true),
-      orderBy('olusturmaZamani', 'desc')
+      where('aktif', '==', true)
     );
     
     const snapshot = await getDocs(q);
@@ -49,6 +48,30 @@ async function pozisyonlariYukle() {
     
     snapshot.forEach(doc => {
       pozisyonlar.push({ id: doc.id, ...doc.data() });
+    });
+    
+    // 🔍 HATA AYIKLAMA: Console'da bilgi göster
+    console.log(`✅ ${pozisyonlar.length} aktif pozisyon yüklendi`);
+    if (pozisyonlar.length > 0) {
+      console.table(pozisyonlar.map(p => ({
+        id: p.id,
+        baslik: p.baslik,
+        kategoriId: p.kategoriId,
+        aktif: p.aktif,
+        havuzModu: p.havuzModu,
+        olusturmaZamani: p.olusturmaZamani?.seconds 
+          ? new Date(p.olusturmaZamani.seconds * 1000).toLocaleString('tr-TR') 
+          : '-'
+      })));
+    } else {
+      console.warn('⚠️ Aktif pozisyon yok! Firebase Console > pozisyonlar koleksiyonunu kontrol edin. "aktif" alanı true olmalı.');
+    }
+    
+    // JS tarafında sırala - olusturmaZamani'na göre azalan (yeni en üstte)
+    pozisyonlar.sort((a, b) => {
+      const aZaman = a.olusturmaZamani?.seconds || 0;
+      const bZaman = b.olusturmaZamani?.seconds || 0;
+      return bZaman - aZaman;
     });
     
     pozisyonlariCiz();
