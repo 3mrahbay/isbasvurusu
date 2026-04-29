@@ -202,6 +202,7 @@ export const POZISYON_KATEGORILERI = [
   { id: 'okulOncesiOgretmen', ad: 'Okul Öncesi Öğretmeni', ikon: '📚' },
   { id: 'egitimKoordinatoru', ad: 'Eğitim Koordinatörü', ikon: '🎯' },
   { id: 'bransOgretmeni', ad: 'Branş Öğretmeni (Müzik, Görsel Sanatlar, Beden Eğitimi)', ikon: '🎨' },
+  { id: 'milliManeviDegerler', ad: 'Milli ve Manevi Değerler Eğitimi', ikon: '🌙' },
   { id: 'cocukGelisimi', ad: 'Çocuk Gelişimi Uzmanı', ikon: '🌱' },
   { id: 'rehberlik', ad: 'Rehberlik / Psikoloji', ikon: '💚' },
   { id: 'ingilizceOgretmen', ad: 'İngilizce Öğretmeni / Native Speaker', ikon: '🌍' },

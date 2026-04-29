@@ -602,3 +602,68 @@ body {
   color: var(--gri);
   margin-top: 2px;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   ANİMASYONLU KELİME DEĞİŞİMİ - Sevgili [X] Adayımız
+   ═══════════════════════════════════════════════════════════ */
+
+.degisen-kelime-sarici {
+  display: inline-block;
+  position: relative;
+  min-width: 200px;
+  height: 1.2em;
+  vertical-align: bottom;
+  text-align: left;
+}
+
+.degisen-kelime {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transform: translateY(20px);
+  color: var(--ana-yesil);
+  font-weight: 700;
+  white-space: nowrap;
+  background: linear-gradient(135deg, var(--ana-yesil) 0%, var(--acik-yesil) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.degisen-kelime.aktif {
+  opacity: 1;
+  transform: translateY(0);
+  animation: kelimeDegisimi 2.5s ease-in-out;
+}
+
+@keyframes kelimeDegisimi {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  15%, 85% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(1.05);
+  }
+}
+
+/* Mobil için boyut ayarı */
+@media (max-width: 600px) {
+  .degisen-kelime-sarici {
+    min-width: 150px;
+    display: block;
+    text-align: center;
+    margin: 4px auto;
+  }
+}
+
+/* Hero h2 ile uyum */
+.bolum-baslik h2 .degisen-kelime-sarici {
+  font-size: inherit;
+}

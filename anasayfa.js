@@ -31,7 +31,35 @@ let sayacInterval = null;
 window.addEventListener('DOMContentLoaded', async () => {
   await pozisyonlariYukle();
   await siteIcerikYukle();
+  
+  // ✨ Animasyonlu kelime değişimini başlat
+  baslatKelimeAnimasyonu();
 });
+
+// ───────────────────────────────────────────────
+// ✨ ANİMASYONLU KELİME DEĞİŞİMİ
+// "Sevgili [Öğretmen/Koordinatör/Uzman/Danışman/Aşçı] Adayımız"
+// ───────────────────────────────────────────────
+function baslatKelimeAnimasyonu() {
+  const kelimeler = document.querySelectorAll('.degisen-kelime');
+  if (kelimeler.length === 0) return;
+  
+  let aktifIndex = 0;
+  const sureMs = 2500; // Her kelime 2.5 saniye ekranda kalır
+  
+  setInterval(() => {
+    // Mevcut kelimeyi gizle
+    kelimeler[aktifIndex].classList.remove('aktif');
+    
+    // Sıradaki kelimeyi göster
+    aktifIndex = (aktifIndex + 1) % kelimeler.length;
+    
+    // Animasyonu yeniden başlatmak için animasyon tekrar tetikle
+    kelimeler[aktifIndex].classList.remove('aktif');
+    void kelimeler[aktifIndex].offsetWidth; // reflow zorla
+    kelimeler[aktifIndex].classList.add('aktif');
+  }, sureMs);
+}
 
 // ───────────────────────────────────────────────
 // Pozisyonları Firestore'dan çek
