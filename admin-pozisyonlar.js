@@ -214,7 +214,7 @@ window.yeniPozisyon = function() {
   document.getElementById('baslik').value = '';
   document.getElementById('kisaAciklama').value = '';
   document.getElementById('detayAciklama').value = '';
-  document.getElementById('lokasyon').value = 'Tuzla Aydınlı / İstanbul';
+  document.getElementById('lokasyon').value = 'Aydınlı Mah. Bahçeler Sk. No:45 Tuzla / İstanbul';
   document.getElementById('calismaTipi').value = 'Tam zamanlı';
   document.getElementById('havuzModu').checked = false;
   document.getElementById('sonBasvuruTarihi').value = '';
@@ -255,7 +255,7 @@ window.pozisyonDuzenle = function(pozisyonId) {
   document.getElementById('baslik').value = p.baslik || '';
   document.getElementById('kisaAciklama').value = p.kisaAciklama || '';
   document.getElementById('detayAciklama').value = p.detayAciklama || '';
-  document.getElementById('lokasyon').value = p.lokasyon || 'Tuzla Aydınlı / İstanbul';
+  document.getElementById('lokasyon').value = p.lokasyon || 'Aydınlı Mah. Bahçeler Sk. No:45 Tuzla / İstanbul';
   document.getElementById('calismaTipi').value = p.calismaTipi || 'Tam zamanlı';
   document.getElementById('havuzModu').checked = p.havuzModu === true;
   document.getElementById('aktif').checked = p.aktif !== false;
@@ -349,7 +349,7 @@ window.pozisyonKaydet = async function() {
       baslik,
       kisaAciklama,
       detayAciklama: detayAciklama || null,
-      lokasyon: lokasyon || 'Tuzla Aydınlı / İstanbul',
+      lokasyon: lokasyon || 'Aydınlı Mah. Bahçeler Sk. No:45 Tuzla / İstanbul',
       calismaTipi,
       havuzModu,
       aktif,

@@ -604,66 +604,163 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   ANİMASYONLU KELİME DEĞİŞİMİ - Sevgili [X] Adayımız
+   ANİMASYONLU CÜMLE DEĞİŞİMİ - "Sevgili [...] Adayımız"
    ═══════════════════════════════════════════════════════════ */
 
-.degisen-kelime-sarici {
-  display: inline-block;
+.degisen-cumle-sarici {
+  display: block;
   position: relative;
-  min-width: 200px;
-  height: 1.2em;
-  vertical-align: bottom;
-  text-align: left;
+  height: 1.4em;
+  text-align: center;
+  width: 100%;
 }
 
-.degisen-kelime {
+.degisen-cumle {
   position: absolute;
   left: 0;
+  right: 0;
   top: 0;
   opacity: 0;
   transform: translateY(20px);
-  color: var(--ana-yesil);
-  font-weight: 700;
-  white-space: nowrap;
   background: linear-gradient(135deg, var(--ana-yesil) 0%, var(--acik-yesil) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   transition: opacity 0.5s ease, transform 0.5s ease;
+  white-space: nowrap;
 }
 
-.degisen-kelime.aktif {
+.degisen-cumle.aktif {
   opacity: 1;
   transform: translateY(0);
-  animation: kelimeDegisimi 2.5s ease-in-out;
+  animation: cumleDegisimi 2.8s ease-in-out;
 }
 
-@keyframes kelimeDegisimi {
+@keyframes cumleDegisimi {
   0% {
     opacity: 0;
-    transform: translateY(30px) scale(0.9);
+    transform: translateY(25px);
   }
-  15%, 85% {
+  12%, 88% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
   100% {
     opacity: 0;
-    transform: translateY(-20px) scale(1.05);
+    transform: translateY(-15px);
   }
 }
 
-/* Mobil için boyut ayarı */
+/* Mobil */
 @media (max-width: 600px) {
-  .degisen-kelime-sarici {
-    min-width: 150px;
-    display: block;
-    text-align: center;
-    margin: 4px auto;
+  .degisen-cumle {
+    font-size: 0.85em;
+    white-space: normal;
+  }
+  .degisen-cumle-sarici {
+    height: 2.5em;
   }
 }
 
-/* Hero h2 ile uyum */
-.bolum-baslik h2 .degisen-kelime-sarici {
-  font-size: inherit;
+/* 🥚 Logo - gizli admin tıklama efekti */
+.nav-logo img {
+  transition: transform 0.15s ease;
+}
+
+/* Kategori istatistik kartları hover */
+.kategori-istatistik-kart:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🎠 POZİSYON SLIDER - 2'şer 2'şer Otomatik Döngü
+   ═══════════════════════════════════════════════════════════ */
+
+.pozisyon-listesi.slider-mod {
+  display: block;
+  position: relative;
+}
+
+.pozisyon-slider-pencere {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.pozisyon-slider-track {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pozisyon-slider-grup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  flex-shrink: 0;
+  width: 100%;
+  align-items: stretch;
+}
+
+@media (max-width: 768px) {
+  .pozisyon-slider-grup {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* NOKTA GÖSTERGELER */
+.pozisyon-slider-noktalar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.slider-nokta {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--ana-yesil);
+  background: white;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.slider-nokta:hover {
+  transform: scale(1.2);
+  background: var(--cok-acik-yesil);
+}
+
+.slider-nokta.aktif {
+  background: var(--ana-yesil);
+  width: 32px;
+  border-radius: 6px;
+  transform: scaleY(1);
+}
+
+/* SAYAÇ */
+.pozisyon-slider-sayac {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--ana-yesil);
+  font-weight: 600;
+}
+
+#sliderSayacAktif {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+/* SLIDER MODA GEÇİNCE EKSTRA İYİLEŞTİRMELER */
+.pozisyon-listesi.slider-mod .pozisyon-kart {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pozisyon-listesi.slider-mod .pozisyon-kart:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(44,85,48,0.15);
 }

@@ -34,30 +34,82 @@ window.addEventListener('DOMContentLoaded', async () => {
   
   // ✨ Animasyonlu kelime değişimini başlat
   baslatKelimeAnimasyonu();
+  
+  // 🥚 Logo'ya 5 tıklama → admin gizli giriş
+  baslatGizliAdminGiris();
 });
 
 // ───────────────────────────────────────────────
-// ✨ ANİMASYONLU KELİME DEĞİŞİMİ
+// 🥚 GİZLİ ADMİN GİRİŞ
+// Logo'ya 3 saniye içinde 5 kez tıklayınca admin paneline yönlendirir
+// ───────────────────────────────────────────────
+function baslatGizliAdminGiris() {
+  const logo = document.getElementById('navLogo');
+  if (!logo) return;
+  
+  let tiklamaSayisi = 0;
+  let zamanasimi = null;
+  
+  logo.addEventListener('click', (e) => {
+    // 5. tıklamada admin paneline git, normalde sayfayı yukarı kaydırma
+    e.preventDefault();
+    
+    tiklamaSayisi++;
+    
+    // Görsel feedback (her tıklamada hafif büyüme)
+    logo.querySelector('img').style.transform = `scale(${1 + tiklamaSayisi * 0.05})`;
+    setTimeout(() => {
+      if (logo.querySelector('img')) {
+        logo.querySelector('img').style.transform = 'scale(1)';
+      }
+    }, 150);
+    
+    // 3 saniye içinde 5 tıklama olmazsa sıfırla
+    if (zamanasimi) clearTimeout(zamanasimi);
+    zamanasimi = setTimeout(() => {
+      tiklamaSayisi = 0;
+    }, 3000);
+    
+    // 5. tıklamada git
+    if (tiklamaSayisi >= 5) {
+      tiklamaSayisi = 0;
+      clearTimeout(zamanasimi);
+      
+      // Hafif animasyon + yönlendirme
+      logo.style.transition = 'transform 0.3s ease';
+      logo.style.transform = 'rotate(360deg)';
+      
+      setTimeout(() => {
+        window.location.href = 'admin.html';
+      }, 400);
+    } else if (tiklamaSayisi >= 3) {
+      // 3+ tıklamada ipucu göster (sadece adminin bildiği bilgi)
+      console.log(`🔐 Admin girişi: ${5 - tiklamaSayisi} tıklama daha...`);
+    }
+  });
+}
+
+// ───────────────────────────────────────────────
+// ✨ ANİMASYONLU CÜMLE DEĞİŞİMİ
 // "Sevgili [Öğretmen/Koordinatör/Uzman/Danışman/Aşçı] Adayımız"
 // ───────────────────────────────────────────────
 function baslatKelimeAnimasyonu() {
-  const kelimeler = document.querySelectorAll('.degisen-kelime');
-  if (kelimeler.length === 0) return;
+  const cumleler = document.querySelectorAll('.degisen-cumle');
+  if (cumleler.length === 0) return;
   
   let aktifIndex = 0;
-  const sureMs = 2500; // Her kelime 2.5 saniye ekranda kalır
+  const sureMs = 2800; // Her cümle 2.8 saniye ekranda kalır
   
   setInterval(() => {
-    // Mevcut kelimeyi gizle
-    kelimeler[aktifIndex].classList.remove('aktif');
+    // Mevcut cümleyi gizle
+    cumleler[aktifIndex].classList.remove('aktif');
     
-    // Sıradaki kelimeyi göster
-    aktifIndex = (aktifIndex + 1) % kelimeler.length;
+    // Sıradaki cümleyi göster
+    aktifIndex = (aktifIndex + 1) % cumleler.length;
     
-    // Animasyonu yeniden başlatmak için animasyon tekrar tetikle
-    kelimeler[aktifIndex].classList.remove('aktif');
-    void kelimeler[aktifIndex].offsetWidth; // reflow zorla
-    kelimeler[aktifIndex].classList.add('aktif');
+    // Animasyonu yeniden başlatmak için reflow zorla
+    void cumleler[aktifIndex].offsetWidth;
+    cumleler[aktifIndex].classList.add('aktif');
   }, sureMs);
 }
 
@@ -120,8 +172,16 @@ async function pozisyonlariYukle() {
 // ───────────────────────────────────────────────
 // Pozisyonları ekrana çiz
 // ───────────────────────────────────────────────
+let sliderInterval = null;
+
 function pozisyonlariCiz() {
   const liste = document.getElementById('pozisyonListesi');
+  
+  // Önceki slider'ı temizle
+  if (sliderInterval) {
+    clearInterval(sliderInterval);
+    sliderInterval = null;
+  }
   
   if (pozisyonlar.length === 0) {
     liste.innerHTML = `
@@ -141,8 +201,128 @@ function pozisyonlariCiz() {
     return;
   }
   
-  liste.innerHTML = pozisyonlar.map(p => pozisyonKartHTML(p)).join('');
+  // Eğer 2 veya daha az pozisyon varsa, hepsini düz göster (slider gerekmez)
+  if (pozisyonlar.length <= 2) {
+    liste.classList.remove('slider-mod');
+    liste.innerHTML = pozisyonlar.map(p => pozisyonKartHTML(p)).join('');
+    return;
+  }
+  
+  // 3+ pozisyon varsa SLIDER MOD - 2'şer 2'şer grupla
+  liste.classList.add('slider-mod');
+  
+  // 2'li gruplar oluştur
+  const gruplar = [];
+  for (let i = 0; i < pozisyonlar.length; i += 2) {
+    gruplar.push(pozisyonlar.slice(i, i + 2));
+  }
+  
+  // Slider HTML
+  liste.innerHTML = `
+    <div class="pozisyon-slider-pencere">
+      <div class="pozisyon-slider-track" id="pozisyonSliderTrack">
+        ${gruplar.map((grup, idx) => `
+          <div class="pozisyon-slider-grup" data-grup-index="${idx}">
+            ${grup.map(p => pozisyonKartHTML(p)).join('')}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    
+    <!-- Nokta göstergeler -->
+    <div class="pozisyon-slider-noktalar">
+      ${gruplar.map((_, idx) => `
+        <button class="slider-nokta ${idx === 0 ? 'aktif' : ''}" 
+                onclick="sliderManuelDegistir(${idx})"
+                aria-label="Grup ${idx + 1}"></button>
+      `).join('')}
+    </div>
+    
+    <!-- Sayaç -->
+    <div class="pozisyon-slider-sayac">
+      <span id="sliderSayacAktif">1</span> / ${gruplar.length} 
+      <span style="color: var(--gri); font-size: 12px;">
+        (${pozisyonlar.length} aktif ilan)
+      </span>
+    </div>
+  `;
+  
+  // Otomatik döngü başlat
+  baslatPozisyonSlider(gruplar.length);
 }
+
+// ───────────────────────────────────────────────
+// 🎠 POZİSYON SLIDER - Otomatik Döngü
+// ───────────────────────────────────────────────
+let aktifGrupIndex = 0;
+
+function baslatPozisyonSlider(toplamGrup) {
+  if (toplamGrup <= 1) return;
+  
+  aktifGrupIndex = 0;
+  
+  sliderInterval = setInterval(() => {
+    aktifGrupIndex = (aktifGrupIndex + 1) % toplamGrup;
+    sliderGruba_Git(aktifGrupIndex);
+  }, 3000); // 3 saniyede bir değişir
+  
+  // Hover'da duraklatma
+  const pencere = document.querySelector('.pozisyon-slider-pencere');
+  if (pencere) {
+    pencere.addEventListener('mouseenter', () => {
+      if (sliderInterval) {
+        clearInterval(sliderInterval);
+        sliderInterval = null;
+      }
+    });
+    
+    pencere.addEventListener('mouseleave', () => {
+      if (!sliderInterval && toplamGrup > 1) {
+        sliderInterval = setInterval(() => {
+          aktifGrupIndex = (aktifGrupIndex + 1) % toplamGrup;
+          sliderGruba_Git(aktifGrupIndex);
+        }, 3000);
+      }
+    });
+  }
+}
+
+function sliderGruba_Git(grupIndex) {
+  const track = document.getElementById('pozisyonSliderTrack');
+  if (!track) return;
+  
+  // Yukarı kaydır (her grup tam ekran yüksekliği kadar)
+  const yukseklik = track.querySelector('.pozisyon-slider-grup')?.offsetHeight || 0;
+  track.style.transform = `translateY(-${grupIndex * yukseklik}px)`;
+  
+  // Nokta göstergeleri güncelle
+  document.querySelectorAll('.slider-nokta').forEach((n, i) => {
+    n.classList.toggle('aktif', i === grupIndex);
+  });
+  
+  // Sayaç
+  const sayac = document.getElementById('sliderSayacAktif');
+  if (sayac) sayac.textContent = grupIndex + 1;
+}
+
+// Manuel grup değiştirme
+window.sliderManuelDegistir = function(grupIndex) {
+  // Otomatik döngüyü resetle
+  if (sliderInterval) {
+    clearInterval(sliderInterval);
+  }
+  
+  aktifGrupIndex = grupIndex;
+  sliderGruba_Git(grupIndex);
+  
+  // 5 saniye sonra otomatik döngüyü tekrar başlat
+  setTimeout(() => {
+    const toplamGrup = document.querySelectorAll('.pozisyon-slider-grup').length;
+    if (toplamGrup > 1) {
+      baslatPozisyonSlider(toplamGrup);
+    }
+  }, 5000);
+};
 
 // ───────────────────────────────────────────────
 // Tek bir pozisyon kartı HTML'i
@@ -213,7 +393,7 @@ function pozisyonKartHTML(p) {
   }
   
   // Aktif çalışan sayısı/lokasyon gibi meta
-  const lokasyon = p.lokasyon || 'Tuzla Aydınlı / İstanbul';
+  const lokasyon = p.lokasyon || 'Aydınlı Mah. Bahçeler Sk. No:45 Tuzla / İstanbul';
   const calismaTipi = p.calismaTipi || 'Tam zamanlı';
   
   return `
