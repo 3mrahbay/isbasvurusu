@@ -471,7 +471,19 @@ async function aiRaporYukle(adayEposta) {
       return;
     }
     
-    alani.innerHTML = aiRaporHTML(analiz, veri);
+    // 🔍 Davranış analizi için test cevaplarını da yükle
+    let davranisAnalizi = null;
+    try {
+      const testRef = doc(db, 'testCevaplari', adayEposta);
+      const testSnap = await getDoc(testRef);
+      if (testSnap.exists()) {
+        davranisAnalizi = testSnap.data().davranisAnalizi || null;
+      }
+    } catch (e) {
+      console.warn('Test cevapları yüklenemedi:', e);
+    }
+    
+    alani.innerHTML = aiRaporHTML(analiz, veri, davranisAnalizi);
     
   } catch (hata) {
     console.error('AI rapor yükleme hatası:', hata);
@@ -487,7 +499,7 @@ async function aiRaporYukle(adayEposta) {
 // ───────────────────────────────────────────────
 // AI Raporu HTML
 // ───────────────────────────────────────────────
-function aiRaporHTML(analiz, veri) {
+function aiRaporHTML(analiz, veri, davranisAnalizi) {
   const skor = analiz.genelUyumSkoru || 0;
   const etiket = analiz.tavsiyeEtiketi || 'degerlendirilmeli';
   
@@ -675,6 +687,175 @@ function aiRaporHTML(analiz, veri) {
     ${hikayeAnalizHTML}
     ${mulakatHTML}
     ${digerHTML}
+    ${davranisAnaliziKartHTML(davranisAnalizi, analiz.sahtekarlikTespiti)}
+  `;
+}
+
+// ───────────────────────────────────────────────
+// 🔍 Davranış Analizi Kartı (Süre + Paste + AI Tespiti)
+// ───────────────────────────────────────────────
+function davranisAnaliziKartHTML(davranis, sahtekarlik) {
+  if (!davranis && !sahtekarlik) return '';
+  
+  const da = davranis || {};
+  const st = sahtekarlik || { yapilan: 'yok', aiKullanimIhtimali: 0 };
+  
+  // Toplam süre
+  const toplamDk = Math.floor((da.toplamSureSn || 0) / 60);
+  const toplamSn = (da.toplamSureSn || 0) % 60;
+  const sureMetin = `${toplamDk} dakika ${toplamSn} saniye`;
+  
+  // İdeal süre kontrolü
+  let sureRenk = '#2c5530';
+  let sureIkon = '✅';
+  let sureUyari = 'İdeal aralıkta';
+  if (da.toplamSureSn < 8 * 60) {
+    sureRenk = '#d32f2f'; sureIkon = '⚠️'; sureUyari = 'Çok hızlı! Acele cevap riski';
+  } else if (da.toplamSureSn < 20 * 60) {
+    sureRenk = '#f57c00'; sureIkon = '🟡'; sureUyari = 'Biraz hızlı';
+  } else if (da.toplamSureSn > 60 * 60) {
+    sureRenk = '#f57c00'; sureIkon = '🟡'; sureUyari = 'Çok yavaş - aşırı dikkat veya AI kullanımı?';
+  }
+  
+  // Paste sayısı
+  let toplamPaste = 0;
+  let toplamPasteKarakter = 0;
+  Object.values(da.pasteOlaylari || {}).forEach(arr => {
+    arr.forEach(o => { toplamPaste++; toplamPasteKarakter += o.karakter; });
+  });
+  
+  // Bölüm süreleri
+  let bolumHTML = '';
+  if (da.bolumSureleri) {
+    const bolumAdlari = {
+      1: 'Kişilik (Big Five)',
+      2: 'Çocuk Değerleri',
+      3: 'Sınıf Senaryoları',
+      4: 'Hikayeler ✏️',
+      5: 'Çocuk Koruma',
+      6: 'Hızlı Tepkiler'
+    };
+    bolumHTML = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 10px;">';
+    Object.keys(da.bolumSureleri).forEach(no => {
+      const sn = da.bolumSureleri[no];
+      const dk = Math.floor(sn/60);
+      bolumHTML += `
+        <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid #e0e0e0;">
+          <div style="font-size: 11px; color: #666;">${bolumAdlari[no] || 'Bölüm '+no}</div>
+          <div style="font-weight: 700; color: #2c5530;">${dk}dk ${sn%60}sn</div>
+        </div>
+      `;
+    });
+    bolumHTML += '</div>';
+  }
+  
+  // AI Tespit Seviyesi
+  const aiSeviyeKonfig = {
+    'yok': { renk: '#2c5530', bg: '#e8f5e9', emoji: '✅', metin: 'AI Kullanımı Tespit Edilmedi' },
+    'supheli': { renk: '#f57c00', bg: '#fff3e0', emoji: '🟡', metin: 'Hafif Şüpheli - Mülakatta Sorulmalı' },
+    'yuksekIhtimal': { renk: '#e65100', bg: '#ffe0b2', emoji: '🟠', metin: 'Yüksek İhtimal AI Kullanımı' },
+    'kesin': { renk: '#d32f2f', bg: '#ffcdd2', emoji: '🚨', metin: 'KESIN AI / Kopya Yapıştırma!' }
+  };
+  const aiKonfig = aiSeviyeKonfig[st.yapilan] || aiSeviyeKonfig['yok'];
+  
+  return `
+    <!-- 🔍 DAVRANIŞ ANALİZİ KARTI -->
+    <div class="kart" style="background: linear-gradient(to right, #f5f0ff 0%, white 60%); border-left: 4px solid #764ba2; margin-top: 16px;">
+      <h3 style="color: #764ba2;">🔍 Test Davranış Analizi & Sahtekarlık Tespiti</h3>
+      <p style="color: var(--gri); font-size: 14px; margin-bottom: 16px;">
+        Adayın test sırasındaki davranışları, AI/kopya kullanım ihtimali
+      </p>
+      
+      <!-- AI TESPİT SEVİYESİ - VURGULU -->
+      <div style="background: ${aiKonfig.bg}; padding: 16px; border-radius: 12px; margin-bottom: 16px; 
+                  border-left: 4px solid ${aiKonfig.renk};">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="font-size: 13px; color: ${aiKonfig.renk}; font-weight: 600; margin-bottom: 4px;">
+              🤖 AI / KOPYA TESPİT DURUMU
+            </div>
+            <div style="font-size: 18px; font-weight: 800; color: ${aiKonfig.renk};">
+              ${aiKonfig.emoji} ${aiKonfig.metin}
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 11px; color: ${aiKonfig.renk};">AI KULLANIM İHTİMALİ</div>
+            <div style="font-size: 32px; font-weight: 800; color: ${aiKonfig.renk};">
+              %${st.aiKullanimIhtimali || 0}
+            </div>
+          </div>
+        </div>
+        ${st.yorumu ? `
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.1); 
+                      font-size: 14px; line-height: 1.6; color: ${aiKonfig.renk};">
+            <strong>Yorum:</strong> ${st.yorumu}
+          </div>
+        ` : ''}
+        ${st.kanitlar && st.kanitlar.length > 0 ? `
+          <div style="margin-top: 12px;">
+            <strong style="color: ${aiKonfig.renk}; font-size: 13px;">📋 Kanıtlar:</strong>
+            <ul style="margin: 6px 0 0 20px; color: ${aiKonfig.renk}; font-size: 14px;">
+              ${st.kanitlar.map(k => `<li style="margin-bottom: 4px;">${k}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+      </div>
+      
+      <!-- METRIKLER GRID -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+        
+        <!-- Toplam Süre -->
+        <div style="background: white; padding: 16px; border-radius: 10px; border: 1px solid #e0e0e0; text-align: center;">
+          <div style="font-size: 11px; color: #666; margin-bottom: 4px;">⏱️ TOPLAM SÜRE</div>
+          <div style="font-size: 22px; font-weight: 700; color: ${sureRenk};">${sureMetin}</div>
+          <div style="font-size: 12px; color: ${sureRenk}; margin-top: 4px;">${sureIkon} ${sureUyari}</div>
+        </div>
+        
+        <!-- Paste Olayları -->
+        <div style="background: white; padding: 16px; border-radius: 10px; border: 1px solid #e0e0e0; text-align: center;">
+          <div style="font-size: 11px; color: #666; margin-bottom: 4px;">📋 YAPIŞTIRMA</div>
+          <div style="font-size: 22px; font-weight: 700; color: ${toplamPaste > 0 ? '#d32f2f' : '#2c5530'};">
+            ${toplamPaste > 0 ? `${toplamPaste} olay` : '✅ Yok'}
+          </div>
+          ${toplamPaste > 0 ? `
+            <div style="font-size: 12px; color: #d32f2f; margin-top: 4px;">
+              ${toplamPasteKarakter} karakter yapıştırıldı!
+            </div>
+          ` : `
+            <div style="font-size: 12px; color: #2c5530; margin-top: 4px;">
+              Tüm cevaplar yazılı
+            </div>
+          `}
+        </div>
+        
+      </div>
+      
+      <!-- Bölüm Süreleri -->
+      ${bolumHTML ? `
+        <div style="margin-top: 16px;">
+          <strong style="font-size: 13px; color: #666;">📊 Her Bölümde Geçirdiği Süre:</strong>
+          ${bolumHTML}
+        </div>
+      ` : ''}
+      
+      <!-- Paste Detayları (varsa) -->
+      ${toplamPaste > 0 ? `
+        <div style="background: #fff3e0; padding: 12px; border-radius: 8px; margin-top: 16px; border-left: 3px solid #f57c00;">
+          <strong style="color: #e65100; font-size: 13px;">⚠️ Yapıştırılan İçerikler:</strong>
+          <div style="margin-top: 6px; font-size: 13px;">
+            ${Object.keys(da.pasteOlaylari).map(soruId => {
+              const olaylar = da.pasteOlaylari[soruId];
+              return olaylar.map(o => `
+                <div style="background: white; padding: 8px; border-radius: 6px; margin-top: 6px;">
+                  <strong>${soruId}:</strong> ${o.karakter} karakter
+                  ${o.ilkSatir ? `<div style="color: #666; font-style: italic; margin-top: 4px;">"${o.ilkSatir}..."</div>` : ''}
+                </div>
+              `).join('');
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
+    </div>
   `;
 }
 

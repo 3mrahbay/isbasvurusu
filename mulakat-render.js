@@ -682,6 +682,37 @@ export function notTabHTML(aday, mulakatNotu) {
       </p>
       <textarea data-not-key="sonrakiAdimlar" placeholder="Pazartesi WhatsApp ile bilgi vereceğim, 2. tur mülakat ayarlanacak...">${m.sonrakiAdimlar || ''}</textarea>
     </div>
+    
+    <!-- 📧 MAIL GÖNDERME -->
+    <div class="kart" style="background: linear-gradient(135deg, #ffefd5 0%, #fff8e7 100%); border-left: 4px solid #f57c00;">
+      <h3 style="color: #e65100; margin-bottom: 12px;">📧 Adaya Sonuç Bildir</h3>
+      <p style="color: var(--gri); font-size: 14px; line-height: 1.7; margin-bottom: 16px;">
+        Karara göre adaya mail gönderebilirsiniz. <strong>Teklif</strong> veya 
+        <strong>olumsuz dönüş</strong> maillerini özelleştirip yollayın.
+      </p>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <button class="btn" 
+                onclick="teklifMailModalAc()"
+                style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); 
+                       color: white; padding: 14px;">
+          🎉 Teklif Maili Hazırla
+        </button>
+        
+        <button class="btn" 
+                onclick="olumsuzMailModalAc()"
+                style="background: #f5f5f5; color: #555; padding: 14px;">
+          📨 Havuza Al ve Bilgilendir
+        </button>
+      </div>
+      
+      ${m.sonGonderilenMail ? `
+        <div style="margin-top: 14px; padding: 12px; background: white; border-radius: 8px; font-size: 13px;">
+          📬 <strong>Son gönderilen mail:</strong> ${m.sonGonderilenMail.tip || '-'} 
+          (${m.sonGonderilenMail.tarih ? tarihSaatFormatla(m.sonGonderilenMail.tarih) : '-'})
+        </div>
+      ` : ''}
+    </div>
   `;
 }
 

@@ -7,7 +7,8 @@ import {
   onAuthStateChanged,
   signOut,
   doc, getDoc, setDoc, updateDoc,
-  serverTimestamp
+  serverTimestamp,
+  PROXY_URL
 } from './firebase-config.js';
 
 import { 
@@ -31,6 +32,17 @@ let aktifKullanici = null;
 let aktifBasvuru = null;
 let aktifBolum = 1;
 let cevaplar = {}; // { 'k01': 5, 'd02': 'A', 's03': { secim: 'B', neden: '...' } }
+
+// 🔍 DAVRANIŞSAL ANALİZ - Sahtekarlık tespiti
+let davranisAnalizi = {
+  testBaslangicZamani: null,
+  testBitisZamani: null,
+  toplamSureSn: 0,
+  pasteOlaylari: {},  // { 'h01': [{karakter, zaman}, ...], ... }
+  yazmaSureleri: {},  // { 'h01': { ilkYazma, sonYazma, toplamKarakter }, ... }
+  bolumSureleri: {}   // { 1: 120, 2: 90, ... } saniye
+};
+let bolumBaslangicZamani = null;
 const TOPLAM_SORU = toplamSoruSayisi();
 
 // ───────────────────────────────────────────────
@@ -112,6 +124,11 @@ onAuthStateChanged(auth, async (kullanici) => {
 window.testiBaslat = function() {
   document.getElementById('karsilamaEkran').classList.add('gizli');
   document.getElementById('ilerlemeBar').style.display = 'block';
+  
+  // 🔍 Davranış takibi başlat
+  davranisAnalizi.testBaslangicZamani = Date.now();
+  bolumBaslangicZamani = Date.now();
+  
   bolumYukle(1);
 };
 
@@ -247,10 +264,53 @@ function eventBaglA() {
   
   // Hikaye textarea
   document.querySelectorAll('.hikaye-alani textarea').forEach(ta => {
+    
+    // 🔍 PASTE EVENT - Yapıştırma takibi
+    ta.addEventListener('paste', e => {
+      const soruId = e.target.dataset.soruId;
+      if (!soruId) return;
+      
+      const yapistirilan = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+      
+      if (!davranisAnalizi.pasteOlaylari[soruId]) {
+        davranisAnalizi.pasteOlaylari[soruId] = [];
+      }
+      
+      davranisAnalizi.pasteOlaylari[soruId].push({
+        karakter: yapistirilan.length,
+        zaman: Date.now() - davranisAnalizi.testBaslangicZamani,
+        ilkSatir: yapistirilan.substring(0, 100) // İlk 100 karakter (analiz için)
+      });
+      
+      console.log(`🚨 Yapıştırma yakalandı: ${soruId} - ${yapistirilan.length} karakter`);
+    });
+    
+    // 🔍 İLK YAZMA ANI
+    ta.addEventListener('focus', e => {
+      const soruId = e.target.dataset.soruId;
+      if (!soruId) return;
+      
+      if (!davranisAnalizi.yazmaSureleri[soruId]) {
+        davranisAnalizi.yazmaSureleri[soruId] = {
+          ilkYazma: Date.now() - davranisAnalizi.testBaslangicZamani,
+          sonYazma: null,
+          toplamKarakter: 0,
+          karakterDeggismeleri: 0
+        };
+      }
+    });
+    
     ta.addEventListener('input', e => {
       const soruId = e.target.dataset.soruId;
       const minKar = parseInt(e.target.dataset.minKarakter) || 0;
       cevaplar[soruId] = e.target.value;
+      
+      // 🔍 YAZMA TAKİBİ
+      if (davranisAnalizi.yazmaSureleri[soruId]) {
+        davranisAnalizi.yazmaSureleri[soruId].sonYazma = Date.now() - davranisAnalizi.testBaslangicZamani;
+        davranisAnalizi.yazmaSureleri[soruId].toplamKarakter = e.target.value.length;
+        davranisAnalizi.yazmaSureleri[soruId].karakterDeggismeleri++;
+      }
       
       // Karakter sayacı
       const sayacEl = e.target.closest('.hikaye-alani').querySelector('.karakter-sayisi');
@@ -348,10 +408,18 @@ async function kaydet() {
 // Bölüm tamamla
 // ───────────────────────────────────────────────
 window.bolumTamamla = async function() {
+  // 🔍 Bu bölüm için harcanan süreyi kaydet
+  if (bolumBaslangicZamani) {
+    const sureSn = Math.floor((Date.now() - bolumBaslangicZamani) / 1000);
+    davranisAnalizi.bolumSureleri[aktifBolum] = sureSn;
+  }
+  
   await kaydet();
   
   if (aktifBolum < 6) {
     motivasyonGoster(aktifBolum + 1);
+    // Yeni bölüm başlangıç zamanı
+    bolumBaslangicZamani = Date.now();
   } else {
     // Son bölümdü, testi bitir
     await testiTamamla();
@@ -401,12 +469,25 @@ window.sonrakiBolumeBasla = function() {
 // ───────────────────────────────────────────────
 async function testiTamamla() {
   try {
-    // Final kayıt
+    // 🔍 Test bitiş zamanı + toplam süre
+    davranisAnalizi.testBitisZamani = Date.now();
+    davranisAnalizi.toplamSureSn = Math.floor(
+      (davranisAnalizi.testBitisZamani - davranisAnalizi.testBaslangicZamani) / 1000
+    );
+    
+    // Son bölümün süresini de kaydet
+    if (bolumBaslangicZamani) {
+      const sureSn = Math.floor((Date.now() - bolumBaslangicZamani) / 1000);
+      davranisAnalizi.bolumSureleri[aktifBolum] = sureSn;
+    }
+    
+    // Final kayıt + davranış verisi
     await setDoc(doc(db, 'testCevaplari', aktifKullanici.email), {
       cevaplar: cevaplar,
-      aktifBolum: 7, // Tamamlandı
+      aktifBolum: 7,
       tamamlandi: true,
-      tamamlanmaZamani: serverTimestamp()
+      tamamlanmaZamani: serverTimestamp(),
+      davranisAnalizi: davranisAnalizi
     }, { merge: true });
     
     // Başvuru durumunu güncelle
@@ -431,9 +512,51 @@ async function testiTamamla() {
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
+    // 🤖 AI ANALİZİNİ ARKA PLANDA TETİKLE (kullanıcı sayfayı kapatabilir)
+    aiAnaliziTetikle().catch(e => console.warn('AI analiz hatası:', e));
+    
   } catch (hata) {
     console.error('Tamamlama hatası:', hata);
     alertGoster('hata', 'Bir hata oluştu: ' + hata.message);
+  }
+}
+
+// ───────────────────────────────────────────────
+// AI Analizi tetikle (arka planda)
+// ───────────────────────────────────────────────
+async function aiAnaliziTetikle() {
+  try {
+    console.log('🤖 AI analizi başlatılıyor...');
+    
+    const yanit = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        islem: 'aiAnaliz',
+        adayBilgileri: aktifBasvuru,
+        testCevaplari: cevaplar,
+        davranisAnalizi: davranisAnalizi
+      })
+    });
+    
+    const sonuc = await yanit.json();
+    
+    if (sonuc.basarili && sonuc.analiz) {
+      // Analizi Firestore'a kaydet
+      await setDoc(doc(db, 'analizler', aktifKullanici.email), {
+        adayEposta: aktifKullanici.email,
+        adayAdi: aktifBasvuru?.adayAdi || '',
+        analiz: sonuc.analiz,
+        tokenKullanimi: sonuc.tokenKullanimi || null,
+        olusturmaZamani: serverTimestamp()
+      });
+      
+      console.log('✅ AI analizi tamamlandı ve kaydedildi');
+    } else {
+      console.warn('⚠️ AI analiz hatası:', sonuc.hata);
+    }
+  } catch (hata) {
+    console.error('AI analiz fetch hatası:', hata);
   }
 }
 

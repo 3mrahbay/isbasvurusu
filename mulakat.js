@@ -363,6 +363,347 @@ window.mulakatSonuAnalizYap = async function() {
 };
 
 // ───────────────────────────────────────────────
+// 📧 TEKLİF MAİLİ MODAL
+// ───────────────────────────────────────────────
+window.teklifMailModalAc = function() {
+  const ad = aktifAday.adayAdi || 'Aday';
+  const pozisyon = aktifAday.pozisyonBaslik || '';
+  const eposta = aktifAdayEposta;
+  const beklediMaas = aktifAday.kisiselBilgiler?.ucretBeklenti || '';
+  const baslamaTarihi = aktifAday.kisiselBilgiler?.baslamaTarihi || '';
+  
+  // AI'dan uyum yüzdesi
+  const ilkSkor = aktifAnaliz?.genelUyumSkoru || 0;
+  const sonSkor = aktifMulakatNotu?.mulakatSonuAnaliz?.guncellenmisSkor || ilkSkor;
+  
+  const modal = document.createElement('div');
+  modal.id = 'teklifMailModal';
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.7); z-index: 9999; padding: 20px; 
+    overflow-y: auto; display: flex; align-items: flex-start; justify-content: center;
+  `;
+  
+  modal.innerHTML = `
+    <div style="background: white; max-width: 700px; width: 100%; border-radius: 16px; 
+                padding: 32px; margin: 20px auto;">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: var(--ana-yesil); margin: 0;">🎉 Teklif Maili Hazırla</h2>
+        <button onclick="document.getElementById('teklifMailModal').remove()" 
+                style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">✕</button>
+      </div>
+      
+      <div style="background: #e8f5e9; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
+        <strong>📧 Alıcı:</strong> ${ad} (${eposta})<br>
+        <strong>🎯 Pozisyon:</strong> ${pozisyon}
+      </div>
+      
+      <!-- UYUM YÜZDESİ -->
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: var(--ana-yesil);">
+          📊 Mailde Belirtilecek Uyum Yüzdesi:
+        </label>
+        <input type="number" id="teklifUyum" min="0" max="100" value="${sonSkor}" 
+               style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;">
+        <small style="color: #666;">AI'ın belirlediği uyum: %${sonSkor}</small>
+      </div>
+      
+      <!-- MAAŞ -->
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: var(--ana-yesil);">
+          💰 Teklif Edilen Net Maaş (TL):
+        </label>
+        <input type="number" id="teklifMaas" min="0" value="${beklediMaas}" 
+               style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;">
+        <small style="color: #666;">${beklediMaas ? `Adayın beklentisi: ${parseInt(beklediMaas).toLocaleString('tr-TR')} TL` : 'Aday maaş belirtmemiş'}</small>
+      </div>
+      
+      <!-- BAŞLAMA TARİHİ -->
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: var(--ana-yesil);">
+          📅 Başlama Tarihi:
+        </label>
+        <input type="text" id="teklifBaslama" value="${baslamaTarihi}" 
+               placeholder="Örn: 1 Eylül 2026"
+               style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;">
+      </div>
+      
+      <!-- YAN HAKLAR DROPDOWN (multiple select) -->
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: var(--ana-yesil);">
+          🎁 Yan Haklar (birden fazla seçebilirsiniz):
+        </label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 14px; 
+                    background: #f8fffa; border: 2px solid #e0e0e0; border-radius: 8px;">
+          ${[
+            { kod: 'yol', metin: '🚌 Yol yardımı / Servis' },
+            { kod: 'yemek', metin: '🍽️ Öğle yemeği ücretsiz' },
+            { kod: 'sgk', metin: '🛡️ SGK (yasal)' },
+            { kod: 'sigorta', metin: '⚕️ Özel sağlık sigortası' },
+            { kod: 'izin14', metin: '🌴 Yıllık izin (14 gün)' },
+            { kod: 'izin20', metin: '🌴 Yıllık izin (20 gün)' },
+            { kod: 'dogum', metin: '👶 Doğum izni (yasal)' },
+            { kod: 'cocuk', metin: '🧒 Çocuk için indirimli kayıt' },
+            { kod: 'egitim', metin: '📚 Sürekli eğitim/seminer desteği' },
+            { kod: 'yilsonu', metin: '🎁 Yıl sonu primi' },
+            { kod: 'performans', metin: '⭐ Performans primi' },
+            { kod: 'dogumGunu', metin: '🎂 Doğum günü izni' }
+          ].map(yh => `
+            <label style="display: flex; align-items: center; gap: 8px; padding: 8px; cursor: pointer;
+                          background: white; border-radius: 6px; transition: all 0.2s;">
+              <input type="checkbox" value="${yh.metin}" data-kod="${yh.kod}" class="yan-hak-cb">
+              <span style="font-size: 14px;">${yh.metin}</span>
+            </label>
+          `).join('')}
+        </div>
+        <small style="color: #666; margin-top: 4px; display: block;">
+          ✓ İşaretlediğiniz yan haklar mailde liste olarak görünecek
+        </small>
+      </div>
+      
+      <!-- KİŞİSEL MESAJ -->
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: var(--ana-yesil);">
+          💌 Kişisel Mesaj (isteğe bağlı):
+        </label>
+        <textarea id="teklifKisisel" rows="3" 
+                  placeholder="Mülakatta sizinle tanışmak çok keyifliydi. Çocuklara olan yaklaşımınız..."
+                  style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;
+                         font-family: inherit; font-size: 14px; line-height: 1.6;"></textarea>
+        <small style="color: #666;">Bu mesaj mailde özel bir kart içinde görünecek</small>
+      </div>
+      
+      <!-- ÖNİZLEME UYARI -->
+      <div style="background: #fff3e0; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; line-height: 1.6;">
+        ⚠️ <strong>Mail göndermeden önce:</strong> Bilgileri kontrol edin. Mail gönderildikten sonra 
+        düzenlenemez. Adayla maaş konusunda anlaşma sağlandıktan sonra göndermenizi öneririz.
+      </div>
+      
+      <!-- BUTONLAR -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <button class="btn btn-ikincil" onclick="document.getElementById('teklifMailModal').remove()">
+          ❌ İptal
+        </button>
+        <button class="btn" onclick="teklifMailGonder()" 
+                style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);">
+          📧 Teklif Mailini Gönder
+        </button>
+      </div>
+      
+      <div id="teklifMailDurum" style="margin-top: 12px;"></div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+};
+
+// ───────────────────────────────────────────────
+// 📧 TEKLİF MAİLİ GÖNDER
+// ───────────────────────────────────────────────
+window.teklifMailGonder = async function() {
+  const uyum = document.getElementById('teklifUyum').value;
+  const maas = document.getElementById('teklifMaas').value;
+  const baslama = document.getElementById('teklifBaslama').value;
+  const kisisel = document.getElementById('teklifKisisel').value;
+  const durum = document.getElementById('teklifMailDurum');
+  
+  // Yan hakları topla
+  const yanHaklar = [];
+  document.querySelectorAll('.yan-hak-cb:checked').forEach(cb => {
+    yanHaklar.push(cb.value);
+  });
+  
+  if (yanHaklar.length === 0) {
+    if (!confirm('Hiç yan hak seçmediniz. Yine de göndermek istiyor musunuz?')) return;
+  }
+  
+  const yanHaklarHTML = yanHaklar.length > 0
+    ? '<ul style="padding-left: 20px; margin: 0;">' + 
+      yanHaklar.map(yh => `<li style="margin-bottom: 6px;">${yh}</li>`).join('') + 
+      '</ul>'
+    : '';
+  
+  durum.innerHTML = '<div style="padding:10px; background:#fff3e0; border-radius:8px;">⏳ Mail gönderiliyor...</div>';
+  
+  try {
+    const yanit = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        islem: 'mailGonder',
+        alici: aktifAdayEposta,
+        aliciAdi: aktifAday.adayAdi || 'Aday',
+        tip: 'teklifMaili',
+        parametreler: {
+          pozisyonBaslik: aktifAday.pozisyonBaslik || '',
+          uyumYuzdesi: parseInt(uyum) || 0,
+          maasOnerimiz: maas,
+          baslamaTarihi: baslama,
+          yanHaklarHTML: yanHaklarHTML,
+          kisiselMesaj: kisisel
+        }
+      })
+    });
+    
+    const sonuc = await yanit.json();
+    
+    if (sonuc.basarili) {
+      // Mülakat notuna kaydet
+      await mulakatNotuKaydet({
+        sonGonderilenMail: {
+          tip: 'Teklif Maili',
+          tarih: serverTimestamp(),
+          maas: maas,
+          uyum: uyum,
+          yanHaklar: yanHaklar.length
+        }
+      });
+      
+      durum.innerHTML = `
+        <div style="padding:14px; background:#d4f5d4; border-radius:8px; color:#1b5e20;">
+          ✅ <strong>Teklif maili başarıyla gönderildi!</strong><br>
+          ${aktifAdayEposta} adresine ulaştı.
+        </div>
+      `;
+      
+      setTimeout(() => {
+        document.getElementById('teklifMailModal')?.remove();
+      }, 2500);
+    } else {
+      durum.innerHTML = `<div style="padding:10px; background:#ffebee; border-radius:8px;">❌ Hata: ${sonuc.hata || 'Bilinmeyen'}</div>`;
+    }
+  } catch (e) {
+    durum.innerHTML = `<div style="padding:10px; background:#ffebee; border-radius:8px;">❌ Hata: ${e.message}</div>`;
+  }
+};
+
+// ───────────────────────────────────────────────
+// 📨 OLUMSUZ MAİL MODAL
+// ───────────────────────────────────────────────
+window.olumsuzMailModalAc = function() {
+  const ad = aktifAday.adayAdi || 'Aday';
+  const eposta = aktifAdayEposta;
+  
+  const modal = document.createElement('div');
+  modal.id = 'olumsuzMailModal';
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.7); z-index: 9999; padding: 20px; 
+    overflow-y: auto; display: flex; align-items: flex-start; justify-content: center;
+  `;
+  
+  modal.innerHTML = `
+    <div style="background: white; max-width: 600px; width: 100%; border-radius: 16px; 
+                padding: 32px; margin: 20px auto;">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: var(--ana-yesil); margin: 0;">📨 Havuza Al ve Bilgilendir</h2>
+        <button onclick="document.getElementById('olumsuzMailModal').remove()" 
+                style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">✕</button>
+      </div>
+      
+      <div style="background: #f5f5f5; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
+        <strong>📧 Alıcı:</strong> ${ad} (${eposta})<br>
+        <strong>📋 İşlem:</strong> Aday havuzuna eklenecek, gelecekte uygun pozisyonlar için bilgilendirilecek
+      </div>
+      
+      <!-- KİŞİSEL MESAJ -->
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: var(--ana-yesil);">
+          💌 Kişisel Mesaj (isteğe bağlı):
+        </label>
+        <textarea id="olumsuzKisisel" rows="4" 
+                  placeholder="Sizinle tanışmak güzeldi. Çocuklara olan yaklaşımınız çok değerli..."
+                  style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;
+                         font-family: inherit; font-size: 14px; line-height: 1.6;"></textarea>
+        <small style="color: #666;">Adayı içtenlikle yönlendiren ve değer veren bir mesaj yazabilirsiniz</small>
+      </div>
+      
+      <!-- BİLGİ -->
+      <div style="background: #f8fffa; padding: 14px; border-radius: 8px; margin-bottom: 16px; 
+                  border-left: 3px solid #4a7c59;">
+        <p style="font-size: 14px; line-height: 1.7; color: #333; margin: 0;">
+          📌 Mail içeriğinde:<br>
+          ✓ Başvurusu için teşekkür<br>
+          ✓ Bu pozisyon için olumsuz dönüş (yumuşak dilde)<br>
+          ✓ <strong>Aday havuzuna alındığı bildirimi</strong><br>
+          ✓ Yeni pozisyonlarda otomatik bilgilendirileceği taahhüdü<br>
+          ✓ Sosyal medya takip linkleri
+        </p>
+      </div>
+      
+      <!-- BUTONLAR -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <button class="btn btn-ikincil" onclick="document.getElementById('olumsuzMailModal').remove()">
+          ❌ İptal
+        </button>
+        <button class="btn" onclick="olumsuzMailGonder()">
+          📨 Maili Gönder
+        </button>
+      </div>
+      
+      <div id="olumsuzMailDurum" style="margin-top: 12px;"></div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+};
+
+// ───────────────────────────────────────────────
+// 📨 OLUMSUZ MAİL GÖNDER
+// ───────────────────────────────────────────────
+window.olumsuzMailGonder = async function() {
+  const kisisel = document.getElementById('olumsuzKisisel').value;
+  const durum = document.getElementById('olumsuzMailDurum');
+  
+  durum.innerHTML = '<div style="padding:10px; background:#fff3e0; border-radius:8px;">⏳ Mail gönderiliyor...</div>';
+  
+  try {
+    const yanit = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        islem: 'mailGonder',
+        alici: aktifAdayEposta,
+        aliciAdi: aktifAday.adayAdi || 'Aday',
+        tip: 'olumsuzMaili',
+        parametreler: {
+          pozisyonBaslik: aktifAday.pozisyonBaslik || '',
+          kisiselMesaj: kisisel
+        }
+      })
+    });
+    
+    const sonuc = await yanit.json();
+    
+    if (sonuc.basarili) {
+      await mulakatNotuKaydet({
+        sonGonderilenMail: {
+          tip: 'Havuz Maili (Olumsuz)',
+          tarih: serverTimestamp()
+        }
+      });
+      
+      durum.innerHTML = `
+        <div style="padding:14px; background:#d4f5d4; border-radius:8px; color:#1b5e20;">
+          ✅ <strong>Mail başarıyla gönderildi!</strong><br>
+          Aday havuza eklendi, ${aktifAdayEposta} adresine bilgi verildi.
+        </div>
+      `;
+      
+      setTimeout(() => {
+        document.getElementById('olumsuzMailModal')?.remove();
+      }, 2500);
+    } else {
+      durum.innerHTML = `<div style="padding:10px; background:#ffebee; border-radius:8px;">❌ Hata: ${sonuc.hata || 'Bilinmeyen'}</div>`;
+    }
+  } catch (e) {
+    durum.innerHTML = `<div style="padding:10px; background:#ffebee; border-radius:8px;">❌ Hata: ${e.message}</div>`;
+  }
+};
+
+// ───────────────────────────────────────────────
 // Çıkış
 // ───────────────────────────────────────────────
 window.cikisYap = async function() {
