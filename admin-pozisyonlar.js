@@ -32,6 +32,8 @@ import {
   alertGoster
 } from './yardimci.js';
 
+import { editorOlustur } from './metin-editor.js';
+
 let tumPozisyonlar = [];
 let aktifFiltre = 'hepsi';
 let duzenlemeMod = null; // null, 'yeni', veya pozisyonId
@@ -230,6 +232,12 @@ window.yeniPozisyon = function() {
   document.getElementById('listeGorunumu').classList.add('gizli');
   document.getElementById('duzenlemeGorunumu').classList.remove('gizli');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // Editörleri etkinleştir
+  setTimeout(() => {
+    editorOlustur('kisaAciklama', { onizleme: false });
+    editorOlustur('detayAciklama', { onizleme: true });
+  }, 100);
 };
 
 // ───────────────────────────────────────────────
@@ -267,6 +275,12 @@ window.pozisyonDuzenle = function(pozisyonId) {
   document.getElementById('listeGorunumu').classList.add('gizli');
   document.getElementById('duzenlemeGorunumu').classList.remove('gizli');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // Editörleri etkinleştir
+  setTimeout(() => {
+    editorOlustur('kisaAciklama', { onizleme: false });
+    editorOlustur('detayAciklama', { onizleme: true });
+  }, 100);
 };
 
 // ───────────────────────────────────────────────

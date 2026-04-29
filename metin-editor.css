@@ -1,0 +1,270 @@
+/* ═══════════════════════════════════════════════════════════
+   METİN EDİTÖRÜ STİLLERİ
+   ═══════════════════════════════════════════════════════════ */
+
+.metin-editor-sarici {
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  transition: border-color 0.2s;
+  margin-bottom: 8px;
+}
+
+.metin-editor-sarici:focus-within {
+  border-color: var(--ana-yesil);
+}
+
+/* TOOLBAR */
+.metin-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  background: linear-gradient(to bottom, #fafafa 0%, #f5f5f5 100%);
+  border-bottom: 1px solid #e0e0e0;
+  flex-wrap: wrap;
+}
+
+.me-btn {
+  background: white;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--metin);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  min-width: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.me-btn:hover {
+  background: var(--cok-acik-yesil);
+  border-color: var(--ana-yesil);
+  color: var(--ana-yesil);
+}
+
+.me-btn:active {
+  transform: scale(0.95);
+}
+
+.me-btn.aktif {
+  background: var(--ana-yesil);
+  color: white;
+  border-color: var(--ana-yesil);
+}
+
+.me-btn strong { font-weight: 800; }
+.me-btn em { font-style: italic; }
+
+.me-onizle {
+  background: #fff3e0;
+  border-color: #ffb74d;
+  color: #e65100;
+  font-size: 12px;
+}
+
+.me-onizle:hover {
+  background: #ffe0b2;
+  border-color: #f57c00;
+  color: #bf360c;
+}
+
+.me-onizle.aktif {
+  background: var(--turuncu);
+  color: white;
+  border-color: var(--turuncu);
+}
+
+.me-ayrac {
+  width: 1px;
+  height: 24px;
+  background: #d0d0d0;
+  margin: 0 4px;
+}
+
+/* TEXTAREA - Editör içinde */
+.me-textarea {
+  width: 100%;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 14px 16px !important;
+  font-family: 'Mulish', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--metin);
+  background: white;
+  resize: vertical;
+  min-height: 120px;
+  outline: none !important;
+}
+
+.me-textarea:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ÖNİZLEME */
+.me-onizleme {
+  background: linear-gradient(to bottom, #fffbf0 0%, white 60px);
+  border-top: 2px dashed #f0b27a;
+  padding: 16px 20px;
+}
+
+.me-onizleme.gizli {
+  display: none;
+}
+
+.me-onizleme-baslik {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-weight: 700;
+  color: var(--turuncu);
+  font-size: 13px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0e0c0;
+}
+
+.me-onizleme-baslik small {
+  color: var(--gri);
+  font-weight: normal;
+  font-size: 12px;
+}
+
+.me-onizleme-icerik {
+  font-family: 'Mulish', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--metin);
+}
+
+.me-onizleme-icerik h2 {
+  color: var(--ana-yesil);
+  font-size: 22px;
+  margin: 16px 0 8px;
+  font-weight: 700;
+}
+
+.me-onizleme-icerik h3 {
+  color: var(--ana-yesil);
+  font-size: 18px;
+  margin: 14px 0 6px;
+  font-weight: 700;
+}
+
+.me-onizleme-icerik p {
+  margin: 0 0 12px;
+}
+
+.me-onizleme-icerik ul,
+.me-onizleme-icerik ol {
+  padding-left: 24px;
+  margin: 8px 0 12px;
+}
+
+.me-onizleme-icerik li {
+  margin-bottom: 4px;
+}
+
+.me-onizleme-icerik strong {
+  color: var(--ana-yesil);
+  font-weight: 700;
+}
+
+.me-onizleme-icerik em {
+  font-style: italic;
+  color: var(--metin);
+}
+
+.me-onizleme-icerik a {
+  color: var(--ana-yesil);
+  text-decoration: underline;
+}
+
+.me-onizleme-icerik .vurgu {
+  background: linear-gradient(180deg, transparent 60%, rgba(74,124,89,0.25) 60%);
+  padding: 0 2px;
+}
+
+/* MOBIL */
+@media (max-width: 600px) {
+  .metin-editor-toolbar {
+    padding: 6px 8px;
+    gap: 2px;
+  }
+  
+  .me-btn {
+    padding: 5px 8px;
+    font-size: 12px;
+    min-width: 28px;
+  }
+  
+  .me-ayrac {
+    height: 20px;
+    margin: 0 2px;
+  }
+}
+
+/* RENDER EDİLMİŞ İÇERİK (Pozisyon detayında, ana sayfada) */
+.zengin-icerik {
+  line-height: 1.8;
+  color: var(--metin);
+}
+
+.zengin-icerik h2 {
+  color: var(--ana-yesil);
+  font-size: 22px;
+  margin: 20px 0 10px;
+  font-weight: 700;
+}
+
+.zengin-icerik h3 {
+  color: var(--ana-yesil);
+  font-size: 18px;
+  margin: 16px 0 8px;
+  font-weight: 700;
+}
+
+.zengin-icerik p {
+  margin: 0 0 12px;
+}
+
+.zengin-icerik ul,
+.zengin-icerik ol {
+  padding-left: 24px;
+  margin: 10px 0 14px;
+}
+
+.zengin-icerik li {
+  margin-bottom: 6px;
+}
+
+.zengin-icerik strong {
+  color: var(--ana-yesil);
+  font-weight: 700;
+}
+
+.zengin-icerik em {
+  font-style: italic;
+}
+
+.zengin-icerik a {
+  color: var(--ana-yesil);
+  text-decoration: underline;
+}
+
+.zengin-icerik a:hover {
+  color: var(--acik-yesil);
+}
+
+.zengin-icerik .vurgu {
+  background: linear-gradient(180deg, transparent 60%, rgba(74,124,89,0.25) 60%);
+  padding: 0 2px;
+}

@@ -20,6 +20,8 @@ import {
   tarihFormatla
 } from './yardimci.js';
 
+import { metniRender } from './metin-editor.js';
+
 let pozisyonlar = [];
 let sayacInterval = null;
 
@@ -200,7 +202,7 @@ function pozisyonKartHTML(p) {
         <div>${rozetHTML}</div>
       </div>
       
-      <div class="pozisyon-aciklama">${p.kisaAciklama || 'Bu pozisyon hakkında daha fazla bilgi için detaya tıklayın.'}</div>
+      <div class="pozisyon-aciklama zengin-icerik">${p.kisaAciklama ? metniRender(p.kisaAciklama) : '<p>Bu pozisyon hakkında daha fazla bilgi için detaya tıklayın.</p>'}</div>
       
       ${sayacHTML}
       
@@ -265,8 +267,8 @@ window.pozisyonDetayGoster = function(pozisyonId) {
       <h2 style="color: var(--ana-yesil); margin-bottom: 16px;">
         ${pozisyonKategorisiBul(p.kategoriId).ikon} ${p.baslik}
       </h2>
-      <div style="white-space: pre-wrap; line-height: 1.7; color: var(--metin); margin-bottom: 24px;">
-        ${detay}
+      <div class="zengin-icerik" style="margin-bottom: 24px;">
+        ${metniRender(detay)}
       </div>
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
         <a href="basvuru.html?pozisyon=${p.id}" class="btn">🚀 Hemen Başvur</a>
@@ -291,25 +293,33 @@ async function siteIcerikYukle() {
     if (heroSnap.exists()) {
       const veri = heroSnap.data();
       if (veri.baslik) document.getElementById('heroBaslik').textContent = veri.baslik;
-      if (veri.altBaslik) document.getElementById('heroAltBaslik').textContent = veri.altBaslik;
+      if (veri.altBaslik) {
+        // Hero alt başlığı: HTML render
+        const altBaslikEl = document.getElementById('heroAltBaslik');
+        altBaslikEl.innerHTML = metniRender(veri.altBaslik);
+        altBaslikEl.classList.add('zengin-icerik');
+      }
     }
     
     // Hakkımızda
     const hakRef = doc(db, 'siteIcerik', 'hakkimizda');
     const hakSnap = await getDoc(hakRef);
     if (hakSnap.exists() && hakSnap.data().icerik) {
-      document.getElementById('hakkimizdaIcerik').innerHTML = hakSnap.data().icerik;
+      const el = document.getElementById('hakkimizdaIcerik');
+      el.innerHTML = metniRender(hakSnap.data().icerik);
+      el.classList.add('zengin-icerik');
     }
     
     // Değerler
     const degRef = doc(db, 'siteIcerik', 'degerler');
     const degSnap = await getDoc(degRef);
     if (degSnap.exists() && degSnap.data().icerik) {
-      document.getElementById('degerlerIcerik').innerHTML = degSnap.data().icerik;
+      const el = document.getElementById('degerlerIcerik');
+      el.innerHTML = metniRender(degSnap.data().icerik);
+      el.classList.add('zengin-icerik');
     }
   } catch (hata) {
     console.log('Site içerik yüklenemedi (varsayılan kullanılıyor):', hata.message);
-    // Hata olsa bile sayfa varsayılan içerikle çalışmaya devam eder
   }
 }
 

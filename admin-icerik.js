@@ -12,6 +12,7 @@ import {
 } from './firebase-config.js';
 
 import { alertGoster } from './yardimci.js';
+import { editorOlustur } from './metin-editor.js';
 
 // ───────────────────────────────────────────────
 // Auth kontrol
@@ -53,6 +54,14 @@ async function icerikleriYukle() {
     if (degSnap.exists()) {
       document.getElementById('degerlerIcerik').value = degSnap.data().icerik || '';
     }
+    
+    // 🎨 Editörleri etkinleştir
+    setTimeout(() => {
+      editorOlustur('heroAltBaslik', { onizleme: false });
+      editorOlustur('hakkimizdaIcerik', { onizleme: true });
+      editorOlustur('degerlerIcerik', { onizleme: true });
+    }, 100);
+    
   } catch (hata) {
     console.error('İçerik yükleme hatası:', hata);
     alertGoster('hata', 'İçerikler yüklenemedi: ' + hata.message);
