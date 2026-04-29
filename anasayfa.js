@@ -173,6 +173,8 @@ async function pozisyonlariYukle() {
 // Pozisyonları ekrana çiz
 // ───────────────────────────────────────────────
 let sliderInterval = null;
+let aktifGrupIndex = 0;
+let toplamGrupSayisi = 0;
 
 function pozisyonlariCiz() {
   const liste = document.getElementById('pozisyonListesi');
@@ -217,9 +219,15 @@ function pozisyonlariCiz() {
     gruplar.push(pozisyonlar.slice(i, i + 2));
   }
   
+  toplamGrupSayisi = gruplar.length;
+  
   // Slider HTML
   liste.innerHTML = `
-    <div class="pozisyon-slider-pencere">
+    <div class="pozisyon-slider-pencere" id="pozisyonSliderPencere">
+      <button class="slider-ok-btn ok-sol" onclick="sliderOnceki()" aria-label="Önceki">
+        ‹
+      </button>
+      
       <div class="pozisyon-slider-track" id="pozisyonSliderTrack">
         ${gruplar.map((grup, idx) => `
           <div class="pozisyon-slider-grup" data-grup-index="${idx}">
@@ -227,6 +235,12 @@ function pozisyonlariCiz() {
           </div>
         `).join('')}
       </div>
+      
+      <button class="slider-ok-btn ok-sag" onclick="sliderSonraki()" aria-label="Sonraki">
+        ›
+      </button>
+      
+      <div class="slider-pause-uyari">⏸ Otomatik geçiş duraklatıldı</div>
     </div>
     
     <!-- Nokta göstergeler -->
@@ -247,28 +261,48 @@ function pozisyonlariCiz() {
     </div>
   `;
   
-  // Otomatik döngü başlat
-  baslatPozisyonSlider(gruplar.length);
+  // Pencere yüksekliğini ilk grubun yüksekliğine ayarla
+  setTimeout(() => {
+    sliderYukseklikAyarla();
+    baslatPozisyonSlider();
+  }, 100);
+  
+  // Pencere boyutu değişirse yüksekliği güncelle
+  window.addEventListener('resize', sliderYukseklikAyarla);
+}
+
+// ───────────────────────────────────────────────
+// 📏 Slider yüksekliğini ayarla (ilk grubun yüksekliği kadar)
+// ───────────────────────────────────────────────
+function sliderYukseklikAyarla() {
+  const pencere = document.getElementById('pozisyonSliderPencere');
+  const ilkGrup = document.querySelector('.pozisyon-slider-grup');
+  if (!pencere || !ilkGrup) return;
+  
+  const yukseklik = ilkGrup.offsetHeight;
+  pencere.style.height = `${yukseklik}px`;
 }
 
 // ───────────────────────────────────────────────
 // 🎠 POZİSYON SLIDER - Otomatik Döngü
 // ───────────────────────────────────────────────
-let aktifGrupIndex = 0;
-
-function baslatPozisyonSlider(toplamGrup) {
-  if (toplamGrup <= 1) return;
+function baslatPozisyonSlider() {
+  if (toplamGrupSayisi <= 1) return;
   
-  aktifGrupIndex = 0;
+  if (sliderInterval) {
+    clearInterval(sliderInterval);
+  }
   
   sliderInterval = setInterval(() => {
-    aktifGrupIndex = (aktifGrupIndex + 1) % toplamGrup;
-    sliderGruba_Git(aktifGrupIndex);
-  }, 3000); // 3 saniyede bir değişir
+    aktifGrupIndex = (aktifGrupIndex + 1) % toplamGrupSayisi;
+    sliderGrubaGit(aktifGrupIndex);
+  }, 6000); // 🐢 6 saniyede bir değişir (daha rahat okuma süresi)
   
   // Hover'da duraklatma
-  const pencere = document.querySelector('.pozisyon-slider-pencere');
-  if (pencere) {
+  const pencere = document.getElementById('pozisyonSliderPencere');
+  if (pencere && !pencere.dataset.hoverBagli) {
+    pencere.dataset.hoverBagli = 'true';
+    
     pencere.addEventListener('mouseenter', () => {
       if (sliderInterval) {
         clearInterval(sliderInterval);
@@ -277,22 +311,24 @@ function baslatPozisyonSlider(toplamGrup) {
     });
     
     pencere.addEventListener('mouseleave', () => {
-      if (!sliderInterval && toplamGrup > 1) {
+      if (!sliderInterval && toplamGrupSayisi > 1) {
         sliderInterval = setInterval(() => {
-          aktifGrupIndex = (aktifGrupIndex + 1) % toplamGrup;
-          sliderGruba_Git(aktifGrupIndex);
-        }, 3000);
+          aktifGrupIndex = (aktifGrupIndex + 1) % toplamGrupSayisi;
+          sliderGrubaGit(aktifGrupIndex);
+        }, 6000);
       }
     });
   }
 }
 
-function sliderGruba_Git(grupIndex) {
+function sliderGrubaGit(grupIndex) {
   const track = document.getElementById('pozisyonSliderTrack');
   if (!track) return;
   
-  // Yukarı kaydır (her grup tam ekran yüksekliği kadar)
-  const yukseklik = track.querySelector('.pozisyon-slider-grup')?.offsetHeight || 0;
+  const ilkGrup = track.querySelector('.pozisyon-slider-grup');
+  if (!ilkGrup) return;
+  
+  const yukseklik = ilkGrup.offsetHeight;
   track.style.transform = `translateY(-${grupIndex * yukseklik}px)`;
   
   // Nokta göstergeleri güncelle
@@ -305,23 +341,34 @@ function sliderGruba_Git(grupIndex) {
   if (sayac) sayac.textContent = grupIndex + 1;
 }
 
-// Manuel grup değiştirme
+// ───────────────────────────────────────────────
+// Manuel kontroller
+// ───────────────────────────────────────────────
 window.sliderManuelDegistir = function(grupIndex) {
-  // Otomatik döngüyü resetle
   if (sliderInterval) {
     clearInterval(sliderInterval);
+    sliderInterval = null;
   }
   
   aktifGrupIndex = grupIndex;
-  sliderGruba_Git(grupIndex);
+  sliderGrubaGit(grupIndex);
   
-  // 5 saniye sonra otomatik döngüyü tekrar başlat
+  // 8 saniye sonra otomatik döngüyü tekrar başlat
   setTimeout(() => {
-    const toplamGrup = document.querySelectorAll('.pozisyon-slider-grup').length;
-    if (toplamGrup > 1) {
-      baslatPozisyonSlider(toplamGrup);
+    if (toplamGrupSayisi > 1) {
+      baslatPozisyonSlider();
     }
-  }, 5000);
+  }, 8000);
+};
+
+window.sliderSonraki = function() {
+  const yeniIndex = (aktifGrupIndex + 1) % toplamGrupSayisi;
+  sliderManuelDegistir(yeniIndex);
+};
+
+window.sliderOnceki = function() {
+  const yeniIndex = aktifGrupIndex - 1 < 0 ? toplamGrupSayisi - 1 : aktifGrupIndex - 1;
+  sliderManuelDegistir(yeniIndex);
 };
 
 // ───────────────────────────────────────────────
