@@ -9,6 +9,7 @@ import {
   signOut,
   doc, getDoc, setDoc,
   serverTimestamp,
+  PROXY_URL,
   ADMIN_EPOSTA
 } from './firebase-config.js';
 
@@ -277,6 +278,88 @@ window.yazdir = function() {
     tablar.forEach(t => t.classList.add('gizli'));
     document.getElementById(`tab-${aktifTab}`).classList.remove('gizli');
   }, 1000);
+};
+
+// ───────────────────────────────────────────────
+// 🤖 Mülakat Sonu AI Analizi Tetikle
+// ───────────────────────────────────────────────
+window.mulakatSonuAnalizYap = async function() {
+  const onay = confirm(
+    '🤖 AI Mülakat Sonu Analizi\n\n' +
+    'Bu analiz şu anda yazdığınız tüm mülakat notlarını alıp\n' +
+    'test cevaplarıyla birleştirip yeni bir değerlendirme yapacak.\n\n' +
+    'Yaklaşık 20-30 saniye sürer. Devam edilsin mi?'
+  );
+  if (!onay) return;
+  
+  const durumEl = document.getElementById('mulakatSonuAnalizDurum');
+  if (durumEl) {
+    durumEl.innerHTML = `
+      <div style="margin-top: 16px; padding: 14px; background: rgba(255,255,255,0.2); border-radius: 8px;">
+        ⏳ <strong>AI analiz yapıyor...</strong> Lütfen bekleyin (~20-30 saniye)
+      </div>
+    `;
+  }
+  
+  try {
+    const yanit = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        islem: 'mulakatSonuAnaliz',
+        adayBilgileri: aktifAday,
+        testCevaplari: aktifTestCevaplari,
+        ilkAnaliz: aktifAnaliz,
+        mulakatNotlari: aktifMulakatNotu
+      })
+    });
+    
+    const sonuc = await yanit.json();
+    
+    if (!sonuc.basarili) {
+      durumEl.innerHTML = `
+        <div style="margin-top: 16px; padding: 14px; background: rgba(255,0,0,0.2); border-radius: 8px;">
+          ❌ Analiz başarısız: ${sonuc.hata || 'Bilinmeyen hata'}
+        </div>
+      `;
+      return;
+    }
+    
+    // Mülakat notlarına ekle
+    await mulakatNotuKaydet({
+      mulakatSonuAnaliz: sonuc.analiz,
+      mulakatSonuAnalizZamani: serverTimestamp()
+    });
+    
+    // Local state güncelle
+    aktifMulakatNotu.mulakatSonuAnaliz = sonuc.analiz;
+    aktifMulakatNotu.mulakatSonuAnalizZamani = new Date();
+    
+    // Notlar tab'ını yeniden render et
+    document.getElementById('tab-not').innerHTML = notTabHTML(aktifAday, aktifMulakatNotu);
+    baglaListenerlar();
+    
+    durumEl.innerHTML = `
+      <div style="margin-top: 16px; padding: 14px; background: rgba(0,255,0,0.2); border-radius: 8px;">
+        ✅ <strong>Analiz tamamlandı!</strong> Sayfayı kaydırarak sonucu görebilirsiniz.
+      </div>
+    `;
+    
+    // 1 sn sonra sonuca scroll
+    setTimeout(() => {
+      window.scrollTo({ top: 200, behavior: 'smooth' });
+    }, 800);
+    
+  } catch (hata) {
+    console.error('Mülakat sonu analiz hatası:', hata);
+    if (durumEl) {
+      durumEl.innerHTML = `
+        <div style="margin-top: 16px; padding: 14px; background: rgba(255,0,0,0.2); border-radius: 8px;">
+          ❌ Hata: ${hata.message}
+        </div>
+      `;
+    }
+  }
 };
 
 // ───────────────────────────────────────────────

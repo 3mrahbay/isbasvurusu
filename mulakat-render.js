@@ -47,6 +47,74 @@ export function ozetTabHTML(aday, analiz, cevaplar) {
         ${k.deneyimYil ? `<div><strong>💼 Deneyim:</strong> ${k.deneyimYil} yıl</div>` : ''}
       </div>
     </div>
+    
+    <!-- 💰 ÇALIŞMA TERCİHLERİ - Mülakatta Konuşulacaklar -->
+    <div class="kart" style="background: linear-gradient(135deg, #f8fffa 0%, white 100%); border-left: 4px solid var(--ana-yesil);">
+      <h3 style="color: var(--ana-yesil); margin-bottom: 12px;">💰 Çalışma Tercihleri & Beklentiler</h3>
+      <p style="color: var(--gri); font-size: 13px; margin-bottom: 16px;">
+        Bunlar mülakatta konuşulacak ve karar verirken kıyaslayacağınız önemli noktalar
+      </p>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+        
+        <div style="background: #e8f5e9; padding: 16px; border-radius: 10px;">
+          <div style="font-size: 12px; color: #2c5530; font-weight: 600; margin-bottom: 4px;">
+            💰 MAAŞ BEKLENTİSİ
+          </div>
+          <div style="font-size: 22px; font-weight: 800; color: #2c5530;">
+            ${k.ucretBeklenti 
+              ? parseInt(k.ucretBeklenti).toLocaleString('tr-TR') + ' TL'
+              : '<span style="font-size:16px; color:#999;">Belirtilmemiş</span>'
+            }
+          </div>
+          <div style="font-size: 12px; color: var(--gri); margin-top: 4px;">
+            Aylık net beklenti
+          </div>
+        </div>
+        
+        ${k.baslamaTarihi ? `
+        <div style="background: #fff3e0; padding: 16px; border-radius: 10px;">
+          <div style="font-size: 12px; color: #e65100; font-weight: 600; margin-bottom: 4px;">
+            📅 BAŞLAMA TARİHİ
+          </div>
+          <div style="font-size: 18px; font-weight: 700; color: #e65100;">
+            ${k.baslamaTarihi}
+          </div>
+          <div style="font-size: 12px; color: var(--gri); margin-top: 4px;">
+            En erken başlayabilir
+          </div>
+        </div>
+        ` : ''}
+        
+        ${k.mevcutIsDurumu ? `
+        <div style="background: #e3f2fd; padding: 16px; border-radius: 10px;">
+          <div style="font-size: 12px; color: #1976d2; font-weight: 600; margin-bottom: 4px;">
+            💼 ŞU ANKİ DURUM
+          </div>
+          <div style="font-size: 14px; font-weight: 600; color: #1976d2; line-height: 1.4;">
+            ${({
+              'issiz': '🔍 İş arıyor',
+              'aktif': '💼 Çalışıyor, geçiş arıyor',
+              'staj': '🎓 Stajda',
+              'ogrenci': '📚 Öğrenci'
+            })[k.mevcutIsDurumu] || k.mevcutIsDurumu}
+          </div>
+        </div>
+        ` : ''}
+        
+      </div>
+      
+      ${k.nedenBCK ? `
+        <div style="background: #fafafa; padding: 14px; border-radius: 8px; margin-top: 16px; border-left: 3px solid var(--acik-yesil);">
+          <div style="font-size: 12px; color: var(--gri); font-weight: 600; margin-bottom: 6px;">
+            💚 NEDEN BİZİ TERCİH ETTİ?
+          </div>
+          <div style="font-style: italic; color: var(--metin); line-height: 1.6;">
+            "${k.nedenBCK}"
+          </div>
+        </div>
+      ` : ''}
+    </div>
   `;
   
   // Eğer analiz yoksa
@@ -499,8 +567,43 @@ export function cevaplarTabHTML(cevaplar) {
 // ───────────────────────────────────────────────
 export function notTabHTML(aday, mulakatNotu) {
   const m = mulakatNotu || {};
+  const sonAnaliz = m.mulakatSonuAnaliz || null;
   
   return `
+    <!-- 🤖 MÜLAKAT SONU AI ANALİZİ -->
+    <div class="kart" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 16px;">
+      <h2 style="color: white; margin-bottom: 12px;">🤖 Mülakat Sonu AI Analizi</h2>
+      <p style="color: rgba(255,255,255,0.9); margin-bottom: 16px; line-height: 1.7;">
+        Mülakat notlarınızı yazdıktan sonra AI'ı çalıştırın. AI, test cevaplarını
+        + mülakat cevaplarını + sizin gözlemlerinizi birleştirip 
+        <strong style="color: white;">final karar</strong> önerisi sunacak.
+      </p>
+      
+      <div style="background: rgba(255,255,255,0.15); padding: 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; line-height: 1.6;">
+        <strong>📊 Analizde şunları göreceksiniz:</strong><br>
+        ✓ Mülakat cevaplarının test ile <strong>tutarlılığı</strong><br>
+        ✓ Manipülasyon eğiliminin <strong>doğrulanıp/çürütüldüğü</strong><br>
+        ✓ Maaş beklentisinin <strong>piyasa değerlendirmesi</strong><br>
+        ✓ Kariyer niyetinin gerçek hali<br>
+        ✓ <strong>Final tavsiye</strong> (kabul / beklemede / red)
+      </div>
+      
+      <button class="btn btn-buyuk" onclick="mulakatSonuAnalizYap()" 
+              style="background: white; color: #764ba2; font-weight: 700;">
+        🚀 ${sonAnaliz ? 'AI Analizini Yenile' : 'Mülakat Sonu AI Analizi Çalıştır'}
+      </button>
+      
+      ${sonAnaliz ? `
+        <div style="font-size: 12px; color: rgba(255,255,255,0.85); margin-top: 12px;">
+          📅 Son analiz: ${m.mulakatSonuAnalizZamani ? tarihSaatFormatla(m.mulakatSonuAnalizZamani) : '-'}
+        </div>
+      ` : ''}
+      
+      <div id="mulakatSonuAnalizDurum"></div>
+    </div>
+    
+    ${sonAnaliz ? mulakatSonuAnalizSonucHTML(sonAnaliz) : ''}
+    
     <!-- KARAR PANELİ -->
     <div class="karar-paneli">
       <h2>⚖️ Final Kararı</h2>
@@ -580,6 +683,145 @@ export function notTabHTML(aday, mulakatNotu) {
       <textarea data-not-key="sonrakiAdimlar" placeholder="Pazartesi WhatsApp ile bilgi vereceğim, 2. tur mülakat ayarlanacak...">${m.sonrakiAdimlar || ''}</textarea>
     </div>
   `;
+}
+
+// ───────────────────────────────────────────────
+// MÜLAKAT SONU ANALİZ SONUCU RENDER
+// ───────────────────────────────────────────────
+function mulakatSonuAnalizSonucHTML(sa) {
+  if (!sa) return '';
+  
+  const skor = sa.guncellenmisSkor || 0;
+  const degisim = sa.skorDegisimi || '';
+  const tavsiye = sa.finalTavsiye || 'beklemede';
+  
+  const tavsiyeRenk = {
+    'kabul': { bg: '#d4f5d4', renk: '#1b5e20', metin: '🎉 KABUL EDİLEBİLİR' },
+    'beklemede': { bg: '#fff3e0', renk: '#e65100', metin: '🤔 BEKLEMEDE' },
+    'red': { bg: '#ffebee', renk: '#c62828', metin: '❌ UYGUN DEĞİL' }
+  }[tavsiye] || { bg: '#f5f5f5', renk: '#666', metin: '-' };
+  
+  const degisimRenk = degisim.startsWith('+') ? '#2c5530' : (degisim.startsWith('-') ? '#d32f2f' : '#666');
+  
+  let html = `
+    <!-- AI SONUÇ KARTI -->
+    <div class="kart" style="border: 2px solid #764ba2; background: linear-gradient(to right, #f5f0ff 0%, white 50%);">
+      <h2 style="color: #764ba2; margin-bottom: 16px;">🤖 AI Mülakat Sonu Değerlendirmesi</h2>
+      
+      <!-- ÜST ŞERİT: Skor + Tavsiye -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+        
+        <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e0e0e0; text-align: center;">
+          <div style="font-size: 12px; color: var(--gri); margin-bottom: 4px;">GÜNCEL SKOR</div>
+          <div style="font-size: 42px; font-weight: 800; color: #764ba2; line-height: 1;">${skor}</div>
+          <div style="font-size: 12px; color: var(--gri);">/ 100</div>
+          ${degisim ? `<div style="font-size: 14px; font-weight: 700; color: ${degisimRenk}; margin-top: 6px;">
+            ${degisim} puan değişim
+          </div>` : ''}
+        </div>
+        
+        <div style="background: ${tavsiyeRenk.bg}; padding: 20px; border-radius: 12px; text-align: center;">
+          <div style="font-size: 12px; color: ${tavsiyeRenk.renk}; margin-bottom: 8px; font-weight: 600;">FİNAL TAVSİYE</div>
+          <div style="font-size: 18px; font-weight: 800; color: ${tavsiyeRenk.renk}; margin-bottom: 8px;">
+            ${tavsiyeRenk.metin}
+          </div>
+          ${sa.tavsiyeAciklama ? `<div style="font-size: 13px; color: ${tavsiyeRenk.renk}; line-height: 1.4;">
+            ${sa.tavsiyeAciklama}
+          </div>` : ''}
+        </div>
+      </div>
+      
+      <!-- TUTARLILIK ANALİZİ -->
+      ${sa.tutarlilikAnalizi ? `
+        <div style="background: white; padding: 16px; border-radius: 10px; margin-bottom: 14px; border-left: 4px solid #1976d2;">
+          <h4 style="color: #1976d2; margin-bottom: 10px;">⚖️ Tutarlılık Analizi</h4>
+          <p style="line-height: 1.7; margin-bottom: 12px;">${sa.tutarlilikAnalizi.ozet || ''}</p>
+          
+          ${sa.tutarlilikAnalizi.tutarliNoktalar?.length ? `
+            <div style="margin-top: 10px;">
+              <strong style="color: #2c5530; font-size: 13px;">✓ Tutarlı Noktalar:</strong>
+              <ul style="margin: 4px 0 0 0; padding-left: 20px;">
+                ${sa.tutarlilikAnalizi.tutarliNoktalar.map(n => `<li style="margin-bottom: 4px;">${n}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+          
+          ${sa.tutarlilikAnalizi.tutarsizNoktalar?.length ? `
+            <div style="margin-top: 10px;">
+              <strong style="color: #d32f2f; font-size: 13px;">✗ Tutarsız Noktalar:</strong>
+              <ul style="margin: 4px 0 0 0; padding-left: 20px;">
+                ${sa.tutarlilikAnalizi.tutarsizNoktalar.map(n => `<li style="margin-bottom: 4px; color: #c62828;">${n}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+      
+      <!-- MANİPÜLASYON DEĞERLENDİRMESİ -->
+      ${sa.manipulasyonDegerlendirmesi ? `
+        <div style="background: white; padding: 16px; border-radius: 10px; margin-bottom: 14px; border-left: 4px solid #f57c00;">
+          <h4 style="color: #f57c00; margin-bottom: 8px;">🔍 Manipülasyon Doğrulaması</h4>
+          <p style="line-height: 1.7;">${sa.manipulasyonDegerlendirmesi}</p>
+        </div>
+      ` : ''}
+      
+      <!-- KARİYER NİYETİ -->
+      ${sa.kariyerNiyetiDegerlendirmesi ? `
+        <div style="background: white; padding: 16px; border-radius: 10px; margin-bottom: 14px; border-left: 4px solid #6a1b9a;">
+          <h4 style="color: #6a1b9a; margin-bottom: 8px;">💼 Kariyer Niyeti Değerlendirmesi</h4>
+          <p style="line-height: 1.7;">${sa.kariyerNiyetiDegerlendirmesi}</p>
+        </div>
+      ` : ''}
+      
+      <!-- MAAŞ DEĞERLENDİRMESİ -->
+      ${sa.maasDegerlendirmesi ? `
+        <div style="background: white; padding: 16px; border-radius: 10px; margin-bottom: 14px; border-left: 4px solid #2c5530;">
+          <h4 style="color: #2c5530; margin-bottom: 8px;">💰 Maaş Beklentisi Değerlendirmesi</h4>
+          <p style="line-height: 1.7;">${sa.maasDegerlendirmesi}</p>
+        </div>
+      ` : ''}
+      
+      <!-- YENİ KIRMIZI BAYRAKLAR -->
+      ${sa.yeniKirmiziBayraklar?.length ? `
+        <div style="background: #ffebee; padding: 16px; border-radius: 10px; margin-bottom: 14px; border-left: 4px solid #d32f2f;">
+          <h4 style="color: #d32f2f; margin-bottom: 8px;">🚨 Mülakatta Ortaya Çıkan Yeni Endişeler</h4>
+          <ul style="margin: 0; padding-left: 20px;">
+            ${sa.yeniKirmiziBayraklar.map(b => `<li style="margin-bottom: 6px; color: #c62828;">${b}</li>`).join('')}
+          </ul>
+        </div>
+      ` : ''}
+      
+      <!-- YENİ GÜÇLÜ YÖNLER -->
+      ${sa.yeniGucluYonler?.length ? `
+        <div style="background: #e8f5e9; padding: 16px; border-radius: 10px; margin-bottom: 14px; border-left: 4px solid var(--ana-yesil);">
+          <h4 style="color: var(--ana-yesil); margin-bottom: 8px;">✨ Mülakatta Keşfedilen Güçlü Yönler</h4>
+          <ul style="margin: 0; padding-left: 20px;">
+            ${sa.yeniGucluYonler.map(g => `<li style="margin-bottom: 6px;">${g}</li>`).join('')}
+          </ul>
+        </div>
+      ` : ''}
+      
+      <!-- FİNAL KARAR -->
+      ${sa.finalKarar ? `
+        <div style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); color: white; padding: 24px; border-radius: 12px;">
+          <h3 style="color: white; margin-bottom: 12px;">📋 ${sa.finalKarar.baslik || 'FİNAL TAVSİYE'}</h3>
+          <div style="line-height: 1.8; white-space: pre-wrap;">${sa.finalKarar.icerik || ''}</div>
+          
+          ${sa.finalKarar.dikkatEdilecekler?.length ? `
+            <div style="margin-top: 16px; padding: 14px; background: rgba(255,255,255,0.15); border-radius: 8px;">
+              <strong>⚠️ Eğer kabul edilirse dikkat edilecekler:</strong>
+              <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                ${sa.finalKarar.dikkatEdilecekler.map(d => `<li style="margin-bottom: 4px;">${d}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+      
+    </div>
+  `;
+  
+  return html;
 }
 
 // ───────────────────────────────────────────────

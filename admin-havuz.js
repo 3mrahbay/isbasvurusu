@@ -140,6 +140,7 @@ function tabloyuCiz(liste) {
             <th>Aday</th>
             <th>Pozisyon</th>
             <th>Durum</th>
+            <th>💰 Maaş Bek.</th>
             <th>Tarih</th>
             <th>Eylem</th>
           </tr>
@@ -150,6 +151,12 @@ function tabloyuCiz(liste) {
   liste.forEach(a => {
     const kategori = pozisyonKategorisiBul(a.kategoriId || 'okulOncesiOgretmen');
     const durumHTML = durumRozetHTML(a.durum);
+    
+    // Maaş beklentisi
+    const maas = a.kisiselBilgiler?.ucretBeklenti;
+    const maasHTML = maas 
+      ? `<strong style="color:#2c5530;">${parseInt(maas).toLocaleString('tr-TR')} TL</strong>` 
+      : '<span style="color:#bbb;">-</span>';
     
     html += `
       <tr>
@@ -169,6 +176,7 @@ function tabloyuCiz(liste) {
         </td>
         <td>${kategori.ikon} ${a.pozisyonBaslik || kategori.ad}</td>
         <td>${durumHTML}</td>
+        <td>${maasHTML}</td>
         <td>${a.olusturmaZamani ? tarihFormatla(a.olusturmaZamani) : '-'}</td>
         <td>
           <button class="btn btn-kucuk btn-ikincil" onclick="adayDetay('${a.id}')">
@@ -310,11 +318,22 @@ function detayCiz() {
   
   // Kişisel bilgiler
   if (Object.keys(k).length > 0) {
+    // Maaş için TL formatı
+    const maasFormat = (v) => v ? `<strong style="color:#2c5530; font-size:15px;">${parseInt(v).toLocaleString('tr-TR')} TL</strong>` : '-';
+    
+    // Mevcut iş durumu çevirisi
+    const isDurumlari = {
+      'issiz': '🔍 İş arıyor (çalışmıyor)',
+      'aktif': '💼 Çalışıyor, geçiş arıyor',
+      'staj': '🎓 Stajda',
+      'ogrenci': '📚 Öğrenci'
+    };
+    
     html += `
     <div class="kart">
       <h3>👤 Kişisel Bilgiler</h3>
       <table style="width: 100%; border-collapse: collapse;">
-        ${k.adSoyad ? `<tr><td style="padding:8px; color:#666; width:140px;">Ad Soyad:</td><td style="padding:8px;"><strong>${k.adSoyad}</strong></td></tr>` : ''}
+        ${k.adSoyad ? `<tr><td style="padding:8px; color:#666; width:160px;">Ad Soyad:</td><td style="padding:8px;"><strong>${k.adSoyad}</strong></td></tr>` : ''}
         ${k.dogumTarihi ? `<tr><td style="padding:8px; color:#666;">Doğum Tarihi:</td><td style="padding:8px;">${k.dogumTarihi}</td></tr>` : ''}
         ${k.cinsiyet ? `<tr><td style="padding:8px; color:#666;">Cinsiyet:</td><td style="padding:8px;">${k.cinsiyet}</td></tr>` : ''}
         ${k.medeniDurum ? `<tr><td style="padding:8px; color:#666;">Medeni Durum:</td><td style="padding:8px;">${k.medeniDurum}</td></tr>` : ''}
@@ -322,9 +341,36 @@ function detayCiz() {
         ${k.egitimDurumu ? `<tr><td style="padding:8px; color:#666;">Eğitim:</td><td style="padding:8px;">${k.egitimDurumu}</td></tr>` : ''}
         ${k.bolum ? `<tr><td style="padding:8px; color:#666;">Bölüm:</td><td style="padding:8px;">${k.bolum}</td></tr>` : ''}
         ${k.deneyimYil ? `<tr><td style="padding:8px; color:#666;">Deneyim:</td><td style="padding:8px;">${k.deneyimYil} yıl</td></tr>` : ''}
+        ${k.sonIsyeri ? `<tr><td style="padding:8px; color:#666;">Son İşyeri:</td><td style="padding:8px;">${k.sonIsyeri}</td></tr>` : ''}
         ${k.aciklamaDeneyim ? `<tr><td style="padding:8px; color:#666; vertical-align:top;">Önceki Deneyim:</td><td style="padding:8px; white-space:pre-wrap;">${k.aciklamaDeneyim}</td></tr>` : ''}
       </table>
     </div>
+    
+    <!-- 💰 ÇALIŞMA TERCİHLERİ - VURGULU KART -->
+    <div class="kart" style="background: linear-gradient(135deg, #f8fffa 0%, white 100%); border-left: 4px solid var(--ana-yesil);">
+      <h3>💰 Çalışma Tercihleri</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding:10px; color:#666; width:160px;">Maaş Beklentisi:</td>
+          <td style="padding:10px;">${maasFormat(k.ucretBeklenti)}</td>
+        </tr>
+        ${k.baslamaTarihi ? `<tr><td style="padding:10px; color:#666;">Başlama Tarihi:</td><td style="padding:10px;"><strong>${k.baslamaTarihi}</strong></td></tr>` : ''}
+        ${k.mevcutIsDurumu ? `<tr><td style="padding:10px; color:#666;">Mevcut Durum:</td><td style="padding:10px;">${isDurumlari[k.mevcutIsDurumu] || k.mevcutIsDurumu}</td></tr>` : ''}
+        ${k.duyumKaynagi ? `<tr><td style="padding:10px; color:#666;">Bizi Nereden Duydu:</td><td style="padding:10px;">${k.duyumKaynagi}</td></tr>` : ''}
+        ${k.nedenBCK ? `<tr><td style="padding:10px; color:#666; vertical-align:top;">Neden BCK?</td><td style="padding:10px; white-space:pre-wrap; font-style:italic; color:#444;">"${k.nedenBCK}"</td></tr>` : ''}
+      </table>
+    </div>
+    
+    ${(k.ozelEgitim && k.ozelEgitim !== 'hicbiri') || k.yabanciDil || k.sertifikalar ? `
+    <div class="kart">
+      <h3>🎓 Yetkinlikler</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        ${k.ozelEgitim && k.ozelEgitim !== 'hicbiri' ? `<tr><td style="padding:8px; color:#666; width:160px;">Özel Eğitim:</td><td style="padding:8px;"><strong>${k.ozelEgitim}</strong></td></tr>` : ''}
+        ${k.yabanciDil && k.yabanciDil !== 'hicbiri' ? `<tr><td style="padding:8px; color:#666;">Yabancı Dil:</td><td style="padding:8px;">${k.yabanciDil}</td></tr>` : ''}
+        ${k.sertifikalar ? `<tr><td style="padding:8px; color:#666; vertical-align:top;">Sertifikalar:</td><td style="padding:8px; white-space:pre-wrap;">${k.sertifikalar}</td></tr>` : ''}
+      </table>
+    </div>
+    ` : ''}
     `;
   }
   
