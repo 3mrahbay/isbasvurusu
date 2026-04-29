@@ -6,9 +6,10 @@ import {
   auth, db,
   onAuthStateChanged,
   signOut,
-  collection, doc, getDoc, getDocs, updateDoc,
+  collection, doc, getDoc, getDocs, updateDoc, setDoc,
   query, orderBy,
   serverTimestamp,
+  PROXY_URL,
   ADMIN_EPOSTA
 } from './firebase-config.js';
 
@@ -348,9 +349,506 @@ function detayCiz() {
         ` : ''}
       </div>
     </div>
+    
+    ${mulakatProfiliButonHTML(a)}
+    
+    <!-- 🤖 AI ANALİZ RAPORU - Async yüklenecek -->
+    <div id="aiRaporAlani"></div>
+    
+    <!-- 📝 TEST CEVAPLARI - Async yüklenecek -->
+    <div id="testCevaplariAlani"></div>
   `;
   
   detay.innerHTML = html;
+  
+  // AI rapor ve test cevaplarını async yükle
+  aiRaporYukle(a.adayEposta);
+  testCevaplariYukle(a.adayEposta);
+}
+
+// ───────────────────────────────────────────────
+// AI RAPORUNU YÜKLE
+// ───────────────────────────────────────────────
+async function aiRaporYukle(adayEposta) {
+  const alani = document.getElementById('aiRaporAlani');
+  if (!alani) return;
+  
+  alani.innerHTML = `
+    <div class="kart">
+      <h3>🤖 AI Analiz Raporu</h3>
+      <div class="yukleniyor" style="padding: 20px;">
+        <div class="donme" style="width: 30px; height: 30px;"></div>
+        <p style="font-size: 14px;">AI raporu yükleniyor...</p>
+      </div>
+    </div>
+  `;
+  
+  try {
+    const ref = doc(db, 'analizler', adayEposta);
+    const snap = await getDoc(ref);
+    
+    if (!snap.exists()) {
+      alani.innerHTML = `
+        <div class="kart">
+          <h3>🤖 AI Analiz Raporu</h3>
+          <p style="color: var(--gri); margin-bottom: 16px;">
+            Bu aday için henüz AI analizi oluşturulmamış. Test tamamlanmış ancak analiz arka planda 
+            başarısız olmuş olabilir veya henüz tetiklenmemiş.
+          </p>
+          <button class="btn" onclick="aiAnaliziManuelTetikle('${adayEposta}')">
+            🚀 AI Analizini Şimdi Çalıştır
+          </button>
+          <div id="aiManuelDurum" style="margin-top: 12px;"></div>
+        </div>
+      `;
+      return;
+    }
+    
+    const veri = snap.data();
+    const analiz = veri.analiz;
+    
+    if (!analiz) {
+      alani.innerHTML = `<div class="kart"><h3>🤖 AI Raporu</h3><p>Analiz verisi boş.</p></div>`;
+      return;
+    }
+    
+    alani.innerHTML = aiRaporHTML(analiz, veri);
+    
+  } catch (hata) {
+    console.error('AI rapor yükleme hatası:', hata);
+    alani.innerHTML = `
+      <div class="kart">
+        <h3>🤖 AI Analiz Raporu</h3>
+        <div class="alert hata">Yüklenemedi: ${hata.message}</div>
+      </div>
+    `;
+  }
+}
+
+// ───────────────────────────────────────────────
+// AI Raporu HTML
+// ───────────────────────────────────────────────
+function aiRaporHTML(analiz, veri) {
+  const skor = analiz.genelUyumSkoru || 0;
+  const etiket = analiz.tavsiyeEtiketi || 'degerlendirilmeli';
+  
+  // Etiket renk ve metin
+  const etiketler = {
+    'guclu': { renk: '#2c5530', bg: '#d4f5d4', metin: '🟢 GÜÇLÜ ADAY', emoji: '🌟' },
+    'degerlendirilmeli': { renk: '#f57c00', bg: '#fff3e0', metin: '🟡 DEĞERLENDİRİLMELİ', emoji: '🤔' },
+    'uygunDegil': { renk: '#d32f2f', bg: '#ffebee', metin: '🔴 UYGUN DEĞİL', emoji: '⚠️' }
+  };
+  const e = etiketler[etiket] || etiketler['degerlendirilmeli'];
+  
+  // Kırmızı bayraklar
+  let bayraklarHTML = '';
+  if (analiz.kirmiziBayraklar && analiz.kirmiziBayraklar.length > 0) {
+    bayraklarHTML = `
+      <div class="kart" style="background: #ffebee; border-left: 4px solid #d32f2f;">
+        <h3 style="color: #d32f2f;">🚨 Kırmızı Bayraklar (${analiz.kirmiziBayraklar.length})</h3>
+        <ul style="padding-left: 20px;">
+          ${analiz.kirmiziBayraklar.map(b => {
+            if (typeof b === 'string') return `<li style="margin-bottom: 8px;">${b}</li>`;
+            return `<li style="margin-bottom: 8px;">
+              <strong>${b.soruId || 'Bayrak'}:</strong> 
+              ${b.aciklama || `Seçim: ${b.secilen}, Doğru: ${b.dogru || '?'}`}
+              ${b.kritiklik === 'cokYuksek' ? ' <span style="color:#d32f2f;font-weight:700;">[ÇOK KRİTİK]</span>' : ''}
+            </li>`;
+          }).join('')}
+        </ul>
+      </div>
+    `;
+  }
+  
+  // Big Five
+  const bigFive = analiz.bigFive || {};
+  const bigFiveHTML = `
+    <div class="kart">
+      <h3>🧠 Kişilik Profili (Big Five)</h3>
+      <div class="bigFive-grid">
+        ${cubukChart('Açıklık', bigFive.aciklik || 0, '#9c27b0')}
+        ${cubukChart('Sorumluluk', bigFive.sorumluluk || 0, '#1976d2')}
+        ${cubukChart('Dışa Dönüklük', bigFive.disaDonukluk || 0, '#f57c00')}
+        ${cubukChart('Uyumluluk ⭐', bigFive.uyumluluk || 0, '#2c5530')}
+        ${cubukChart('Duygusal Denge', bigFive.duygusalDenge || 0, '#0097a7')}
+      </div>
+      <p style="font-size: 12px; color: var(--gri); margin-top: 12px;">
+        ⭐ Uyumluluk öğretmenler için en kritik boyuttur (empati, işbirliği)
+      </p>
+    </div>
+  `;
+  
+  // 8 Yetkinlik
+  const yet = analiz.yetkinlikler || {};
+  const yetkinliklerHTML = `
+    <div class="kart">
+      <h3>🎯 8 Yetkinlik Analizi</h3>
+      <div class="bigFive-grid">
+        ${cubukChart('💚 Empati', yet.empati || 0, '#2c5530')}
+        ${cubukChart('🧘 Sabır', yet.sabir || 0, '#4a7c59')}
+        ${cubukChart('📚 Pedagojik Yaklaşım', yet.pedagojikYaklasim || 0, '#1976d2')}
+        ${cubukChart('🛡️ Çocuk Koruma', yet.cocukKorumaFarkindaligi || 0, '#d32f2f')}
+        ${cubukChart('🤝 Ekip Çalışması', yet.ekipCalismasi || 0, '#f57c00')}
+        ${cubukChart('💬 İletişim', yet.iletisim || 0, '#9c27b0')}
+        ${cubukChart('🌪️ Stres Yönetimi', yet.stresYonetimi || 0, '#0097a7')}
+        ${cubukChart('🌱 Montessori Uyumu', yet.montessoriUyumu || 0, '#2c5530')}
+      </div>
+    </div>
+  `;
+  
+  // Güçlü yönler / gelişim alanları
+  const gucluHTML = (analiz.gucluYonler && analiz.gucluYonler.length > 0)
+    ? `<div class="kart" style="background: #e8f5e9;">
+        <h3 style="color: var(--ana-yesil);">✨ Güçlü Yönler</h3>
+        <ul style="padding-left: 20px;">
+          ${analiz.gucluYonler.map(y => `<li style="margin-bottom: 8px;">${y}</li>`).join('')}
+        </ul>
+      </div>`
+    : '';
+  
+  const gelisimHTML = (analiz.gelisimAlanlari && analiz.gelisimAlanlari.length > 0)
+    ? `<div class="kart" style="background: #fff3e0;">
+        <h3 style="color: var(--turuncu);">🌱 Gelişim Alanları</h3>
+        <ul style="padding-left: 20px;">
+          ${analiz.gelisimAlanlari.map(g => `<li style="margin-bottom: 8px;">${g}</li>`).join('')}
+        </ul>
+      </div>`
+    : '';
+  
+  // AI Yorumu
+  const yorumHTML = analiz.aiYorumu
+    ? `<div class="kart">
+        <h3>📝 AI Değerlendirmesi</h3>
+        <div style="line-height: 1.8; white-space: pre-wrap;">${analiz.aiYorumu}</div>
+      </div>`
+    : '';
+  
+  // Hikaye analizi
+  const hik = analiz.hikayeAnalizi || {};
+  const hikayeAnalizHTML = (hik.h01_anisamimi || hik.h02_yaklasim || hik.h03_motivasyon)
+    ? `<div class="kart">
+        <h3>📖 Hikaye Analizi</h3>
+        ${hik.h01_anisamimi ? `<p><strong>1️⃣ Çocuk Anısı:</strong> ${hik.h01_anisamimi}</p>` : ''}
+        ${hik.h02_yaklasim ? `<p><strong>2️⃣ "Ben Kötüyüm" Diyen Çocuğa Yaklaşım:</strong> ${hik.h02_yaklasim}</p>` : ''}
+        ${hik.h03_motivasyon ? `<p><strong>3️⃣ Mesleğe Geliş Motivasyonu:</strong> ${hik.h03_motivasyon}</p>` : ''}
+      </div>`
+    : '';
+  
+  // Mülakat önerileri
+  const mulakatHTML = (analiz.mulakatOnerileri && analiz.mulakatOnerileri.length > 0)
+    ? `<div class="kart" style="background: #e3f2fd;">
+        <h3 style="color: #1976d2;">🎙️ Mülakat Soru Önerileri</h3>
+        <p style="color: var(--gri); font-size: 13px;">Adayın cevaplarına göre özel olarak hazırlanmış sorular:</p>
+        <ol style="padding-left: 20px;">
+          ${analiz.mulakatOnerileri.map(s => `<li style="margin-bottom: 12px; line-height: 1.6;">${s}</li>`).join('')}
+        </ol>
+      </div>`
+    : '';
+  
+  // Diğer pozisyon uyumu
+  const diger = analiz.digerPozisyonUyumu || {};
+  const digerHTML = (diger.egitimKoordinatoru || diger.bransOgretmeni || diger.yardimciOgretmen)
+    ? `<div class="kart">
+        <h3>🎯 Diğer Pozisyonlara Uyum</h3>
+        <p style="color: var(--gri); font-size: 13px;">Bu aday başvurduğu pozisyonun yanında diğer rollere de uygun olabilir:</p>
+        ${diger.egitimKoordinatoru ? cubukChart('🎓 Eğitim Koordinatörü', diger.egitimKoordinatoru, '#7b1fa2') : ''}
+        ${diger.bransOgretmeni ? cubukChart('🎨 Branş Öğretmeni', diger.bransOgretmeni, '#f57c00') : ''}
+        ${diger.yardimciOgretmen ? cubukChart('🌱 Yardımcı Öğretmen', diger.yardimciOgretmen, '#0097a7') : ''}
+      </div>`
+    : '';
+  
+  return `
+    <!-- GENEL SKOR KARTI -->
+    <div class="kart" style="background: linear-gradient(135deg, ${e.bg} 0%, #fff 100%); border-left: 4px solid ${e.renk};">
+      <h3>🤖 AI Analiz Raporu</h3>
+      
+      <div style="display: flex; align-items: center; gap: 24px; margin: 20px 0; flex-wrap: wrap;">
+        <!-- Skor Çemberi -->
+        <div style="
+          width: 120px; height: 120px; border-radius: 50%;
+          background: conic-gradient(${e.renk} ${skor * 3.6}deg, #e0e0e0 0deg);
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+        ">
+          <div style="
+            width: 100px; height: 100px; border-radius: 50%;
+            background: white; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+          ">
+            <div style="font-size: 28px; font-weight: 800; color: ${e.renk};">${skor}</div>
+            <div style="font-size: 10px; color: #666;">/ 100</div>
+          </div>
+        </div>
+        
+        <!-- Etiket ve Bilgi -->
+        <div style="flex: 1; min-width: 200px;">
+          <div style="
+            display: inline-block; background: ${e.bg}; color: ${e.renk};
+            padding: 6px 16px; border-radius: 16px; font-weight: 700;
+            font-size: 14px; margin-bottom: 12px;
+          ">
+            ${e.metin}
+          </div>
+          <div style="font-size: 14px; color: var(--metin); line-height: 1.6;">
+            <div><strong>Tavsiye:</strong> ${etiketAciklama(etiket)}</div>
+            ${veri.olusturmaZamani ? `<div style="color: var(--gri); font-size: 12px; margin-top: 4px;">
+              Analiz tarihi: ${tarihSaatFormatla(veri.olusturmaZamani)}
+            </div>` : ''}
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn btn-ikincil btn-kucuk" onclick="aiAnaliziManuelTetikle('${veri.adayEposta}')">
+        🔄 Analizi Yeniden Çalıştır
+      </button>
+    </div>
+    
+    ${bayraklarHTML}
+    ${bigFiveHTML}
+    ${yetkinliklerHTML}
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;" class="iki-kolon-grid">
+      ${gucluHTML}
+      ${gelisimHTML}
+    </div>
+    
+    ${yorumHTML}
+    ${hikayeAnalizHTML}
+    ${mulakatHTML}
+    ${digerHTML}
+  `;
+}
+
+// ───────────────────────────────────────────────
+// Çubuk grafik (skor görsel)
+// ───────────────────────────────────────────────
+function cubukChart(etiket, skor, renk = '#2c5530') {
+  return `
+    <div style="margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span style="font-size: 14px; font-weight: 500;">${etiket}</span>
+        <span style="font-size: 14px; font-weight: 700; color: ${renk};">${skor}</span>
+      </div>
+      <div style="background: #f0f0f0; height: 10px; border-radius: 5px; overflow: hidden;">
+        <div style="
+          width: ${skor}%; height: 100%; background: ${renk};
+          border-radius: 5px; transition: width 0.6s;
+        "></div>
+      </div>
+    </div>
+  `;
+}
+
+function etiketAciklama(etiket) {
+  const aciklamalar = {
+    'guclu': 'Mülakata davet edilmesi tavsiye edilir',
+    'degerlendirilmeli': 'Mülakatta detaylı görüşme önerilir',
+    'uygunDegil': 'Bu pozisyon için uygun bulunmadı'
+  };
+  return aciklamalar[etiket] || '-';
+}
+
+// ───────────────────────────────────────────────
+// Mülakat Profili Butonu (sadece test tamamlanmış adaylarda)
+// ───────────────────────────────────────────────
+function mulakatProfiliButonHTML(aday) {
+  const testTamamlanmisDurumlar = ['tamamlandi', 'mulakat', 'kabul', 'red', 'havuz'];
+  if (!testTamamlanmisDurumlar.includes(aday.durum)) {
+    return ''; // Test henüz tamamlanmamış
+  }
+  
+  return `
+    <div class="kart" style="background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%); color: white; text-align: center;">
+      <h3 style="color: white; margin-bottom: 12px;">🎙️ Mülakat Profili Hazır</h3>
+      <p style="color: rgba(255,255,255,0.9); margin-bottom: 16px; line-height: 1.6;">
+        Mülakat sırasında kullanmak üzere özel hazırlanmış profil:<br>
+        <small style="opacity: 0.8;">
+          ✓ AI'ın hazırladığı kişiselleştirilmiş sorular<br>
+          ✓ Tutarsızlık ve manipülasyon uyarıları<br>
+          ✓ Canlı not alma alanları<br>
+          ✓ Final karar paneli
+        </small>
+      </p>
+      <a href="mulakat.html?aday=${encodeURIComponent(aday.adayEposta)}" 
+         class="btn btn-buyuk" 
+         target="_blank"
+         style="background: white; color: var(--ana-yesil);">
+        🎙️ Mülakat Profilini Aç
+      </a>
+    </div>
+  `;
+}
+
+// ───────────────────────────────────────────────
+// AI Analizini manuel tetikle
+// ───────────────────────────────────────────────
+window.aiAnaliziManuelTetikle = async function(adayEposta) {
+  const onay = confirm(
+    'AI analizi başlatılacak. Yaklaşık 15-30 saniye sürer.\n\n' +
+    'Mevcut analiz varsa üzerine yazılır. Devam edilsin mi?'
+  );
+  if (!onay) return;
+  
+  const durumEl = document.getElementById('aiManuelDurum') || document.getElementById('aiRaporAlani');
+  durumEl.innerHTML = `
+    <div class="alert bilgi">
+      ⏳ <strong>AI analizi yapılıyor...</strong><br>
+      <small>Lütfen bekleyin, sayfayı kapatmayın. (~15-30 saniye)</small>
+    </div>
+  `;
+  
+  try {
+    // Aday bilgileri ve test cevaplarını al
+    const basvuruSnap = await getDoc(doc(db, 'isBasvurulari', adayEposta));
+    const testSnap = await getDoc(doc(db, 'testCevaplari', adayEposta));
+    
+    if (!basvuruSnap.exists() || !testSnap.exists()) {
+      durumEl.innerHTML = `<div class="alert hata">❌ Aday başvurusu veya test cevapları bulunamadı.</div>`;
+      return;
+    }
+    
+    const basvuru = basvuruSnap.data();
+    const testCevaplari = testSnap.data().cevaplar || {};
+    
+    // Apps Script proxy'ye gönder
+    const yanit = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        islem: 'aiAnaliz',
+        adayBilgileri: basvuru,
+        testCevaplari: testCevaplari
+      })
+    });
+    
+    const sonuc = await yanit.json();
+    
+    if (!sonuc.basarili) {
+      durumEl.innerHTML = `<div class="alert hata">❌ AI analiz hatası: ${sonuc.hata || 'Bilinmeyen hata'}</div>`;
+      return;
+    }
+    
+    // Firestore'a kaydet
+    await setDoc(doc(db, 'analizler', adayEposta), {
+      adayEposta: adayEposta,
+      adayAdi: basvuru.adayAdi || '',
+      analiz: sonuc.analiz,
+      tokenKullanimi: sonuc.tokenKullanimi || null,
+      olusturmaZamani: serverTimestamp()
+    });
+    
+    durumEl.innerHTML = `<div class="alert basarili">✅ Analiz tamamlandı! Sayfayı yenileyin...</div>`;
+    
+    // 1.5 sn sonra raporu yeniden yükle
+    setTimeout(() => aiRaporYukle(adayEposta), 1500);
+    
+  } catch (hata) {
+    console.error('Manuel analiz hatası:', hata);
+    durumEl.innerHTML = `<div class="alert hata">❌ Hata: ${hata.message}</div>`;
+  }
+};
+
+// ───────────────────────────────────────────────
+// Test cevaplarını yükle (toggle ile)
+// ───────────────────────────────────────────────
+async function testCevaplariYukle(adayEposta) {
+  const alani = document.getElementById('testCevaplariAlani');
+  if (!alani) return;
+  
+  try {
+    const snap = await getDoc(doc(db, 'testCevaplari', adayEposta));
+    
+    if (!snap.exists()) {
+      alani.innerHTML = `
+        <div class="kart">
+          <h3>📝 Test Cevapları</h3>
+          <p style="color: var(--gri);">Bu aday için test cevabı bulunmadı.</p>
+        </div>
+      `;
+      return;
+    }
+    
+    const veri = snap.data();
+    const cevaplar = veri.cevaplar || {};
+    
+    alani.innerHTML = `
+      <div class="kart">
+        <h3>📝 Test Cevapları</h3>
+        <p style="color: var(--gri); font-size: 14px;">
+          Toplam ${Object.keys(cevaplar).length} cevap • 
+          ${veri.tamamlandi ? '✅ Tamamlandı' : '⏳ Devam ediyor'}
+        </p>
+        <button class="btn btn-ikincil btn-kucuk" onclick="testCevaplariToggle()">
+          📂 Tüm Cevapları Göster/Gizle
+        </button>
+        <div id="cevaplarDetay" class="gizli" style="margin-top: 16px;">
+          ${cevaplarDetayHTML(cevaplar)}
+        </div>
+      </div>
+    `;
+  } catch (hata) {
+    console.error('Test cevap yükleme hatası:', hata);
+  }
+}
+
+window.testCevaplariToggle = function() {
+  const el = document.getElementById('cevaplarDetay');
+  if (el) el.classList.toggle('gizli');
+};
+
+function cevaplarDetayHTML(cevaplar) {
+  // Bölümlere göre grupla
+  const gruplar = {
+    'Kişilik (Big Five)': [],
+    'Çocuk Değerleri': [],
+    'Senaryolar': [],
+    'Hikayeler': [],
+    'Etik & Çocuk Koruma': [],
+    'Hızlı Tepkiler': []
+  };
+  
+  Object.keys(cevaplar).forEach(soruId => {
+    const cevap = cevaplar[soruId];
+    if (soruId.startsWith('k')) gruplar['Kişilik (Big Five)'].push({ id: soruId, cevap });
+    else if (soruId.startsWith('d')) gruplar['Çocuk Değerleri'].push({ id: soruId, cevap });
+    else if (soruId.startsWith('s')) gruplar['Senaryolar'].push({ id: soruId, cevap });
+    else if (soruId.startsWith('h')) gruplar['Hikayeler'].push({ id: soruId, cevap });
+    else if (soruId.startsWith('e')) gruplar['Etik & Çocuk Koruma'].push({ id: soruId, cevap });
+    else if (soruId.startsWith('r')) gruplar['Hızlı Tepkiler'].push({ id: soruId, cevap });
+  });
+  
+  let html = '';
+  Object.keys(gruplar).forEach(grup => {
+    if (gruplar[grup].length === 0) return;
+    
+    html += `<h4 style="color: var(--ana-yesil); margin-top: 20px; margin-bottom: 8px;">${grup}</h4>`;
+    html += '<div style="background: #fafafa; padding: 12px; border-radius: 8px;">';
+    
+    gruplar[grup].forEach(({ id, cevap }) => {
+      let cevapMetni = '';
+      if (typeof cevap === 'object' && cevap !== null) {
+        cevapMetni = `<strong>Seçim:</strong> ${cevap.secim}`;
+        if (cevap.neden) {
+          cevapMetni += `<br><em style="color:var(--gri);">"${cevap.neden}"</em>`;
+        }
+      } else if (typeof cevap === 'string' && cevap.length > 50) {
+        // Hikaye - uzun metin
+        cevapMetni = `<div style="white-space: pre-wrap; padding: 8px; background: white; border-radius: 4px; margin-top: 4px; font-size: 13px;">${cevap}</div>`;
+      } else {
+        cevapMetni = `<strong>${cevap}</strong>`;
+      }
+      
+      html += `
+        <div style="margin-bottom: 8px; font-size: 13px;">
+          <span style="color: var(--gri); font-weight: 600;">${id}:</span> ${cevapMetni}
+        </div>
+      `;
+    });
+    
+    html += '</div>';
+  });
+  
+  return html || '<p style="color: var(--gri);">Cevap yok</p>';
 }
 
 // ───────────────────────────────────────────────
