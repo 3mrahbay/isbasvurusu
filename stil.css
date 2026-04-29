@@ -65,6 +65,16 @@ body {
 .nav-menu a:hover { background: var(--cok-acik-yesil); color: var(--ana-yesil); }
 .nav-menu .nav-cta { background: var(--ana-yesil); color: var(--beyaz) !important; padding: 10px 20px; }
 .nav-menu .nav-cta:hover { background: var(--acik-yesil); }
+.nav-menu .nav-giris { 
+  border: 2px solid var(--ana-yesil); 
+  color: var(--ana-yesil) !important; 
+  padding: 8px 18px;
+  font-weight: 600;
+}
+.nav-menu .nav-giris:hover { 
+  background: var(--ana-yesil); 
+  color: var(--beyaz) !important;
+}
 .nav-mobil-buton { display: none; background: none; border: none; font-size: 24px; color: var(--ana-yesil); cursor: pointer; }
 
 @media (max-width: 768px) {
@@ -477,3 +487,118 @@ body {
 .alert.hata { background: #ffebee; color: var(--kirmizi); border-left: 4px solid var(--kirmizi); }
 .alert.uyari { background: #fff3cd; color: var(--turuncu); border-left: 4px solid var(--turuncu); }
 .alert.bilgi { background: #e3f2fd; color: #1976d2; border-left: 4px solid #1976d2; }
+
+/* ═══════════════════════════════════════════════════════════
+   AI RAPOR ÖZEL STİLLERİ (Faz 2 - Tamamlama)
+   ═══════════════════════════════════════════════════════════ */
+
+.bigFive-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+
+@media (min-width: 600px) {
+  .bigFive-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+}
+
+.iki-kolon-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .iki-kolon-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   KONUM VE ULAŞIM BÖLÜMÜ
+   ═══════════════════════════════════════════════════════════ */
+
+.konum-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+  .konum-grid {
+    grid-template-columns: 1.2fr 1fr;
+  }
+}
+
+.konum-harita-kart {
+  padding: 8px;
+  overflow: hidden;
+  height: fit-content;
+}
+
+.konum-harita-kart iframe {
+  display: block;
+  min-height: 400px;
+}
+
+.konum-bilgi-kart {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ULAŞIM BUTONLARI */
+.ulasim-butonlar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .ulasim-butonlar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ulasim-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: white;
+  border: 2px solid var(--cok-acik-yesil);
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--metin);
+  transition: all 0.2s;
+}
+
+.ulasim-btn:hover {
+  border-color: var(--ana-yesil);
+  background: var(--cok-acik-yesil);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(44,85,48,0.1);
+}
+
+.ulasim-btn .ikon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.ulasim-btn strong {
+  display: block;
+  font-size: 14px;
+  color: var(--ana-yesil);
+}
+
+.ulasim-btn small {
+  display: block;
+  font-size: 11px;
+  color: var(--gri);
+  margin-top: 2px;
+}

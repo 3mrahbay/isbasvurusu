@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mülakat Profili - Admin</title>
+  <link rel="icon" type="image/png" href="https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png">
+  <link rel="stylesheet" href="stil.css">
+  <link rel="stylesheet" href="mulakat-stil.css">
+</head>
+<body>
+  
+  <div id="yukleniyor" class="kart yukleniyor" style="margin: 100px auto; max-width: 400px;">
+    <div class="donme"></div>
+    <p>Yükleniyor...</p>
+  </div>
+  
+  <div id="yetkisiz" class="kart gizli" style="margin: 100px auto; max-width: 500px; text-align: center;">
+    <h2>🔒 Yetkisiz Erişim</h2>
+    <a href="admin.html" class="btn">Admin Girişi</a>
+  </div>
+  
+  <!-- ANA İÇERİK -->
+  <div id="anaIcerik" class="gizli">
+    
+    <!-- ÜST ÇUBUK -->
+    <div class="mulakat-ust-bar">
+      <div class="ust-bar-icerik">
+        <a href="admin-havuz.html" class="geri-don" style="margin: 0; color: white;">
+          ← Aday Havuzuna Dön
+        </a>
+        <div class="ust-bar-baslik">
+          <img src="https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png" alt="BCK" style="height: 32px;">
+          <div>
+            <div style="font-size: 12px; opacity: 0.8;">MÜLAKAT PROFİLİ</div>
+            <div style="font-weight: 700;" id="adayBaslik">-</div>
+          </div>
+        </div>
+        <div class="ust-bar-aksiyonlar">
+          <button class="btn btn-kucuk btn-beyaz" onclick="yazdir()">🖨️ Yazdır</button>
+          <button class="btn btn-kucuk" onclick="cikisYap()" style="background:rgba(255,255,255,0.2);color:white;">Çıkış</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- TAB GEÇİŞİ -->
+    <div class="tab-bar">
+      <div class="tab-icerik">
+        <button class="tab-btn aktif" onclick="tabDegistir('ozet')">📊 Özet</button>
+        <button class="tab-btn" onclick="tabDegistir('uyarilar')">🚩 Uyarılar</button>
+        <button class="tab-btn" onclick="tabDegistir('sorular')">🎙️ Mülakat Soruları</button>
+        <button class="tab-btn" onclick="tabDegistir('cevaplar')">📝 Tüm Cevaplar</button>
+        <button class="tab-btn" onclick="tabDegistir('not')">✏️ Notlar & Karar</button>
+      </div>
+    </div>
+    
+    <div class="kapsayici-genis" style="padding: 24px 20px;">
+      
+      <div id="alertAlani"></div>
+      
+      <!-- TAB 1: ÖZET -->
+      <div id="tab-ozet" class="tab-icerik-alani">
+        <!-- JS ile doldurulur -->
+      </div>
+      
+      <!-- TAB 2: UYARILAR -->
+      <div id="tab-uyarilar" class="tab-icerik-alani gizli">
+        <!-- JS ile doldurulur -->
+      </div>
+      
+      <!-- TAB 3: MÜLAKAT SORULARI -->
+      <div id="tab-sorular" class="tab-icerik-alani gizli">
+        <!-- JS ile doldurulur -->
+      </div>
+      
+      <!-- TAB 4: TÜM CEVAPLAR -->
+      <div id="tab-cevaplar" class="tab-icerik-alani gizli">
+        <!-- JS ile doldurulur -->
+      </div>
+      
+      <!-- TAB 5: NOTLAR & KARAR -->
+      <div id="tab-not" class="tab-icerik-alani gizli">
+        <!-- JS ile doldurulur -->
+      </div>
+      
+    </div>
+    
+  </div>
+  
+  <script type="module" src="mulakat.js"></script>
+</body>
+</html>
