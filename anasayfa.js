@@ -203,8 +203,12 @@ function pozisyonlariCiz() {
     return;
   }
   
-  // 2 veya daha az ise düz göster
-  if (pozisyonlar.length <= 2) {
+  // 📱 Mobilde 1, desktop'ta 2 ilan/grup
+  const mobilMi = window.innerWidth <= 768;
+  const grupBoyu = mobilMi ? 1 : 2;
+  
+  // Slider'a gerek yok mu? (yeterli ilan yoksa düz göster)
+  if (pozisyonlar.length <= grupBoyu) {
     liste.classList.remove('slider-mod');
     liste.innerHTML = pozisyonlar.map(p => pozisyonKartHTML(p)).join('');
     return;
@@ -213,16 +217,16 @@ function pozisyonlariCiz() {
   // 3+ ise SLIDER MOD
   liste.classList.add('slider-mod');
   
-  // 2'li gruplar oluştur
+  // Gruplara böl (mobilde 1'er, desktop'ta 2'şer)
   const gruplar = [];
-  for (let i = 0; i < pozisyonlar.length; i += 2) {
-    gruplar.push(pozisyonlar.slice(i, i + 2));
+  for (let i = 0; i < pozisyonlar.length; i += grupBoyu) {
+    gruplar.push(pozisyonlar.slice(i, i + grupBoyu));
   }
   
   toplamGrupSayisi = gruplar.length;
   aktifGrupIndex = 0;
   
-  // Slider HTML — SAĞ TARAFTA DIKEY BUTONLAR
+  // Slider HTML
   liste.innerHTML = `
     <div class="pozisyon-slider-pencere" id="pozisyonSliderPencere">
       <div class="pozisyon-slider-track" id="pozisyonSliderTrack">
@@ -238,10 +242,10 @@ function pozisyonlariCiz() {
     
     <!-- 🔘 SAĞ ORTA - DİKEY BUTONLAR -->
     <div class="slider-nav-grup">
-      <button class="slider-ok-btn" onclick="sliderOnceki()" aria-label="Önceki" title="Önceki ilan grubu">
+      <button class="slider-ok-btn" onclick="sliderOnceki()" aria-label="Önceki" title="Önceki">
         ‹
       </button>
-      <button class="slider-ok-btn" onclick="sliderSonraki()" aria-label="Sonraki" title="Sonraki ilan grubu">
+      <button class="slider-ok-btn" onclick="sliderSonraki()" aria-label="Sonraki" title="Sonraki">
         ›
       </button>
     </div>
@@ -269,6 +273,31 @@ function pozisyonlariCiz() {
     sliderTouchKurulum();
     baslatPozisyonSlider();
   }, 100);
+  
+  // Pencere boyutu değişirse → tekrar render et (mobilden desktop'a geçiş için)
+  window.addEventListener('resize', sliderEkranDegisimi);
+}
+
+// ───────────────────────────────────────────────
+// 📐 EKRAN BOYUTU DEĞİŞİMİ - Mobil/Desktop geçişi
+// ───────────────────────────────────────────────
+let resizeRenderTimer = null;
+function sliderEkranDegisimi() {
+  if (resizeRenderTimer) clearTimeout(resizeRenderTimer);
+  resizeRenderTimer = setTimeout(() => {
+    // Eğer grup sayısı değişmesi gereken bir geçişte ise tamamen render et
+    const mobilMi = window.innerWidth <= 768;
+    const yeniGrupBoyu = mobilMi ? 1 : 2;
+    const yeniGrupSayisi = Math.ceil(pozisyonlar.length / yeniGrupBoyu);
+    
+    if (yeniGrupSayisi !== toplamGrupSayisi) {
+      // Grup sayısı değişti, tamamen yeniden render et
+      pozisyonlariCiz();
+    } else {
+      // Sadece pozisyonu güncelle
+      sliderGrubaGit(aktifGrupIndex);
+    }
+  }, 200);
 }
 
 // ───────────────────────────────────────────────
@@ -284,7 +313,7 @@ function baslatPozisyonSlider() {
   sliderInterval = setInterval(() => {
     aktifGrupIndex = (aktifGrupIndex + 1) % toplamGrupSayisi;
     sliderGrubaGit(aktifGrupIndex);
-  }, 6000); // 6 saniye
+  }, 3000); // 3 saniyede bir
 }
 
 function sliderDuraklat() {
@@ -301,13 +330,15 @@ function sliderGrubaGit(grupIndex) {
   const track = document.getElementById('pozisyonSliderTrack');
   if (!track) return;
   
-  // Genişliği piksel olarak hesapla (kesin yatay hareket için)
-  const pencere = document.getElementById('pozisyonSliderPencere');
-  const genislik = pencere ? pencere.clientWidth : track.clientWidth;
+  // Track'in parent'ı (pencere) iç genişliği = bir grubun genişliği
+  // İç padding düşülmüş net iç alan
+  const ilkGrup = track.querySelector('.pozisyon-slider-grup');
+  if (!ilkGrup) return;
   
-  // YATAY hareket - X ekseninde piksel cinsinden
-  // Bordür/padding hariç tutulması için clientWidth kullanıyoruz
-  track.style.transform = `translate3d(-${grupIndex * genislik}px, 0, 0)`;
+  const grupGenislik = ilkGrup.offsetWidth;
+  
+  // YATAY hareket - donanım ivmesiyle
+  track.style.transform = `translate3d(-${grupIndex * grupGenislik}px, 0, 0)`;
   
   // Nokta göstergeleri güncelle
   document.querySelectorAll('.slider-nokta').forEach((n, i) => {
@@ -377,8 +408,9 @@ function sliderTouchKurulum() {
     baslangicX = dokunma.clientX;
     mevcutX = dokunma.clientX;
     
-    // Mevcut grupun genişliğini al
-    baslangicGenislik = pencere.clientWidth;
+    // Mevcut grup genişliğini al (pencere değil!)
+    const ilkGrup = track.querySelector('.pozisyon-slider-grup');
+    baslangicGenislik = ilkGrup ? ilkGrup.offsetWidth : pencere.clientWidth;
     
     track.classList.add('suruklenirken');
     sliderDuraklat();
@@ -441,15 +473,6 @@ function sliderTouchKurulum() {
   pencere.addEventListener('mouseup', bitisEvent);
   pencere.addEventListener('mouseleave', () => {
     if (surukleniyor) bitisEvent();
-  });
-  
-  // 📐 PENCERE BOYUTU DEĞİŞİRSE - Doğru pozisyona snap
-  let resizeTimer = null;
-  window.addEventListener('resize', () => {
-    if (resizeTimer) clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      sliderGrubaGit(aktifGrupIndex);
-    }, 150);
   });
 }
 
