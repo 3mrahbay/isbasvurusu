@@ -203,14 +203,14 @@ function pozisyonlariCiz() {
     return;
   }
   
-  // Eğer 2 veya daha az pozisyon varsa, hepsini düz göster (slider gerekmez)
+  // 2 veya daha az ise düz göster
   if (pozisyonlar.length <= 2) {
     liste.classList.remove('slider-mod');
     liste.innerHTML = pozisyonlar.map(p => pozisyonKartHTML(p)).join('');
     return;
   }
   
-  // 3+ pozisyon varsa SLIDER MOD - 2'şer 2'şer grupla
+  // 3+ ise SLIDER MOD
   liste.classList.add('slider-mod');
   
   // 2'li gruplar oluştur
@@ -220,14 +220,11 @@ function pozisyonlariCiz() {
   }
   
   toplamGrupSayisi = gruplar.length;
+  aktifGrupIndex = 0;
   
-  // Slider HTML
+  // Slider HTML — SAĞ TARAFTA DIKEY BUTONLAR
   liste.innerHTML = `
     <div class="pozisyon-slider-pencere" id="pozisyonSliderPencere">
-      <button class="slider-ok-btn ok-sol" onclick="sliderOnceki()" aria-label="Önceki">
-        ‹
-      </button>
-      
       <div class="pozisyon-slider-track" id="pozisyonSliderTrack">
         ${gruplar.map((grup, idx) => `
           <div class="pozisyon-slider-grup" data-grup-index="${idx}">
@@ -236,11 +233,17 @@ function pozisyonlariCiz() {
         `).join('')}
       </div>
       
-      <button class="slider-ok-btn ok-sag" onclick="sliderSonraki()" aria-label="Sonraki">
+      <div class="slider-pause-uyari">⏸ Otomatik geçiş duraklatıldı</div>
+    </div>
+    
+    <!-- 🔘 SAĞ ORTA - DİKEY BUTONLAR -->
+    <div class="slider-nav-grup">
+      <button class="slider-ok-btn" onclick="sliderOnceki()" aria-label="Önceki" title="Önceki ilan grubu">
+        ‹
+      </button>
+      <button class="slider-ok-btn" onclick="sliderSonraki()" aria-label="Sonraki" title="Sonraki ilan grubu">
         ›
       </button>
-      
-      <div class="slider-pause-uyari">⏸ Otomatik geçiş duraklatıldı</div>
     </div>
     
     <!-- Nokta göstergeler -->
@@ -261,30 +264,15 @@ function pozisyonlariCiz() {
     </div>
   `;
   
-  // Pencere yüksekliğini ilk grubun yüksekliğine ayarla
+  // Touch + Hover desteği başlat
   setTimeout(() => {
-    sliderYukseklikAyarla();
+    sliderTouchKurulum();
     baslatPozisyonSlider();
   }, 100);
-  
-  // Pencere boyutu değişirse yüksekliği güncelle
-  window.addEventListener('resize', sliderYukseklikAyarla);
 }
 
 // ───────────────────────────────────────────────
-// 📏 Slider yüksekliğini ayarla (ilk grubun yüksekliği kadar)
-// ───────────────────────────────────────────────
-function sliderYukseklikAyarla() {
-  const pencere = document.getElementById('pozisyonSliderPencere');
-  const ilkGrup = document.querySelector('.pozisyon-slider-grup');
-  if (!pencere || !ilkGrup) return;
-  
-  const yukseklik = ilkGrup.offsetHeight;
-  pencere.style.height = `${yukseklik}px`;
-}
-
-// ───────────────────────────────────────────────
-// 🎠 POZİSYON SLIDER - Otomatik Döngü
+// 🎠 OTOMATİK DÖNGÜ
 // ───────────────────────────────────────────────
 function baslatPozisyonSlider() {
   if (toplamGrupSayisi <= 1) return;
@@ -296,40 +284,30 @@ function baslatPozisyonSlider() {
   sliderInterval = setInterval(() => {
     aktifGrupIndex = (aktifGrupIndex + 1) % toplamGrupSayisi;
     sliderGrubaGit(aktifGrupIndex);
-  }, 6000); // 🐢 6 saniyede bir değişir (daha rahat okuma süresi)
-  
-  // Hover'da duraklatma
-  const pencere = document.getElementById('pozisyonSliderPencere');
-  if (pencere && !pencere.dataset.hoverBagli) {
-    pencere.dataset.hoverBagli = 'true';
-    
-    pencere.addEventListener('mouseenter', () => {
-      if (sliderInterval) {
-        clearInterval(sliderInterval);
-        sliderInterval = null;
-      }
-    });
-    
-    pencere.addEventListener('mouseleave', () => {
-      if (!sliderInterval && toplamGrupSayisi > 1) {
-        sliderInterval = setInterval(() => {
-          aktifGrupIndex = (aktifGrupIndex + 1) % toplamGrupSayisi;
-          sliderGrubaGit(aktifGrupIndex);
-        }, 6000);
-      }
-    });
+  }, 6000); // 6 saniye
+}
+
+function sliderDuraklat() {
+  if (sliderInterval) {
+    clearInterval(sliderInterval);
+    sliderInterval = null;
   }
 }
 
+// ───────────────────────────────────────────────
+// 📍 BELLİ BİR GRUBA GİT - YATAY HAREKET
+// ───────────────────────────────────────────────
 function sliderGrubaGit(grupIndex) {
   const track = document.getElementById('pozisyonSliderTrack');
   if (!track) return;
   
-  const ilkGrup = track.querySelector('.pozisyon-slider-grup');
-  if (!ilkGrup) return;
+  // Genişliği piksel olarak hesapla (kesin yatay hareket için)
+  const pencere = document.getElementById('pozisyonSliderPencere');
+  const genislik = pencere ? pencere.clientWidth : track.clientWidth;
   
-  const yukseklik = ilkGrup.offsetHeight;
-  track.style.transform = `translateY(-${grupIndex * yukseklik}px)`;
+  // YATAY hareket - X ekseninde piksel cinsinden
+  // Bordür/padding hariç tutulması için clientWidth kullanıyoruz
+  track.style.transform = `translate3d(-${grupIndex * genislik}px, 0, 0)`;
   
   // Nokta göstergeleri güncelle
   document.querySelectorAll('.slider-nokta').forEach((n, i) => {
@@ -342,20 +320,16 @@ function sliderGrubaGit(grupIndex) {
 }
 
 // ───────────────────────────────────────────────
-// Manuel kontroller
+// 🎮 MANUEL KONTROLLER
 // ───────────────────────────────────────────────
 window.sliderManuelDegistir = function(grupIndex) {
-  if (sliderInterval) {
-    clearInterval(sliderInterval);
-    sliderInterval = null;
-  }
-  
+  sliderDuraklat();
   aktifGrupIndex = grupIndex;
   sliderGrubaGit(grupIndex);
   
   // 8 saniye sonra otomatik döngüyü tekrar başlat
   setTimeout(() => {
-    if (toplamGrupSayisi > 1) {
+    if (toplamGrupSayisi > 1 && !sliderInterval) {
       baslatPozisyonSlider();
     }
   }, 8000);
@@ -370,6 +344,114 @@ window.sliderOnceki = function() {
   const yeniIndex = aktifGrupIndex - 1 < 0 ? toplamGrupSayisi - 1 : aktifGrupIndex - 1;
   sliderManuelDegistir(yeniIndex);
 };
+
+// ───────────────────────────────────────────────
+// 👆 TOUCH (Dokunma) DESTEĞİ - Telefon için
+// ───────────────────────────────────────────────
+function sliderTouchKurulum() {
+  const pencere = document.getElementById('pozisyonSliderPencere');
+  const track = document.getElementById('pozisyonSliderTrack');
+  if (!pencere || !track) return;
+  
+  let baslangicX = 0;
+  let mevcutX = 0;
+  let surukleniyor = false;
+  let baslangicGenislik = 0;
+  
+  // Hover'da duraklatma (desktop)
+  pencere.addEventListener('mouseenter', () => {
+    sliderDuraklat();
+  });
+  
+  pencere.addEventListener('mouseleave', () => {
+    if (!sliderInterval && toplamGrupSayisi > 1 && !surukleniyor) {
+      baslatPozisyonSlider();
+    }
+  });
+  
+  // ─── DOKUNMATIK BAŞLANGIÇ ───
+  const baslangicEvent = (e) => {
+    surukleniyor = true;
+    
+    const dokunma = e.touches ? e.touches[0] : e;
+    baslangicX = dokunma.clientX;
+    mevcutX = dokunma.clientX;
+    
+    // Mevcut grupun genişliğini al
+    baslangicGenislik = pencere.clientWidth;
+    
+    track.classList.add('suruklenirken');
+    sliderDuraklat();
+  };
+  
+  // ─── DOKUNMATIK HAREKET ───
+  const hareketEvent = (e) => {
+    if (!surukleniyor) return;
+    
+    const dokunma = e.touches ? e.touches[0] : e;
+    mevcutX = dokunma.clientX;
+    
+    const fark = mevcutX - baslangicX;
+    const aktifPozisyon = -aktifGrupIndex * baslangicGenislik;
+    
+    // Sürükleme sırasında manuel transform
+    track.style.transform = `translate3d(${aktifPozisyon + fark}px, 0, 0)`;
+  };
+  
+  // ─── DOKUNMATIK BİTİŞ ───
+  const bitisEvent = () => {
+    if (!surukleniyor) return;
+    surukleniyor = false;
+    track.classList.remove('suruklenirken');
+    
+    const fark = mevcutX - baslangicX;
+    const esik = baslangicGenislik * 0.2; // %20 sürükleme yeterli
+    
+    if (Math.abs(fark) > esik) {
+      // Yeterli sürükleme yapıldı
+      if (fark < 0) {
+        // Sola sürüklendi → sonraki
+        sliderSonraki();
+      } else {
+        // Sağa sürüklendi → önceki
+        sliderOnceki();
+      }
+    } else {
+      // Yetersiz sürükleme → mevcut grupta kal
+      sliderGrubaGit(aktifGrupIndex);
+    }
+    
+    // 8 sn sonra otomatik başlat
+    setTimeout(() => {
+      if (!sliderInterval && toplamGrupSayisi > 1) {
+        baslatPozisyonSlider();
+      }
+    }, 8000);
+  };
+  
+  // Touch events (mobil)
+  pencere.addEventListener('touchstart', baslangicEvent, { passive: true });
+  pencere.addEventListener('touchmove', hareketEvent, { passive: true });
+  pencere.addEventListener('touchend', bitisEvent);
+  pencere.addEventListener('touchcancel', bitisEvent);
+  
+  // Mouse events (desktop)
+  pencere.addEventListener('mousedown', baslangicEvent);
+  pencere.addEventListener('mousemove', hareketEvent);
+  pencere.addEventListener('mouseup', bitisEvent);
+  pencere.addEventListener('mouseleave', () => {
+    if (surukleniyor) bitisEvent();
+  });
+  
+  // 📐 PENCERE BOYUTU DEĞİŞİRSE - Doğru pozisyona snap
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      sliderGrubaGit(aktifGrupIndex);
+    }, 150);
+  });
+}
 
 // ───────────────────────────────────────────────
 // Tek bir pozisyon kartı HTML'i
