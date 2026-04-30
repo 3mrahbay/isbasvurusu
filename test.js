@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// TEST YÖNETİM SİSTEMİ
+// TEST YÖNETİM SİSTEMİ - 3 Test Tipi (eğitim/destek/idari)
 // ═══════════════════════════════════════════════════════════
 
 import { 
@@ -11,19 +11,58 @@ import {
   PROXY_URL
 } from './firebase-config.js';
 
+// 🎓 EĞİTİM KADROSU TESTİ (60 soru)
 import { 
-  BOLUMLER,
-  MOTIVASYONLAR,
+  BOLUMLER as EGITIM_BOLUMLER,
+  MOTIVASYONLAR as EGITIM_MOTIVASYONLAR,
   toplamSoruSayisi,
   bolumeKadarSoruSayisi
 } from './test-sorular.js';
+
+// 🛡️ DESTEK KADROSU TESTİ (30 soru)
+import { 
+  DESTEK_BOLUMLER,
+  DESTEK_MOTIVASYONLAR
+} from './test-sorular-destek.js';
+
+// 💼 İDARİ KADROSU TESTİ (30 soru)
+import { 
+  IDARI_BOLUMLER,
+  IDARI_MOTIVASYONLAR
+} from './test-sorular-idari.js';
 
 import { 
   bolumRender,
   bolumValidate
 } from './test-bolumler.js';
 
-import { alertGoster, mailGonder } from './yardimci.js';
+import { alertGoster, mailGonder, testTipiBul, TEST_TIPLERI } from './yardimci.js';
+
+// ───────────────────────────────────────────────
+// 🎯 AKTİF TEST SETİ - pozisyona göre belirlenir
+// ───────────────────────────────────────────────
+let BOLUMLER = EGITIM_BOLUMLER;        // varsayılan: eğitim
+let MOTIVASYONLAR = EGITIM_MOTIVASYONLAR;
+let aktifTestTipi = 'egitim';
+
+// Test setini değiştir
+function testSetiniBelirle(testTipi) {
+  aktifTestTipi = testTipi;
+  
+  if (testTipi === 'destek') {
+    BOLUMLER = DESTEK_BOLUMLER;
+    MOTIVASYONLAR = DESTEK_MOTIVASYONLAR;
+  } else if (testTipi === 'idari') {
+    BOLUMLER = IDARI_BOLUMLER;
+    MOTIVASYONLAR = IDARI_MOTIVASYONLAR;
+  } else {
+    // Varsayılan: egitim
+    BOLUMLER = EGITIM_BOLUMLER;
+    MOTIVASYONLAR = EGITIM_MOTIVASYONLAR;
+  }
+  
+  console.log(`📋 Test seti yüklendi: ${testTipi} (${BOLUMLER.length} bölüm)`);
+}
 
 // ───────────────────────────────────────────────
 // STATE
@@ -70,6 +109,11 @@ onAuthStateChanged(auth, async (kullanici) => {
     }
     
     aktifBasvuru = snap.data();
+    
+    // 🎯 POZİSYONA GÖRE TEST SETİNİ BELİRLE
+    const kategoriId = aktifBasvuru.pozisyonKategoriId || aktifBasvuru.kategoriId || 'okulOncesiOgretmen';
+    const testTipi = testTipiBul(kategoriId);
+    testSetiniBelirle(testTipi);
     
     // Durumu kontrol et
     if (aktifBasvuru.durum === 'bilgilerEksik') {
@@ -481,13 +525,14 @@ async function testiTamamla() {
       davranisAnalizi.bolumSureleri[aktifBolum] = sureSn;
     }
     
-    // Final kayıt + davranış verisi
+    // Final kayıt + davranış verisi + test tipi
     await setDoc(doc(db, 'testCevaplari', aktifKullanici.email), {
       cevaplar: cevaplar,
       aktifBolum: 7,
       tamamlandi: true,
       tamamlanmaZamani: serverTimestamp(),
-      davranisAnalizi: davranisAnalizi
+      davranisAnalizi: davranisAnalizi,
+      testTipi: aktifTestTipi  // 🎯 'egitim', 'destek' veya 'idari'
     }, { merge: true });
     
     // Başvuru durumunu güncelle
@@ -535,7 +580,8 @@ async function aiAnaliziTetikle() {
         islem: 'aiAnaliz',
         adayBilgileri: aktifBasvuru,
         testCevaplari: cevaplar,
-        davranisAnalizi: davranisAnalizi
+        davranisAnalizi: davranisAnalizi,
+        testTipi: aktifTestTipi  // 🎯 'egitim', 'destek' veya 'idari'
       })
     });
     

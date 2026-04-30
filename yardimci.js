@@ -199,22 +199,55 @@ export function urlParametreAl(ad) {
  * Pozisyon kategorileri (sabit liste)
  */
 export const POZISYON_KATEGORILERI = [
-  { id: 'okulOncesiOgretmen', ad: 'Okul Öncesi Öğretmeni', ikon: '📚' },
-  { id: 'egitimKoordinatoru', ad: 'Eğitim Koordinatörü', ikon: '🎯' },
-  { id: 'bransOgretmeni', ad: 'Branş Öğretmeni (Müzik, Görsel Sanatlar, Beden Eğitimi)', ikon: '🎨' },
-  { id: 'milliManeviDegerler', ad: 'Milli ve Manevi Değerler Eğitimi', ikon: '🌙' },
-  { id: 'cocukGelisimi', ad: 'Çocuk Gelişimi Uzmanı', ikon: '🌱' },
-  { id: 'rehberlik', ad: 'Rehberlik / Psikoloji', ikon: '💚' },
-  { id: 'ingilizceOgretmen', ad: 'İngilizce Öğretmeni / Native Speaker', ikon: '🌍' },
-  { id: 'asci', ad: 'Aşçı / Mutfak Personeli', ikon: '🍳' },
-  { id: 'temizlik', ad: 'Temizlik Personeli', ikon: '🧹' },
-  { id: 'halklaIliskiler', ad: 'Halkla İlişkiler', ikon: '📞' },
-  { id: 'muhasebe', ad: 'Muhasebe / İdari', ikon: '📊' },
-  { id: 'yardimciOgretmen', ad: 'Yardımcı Öğretmen / Stajyer', ikon: '🎓' },
-  { id: 'soforServis', ad: 'Şoför / Servis Sorumlusu', ikon: '🚌' },
-  { id: 'guvenlik', ad: 'Güvenlik Görevlisi', ikon: '🛡️' },
-  { id: 'diger', ad: 'Diğer', ikon: '✨' }
+  { id: 'okulOncesiOgretmen', ad: 'Okul Öncesi Öğretmeni', ikon: '📚', renk: '#2c5530', bg: '#e8f5e9', testTipi: 'egitim' },
+  { id: 'egitimKoordinatoru', ad: 'Eğitim Koordinatörü', ikon: '🎯', renk: '#1565c0', bg: '#e3f2fd', testTipi: 'egitim' },
+  { id: 'bransOgretmeni', ad: 'Branş Öğretmeni (Müzik, Görsel Sanatlar, Beden Eğitimi)', ikon: '🎨', renk: '#c2185b', bg: '#fce4ec', testTipi: 'egitim' },
+  { id: 'milliManeviDegerler', ad: 'Milli ve Manevi Değerler Eğitimi', ikon: '🌙', renk: '#5e35b1', bg: '#ede7f6', testTipi: 'egitim' },
+  { id: 'cocukGelisimi', ad: 'Çocuk Gelişimi Uzmanı', ikon: '🌱', renk: '#2e7d32', bg: '#e8f5e9', testTipi: 'egitim' },
+  { id: 'rehberlik', ad: 'Rehberlik / Psikoloji', ikon: '💚', renk: '#00695c', bg: '#e0f2f1', testTipi: 'egitim' },
+  { id: 'ingilizceOgretmen', ad: 'İngilizce Öğretmeni / Native Speaker', ikon: '🌍', renk: '#0277bd', bg: '#e1f5fe', testTipi: 'egitim' },
+  { id: 'asci', ad: 'Aşçı / Mutfak Personeli', ikon: '🍳', renk: '#e65100', bg: '#fff3e0', testTipi: 'destek' },
+  { id: 'temizlik', ad: 'Temizlik Personeli', ikon: '🧹', renk: '#558b2f', bg: '#f1f8e9', testTipi: 'destek' },
+  { id: 'halklaIliskiler', ad: 'Halkla İlişkiler', ikon: '📞', renk: '#ad1457', bg: '#fce4ec', testTipi: 'idari' },
+  { id: 'muhasebe', ad: 'Muhasebe / İdari', ikon: '📊', renk: '#283593', bg: '#e8eaf6', testTipi: 'idari' },
+  { id: 'yardimciOgretmen', ad: 'Yardımcı Öğretmen / Stajyer', ikon: '🎓', renk: '#6a1b9a', bg: '#f3e5f5', testTipi: 'egitim' },
+  { id: 'soforServis', ad: 'Şoför / Servis Sorumlusu', ikon: '🚌', renk: '#f57c00', bg: '#fff3e0', testTipi: 'destek' },
+  { id: 'guvenlik', ad: 'Güvenlik Görevlisi', ikon: '🛡️', renk: '#424242', bg: '#f5f5f5', testTipi: 'destek' },
+  { id: 'diger', ad: 'Diğer', ikon: '✨', renk: '#616161', bg: '#fafafa', testTipi: 'idari' }
 ];
+
+// ───────────────────────────────────────────────
+// 🧪 TEST TİPLERİ - 3 farklı test seti
+// ───────────────────────────────────────────────
+export const TEST_TIPLERI = {
+  'egitim': { 
+    ad: 'Eğitim Kadrosu Testi', 
+    ikon: '🎓',
+    aciklama: 'Çocuklarla doğrudan çalışacak personel için kapsamlı değerlendirme',
+    sureDk: 30,
+    soruSayisi: 60
+  },
+  'destek': { 
+    ad: 'Destek Kadrosu Testi', 
+    ikon: '🛡️',
+    aciklama: 'Aşçı, temizlik, şoför, güvenlik personeli için',
+    sureDk: 10,
+    soruSayisi: 30
+  },
+  'idari': { 
+    ad: 'İdari Kadrosu Testi', 
+    ikon: '💼',
+    aciklama: 'Halkla ilişkiler, muhasebe, idari görevler için',
+    sureDk: 10,
+    soruSayisi: 30
+  }
+};
+
+// Kategoriye göre test tipini bul
+export function testTipiBul(kategoriId) {
+  const kategori = POZISYON_KATEGORILERI.find(p => p.id === kategoriId);
+  return kategori?.testTipi || 'egitim';
+}
 
 /**
  * Pozisyon kategorisini ad'a göre bul
