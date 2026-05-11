@@ -730,10 +730,10 @@ body {
   cursor: grabbing;
 }
 
-/* HER GRUP %100 GENİŞLİK */
+/* HER GRUP - ALT ALTA 3 YATAY DİKDÖRTGEN */
 .pozisyon-slider-grup {
-  display: grid;
-  grid-template-columns: 1fr;  /* 🆕 Tek sütun - yatay kart için */
+  display: flex !important;
+  flex-direction: column !important;
   gap: 14px;
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
@@ -741,50 +741,60 @@ body {
   width: 100% !important;
   min-width: 100% !important;
   max-width: 100% !important;
-  align-items: stretch;
   box-sizing: border-box;
 }
 
 /* ═══════════════════════════════════════════════════════════
-   🆕 YATAY KART TASARIMI - Slider Modunda
-   Geniş, kompakt, yatay dikdörtgen formu
+   📐 YATAY DİKDÖRTGEN KART TASARIMI
+   Her kart geniş ve kısa - sol içerik + sağ butonlar
    ═══════════════════════════════════════════════════════════ */
 
 .pozisyon-listesi.slider-mod .pozisyon-kart {
-  display: grid;
-  grid-template-columns: 1fr auto;  /* Sol içerik + Sağ butonlar */
+  display: grid !important;
+  grid-template-columns: 1fr 220px !important;  /* Sol içerik + Sağ butonlar (sabit genişlik) */
   gap: 24px;
   align-items: center;
-  padding: 20px 24px;
+  padding: 18px 22px;
   background: white;
   border-radius: 14px;
   border: 1px solid #e0e0e0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  min-width: 0;  /* Grid içinde overflow için kritik */
+  min-width: 0;
+  width: 100%;
   box-sizing: border-box;
 }
 
 .pozisyon-listesi.slider-mod .pozisyon-kart:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(44,85,48,0.12);
+  box-shadow: 0 6px 18px rgba(44,85,48,0.15);
   border-color: var(--ana-yesil);
 }
 
-/* SOL TARAF - Başlık + Meta + Açıklama */
+/* SOL TARAF - Ana içerik (başlık, meta, açıklama, sayaç) */
 .pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-ust {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
+.pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-baslik {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-baslik h3 {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--ana-yesil);
-  margin: 0 0 6px;
+  margin: 0;
   line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   word-wrap: break-word;
 }
 
@@ -794,18 +804,7 @@ body {
   gap: 12px;
   font-size: 12px;
   color: var(--gri);
-  margin-bottom: 6px;
-}
-
-.pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-aciklama {
-  font-size: 13px;
-  line-height: 1.5;
-  color: #555;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;  /* 2 satıra sınırla - yatay tasarımda kısa */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin: 6px 0;
+  margin-top: 4px;
 }
 
 .pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-rozet {
@@ -814,98 +813,115 @@ body {
   font-size: 11px;
   font-weight: 600;
   border-radius: 12px;
-  margin-bottom: 4px;
+  align-self: flex-start;
+  white-space: nowrap;
+  margin-top: 4px;
 }
 
-/* SAYAÇ - Yatay tasarımda kompakt */
+/* AÇIKLAMA - 2 satır */
+.pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-aciklama {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #555;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 6px 0 0;
+}
+
+/* SAYAÇ - Sol içerikte kompakt */
 .pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-sayac {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: #f8fffa;
   border-radius: 8px;
   border: 1px solid #c8e6c9;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--ana-yesil);
-  margin: 6px 0;
+  margin: 6px 0 0;
+  display: flex;
+  gap: 6px;
+  align-items: center;
 }
 
 .pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-sayac .ikon {
-  font-size: 18px;
+  font-size: 16px;
+  flex-shrink: 0;
 }
 
 .pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-sayac .metin {
   flex: 1;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.4;
-}
-
-.pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-sayac strong {
-  font-weight: 700;
 }
 
 .pozisyon-listesi.slider-mod .pozisyon-kart .sayac-grid {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-left: auto;
 }
 
 .pozisyon-listesi.slider-mod .pozisyon-kart .sayac-birim {
   text-align: center;
-  min-width: 32px;
+  min-width: 28px;
 }
 
 .pozisyon-listesi.slider-mod .pozisyon-kart .sayac-birim .deger {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--ana-yesil);
   line-height: 1;
 }
 
 .pozisyon-listesi.slider-mod .pozisyon-kart .sayac-birim .etiket {
-  font-size: 9px;
+  font-size: 8px;
   color: var(--gri);
   text-transform: uppercase;
 }
 
-/* SAĞ TARAF - Butonlar (dikey sırada) */
+/* SAĞ TARAF - BUTONLAR (dikey, sabit genişlik) */
 .pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-altbutonlar {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-width: 180px;
+  width: 100%;
   align-self: center;
 }
 
 .pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-altbutonlar .btn {
-  padding: 10px 18px;
+  padding: 11px 14px;
   font-size: 13px;
   white-space: nowrap;
   text-align: center;
+  width: 100%;
 }
 
-/* MOBİL - Yatay tasarım korunarak küçültülür */
+/* MOBİL - YATAY KART AMA BUTONLAR ALT TARAFTA */
 @media (max-width: 768px) {
   .pozisyon-listesi.slider-mod .pozisyon-kart {
-    grid-template-columns: 1fr;  /* Mobilde alt alta */
+    grid-template-columns: 1fr !important;  /* Tek sütun */
     gap: 12px;
     padding: 16px;
   }
   
   .pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-altbutonlar {
-    min-width: 0;
-    flex-direction: row;  /* Mobilde butonlar yan yana */
+    flex-direction: row;
+    width: 100%;
   }
   
   .pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-altbutonlar .btn {
     flex: 1;
-    padding: 10px 14px;
+    padding: 10px 12px;
     font-size: 12px;
   }
   
   .pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-baslik h3 {
     font-size: 16px;
+    -webkit-line-clamp: 3;
+  }
+  
+  .pozisyon-listesi.slider-mod .pozisyon-kart .pozisyon-aciklama {
+    -webkit-line-clamp: 3;
   }
 }
 
