@@ -185,6 +185,8 @@ function pozisyonlariCiz() {
     sliderInterval = null;
   }
   
+  console.log('🎨 pozisyonlariCiz çağrıldı, pozisyon sayısı:', pozisyonlar.length);
+  
   if (pozisyonlar.length === 0) {
     liste.innerHTML = `
       <div class="pozisyon-yok-mesaj">
@@ -203,21 +205,21 @@ function pozisyonlariCiz() {
     return;
   }
   
-  // 📱 Mobilde 1, desktop'ta 2 ilan/grup
-  const mobilMi = window.innerWidth <= 768;
-  const grupBoyu = mobilMi ? 1 : 2;
+  // 📐 Yatay kartlar olduğu için tek tek gösterilir
+  const grupBoyu = 1;
   
   // Slider'a gerek yok mu? (yeterli ilan yoksa düz göster)
   if (pozisyonlar.length <= grupBoyu) {
     liste.classList.remove('slider-mod');
     liste.innerHTML = pozisyonlar.map(p => pozisyonKartHTML(p)).join('');
+    console.log('✅ Slider gerekmedi, düz liste oluşturuldu');
     return;
   }
   
-  // 3+ ise SLIDER MOD
+  // 2+ ise SLIDER MOD
   liste.classList.add('slider-mod');
   
-  // Gruplara böl (mobilde 1'er, desktop'ta 2'şer)
+  // Her grup 1 yatay kart
   const gruplar = [];
   for (let i = 0; i < pozisyonlar.length; i += grupBoyu) {
     gruplar.push(pozisyonlar.slice(i, i + grupBoyu));
@@ -225,6 +227,8 @@ function pozisyonlariCiz() {
   
   toplamGrupSayisi = gruplar.length;
   aktifGrupIndex = 0;
+  
+  console.log(`✅ Slider modu: ${gruplar.length} grup oluşturuldu`);
   
   // Slider HTML
   liste.innerHTML = `
@@ -286,8 +290,8 @@ function sliderEkranDegisimi() {
   if (resizeRenderTimer) clearTimeout(resizeRenderTimer);
   resizeRenderTimer = setTimeout(() => {
     // Eğer grup sayısı değişmesi gereken bir geçişte ise tamamen render et
-    const mobilMi = window.innerWidth <= 768;
-    const yeniGrupBoyu = mobilMi ? 1 : 2;
+    // Yatay kart her zaman 1 ilan gösterir
+    const yeniGrupBoyu = 1;
     const yeniGrupSayisi = Math.ceil(pozisyonlar.length / yeniGrupBoyu);
     
     if (yeniGrupSayisi !== toplamGrupSayisi) {
