@@ -205,8 +205,9 @@ function pozisyonlariCiz() {
     return;
   }
   
-  // 📐 Yatay kartlar olduğu için tek tek gösterilir
-  const grupBoyu = 1;
+  // 📐 Desktop'ta 3 ilan ALT ALTA (yatay dikdörtgen olarak), mobilde 2
+  const mobilMi = window.innerWidth <= 768;
+  const grupBoyu = mobilMi ? 2 : 3;
   
   // Slider'a gerek yok mu? (yeterli ilan yoksa düz göster)
   if (pozisyonlar.length <= grupBoyu) {
@@ -216,10 +217,10 @@ function pozisyonlariCiz() {
     return;
   }
   
-  // 2+ ise SLIDER MOD
+  // 4+ ise SLIDER MOD
   liste.classList.add('slider-mod');
   
-  // Her grup 1 yatay kart
+  // Her grup 3 yatay dikdörtgen (alt alta)
   const gruplar = [];
   for (let i = 0; i < pozisyonlar.length; i += grupBoyu) {
     gruplar.push(pozisyonlar.slice(i, i + grupBoyu));
@@ -290,8 +291,9 @@ function sliderEkranDegisimi() {
   if (resizeRenderTimer) clearTimeout(resizeRenderTimer);
   resizeRenderTimer = setTimeout(() => {
     // Eğer grup sayısı değişmesi gereken bir geçişte ise tamamen render et
-    // Yatay kart her zaman 1 ilan gösterir
-    const yeniGrupBoyu = 1;
+    // Ekran boyutuna göre grup boyu (3 alt alta - desktop, 2 - mobil)
+    const mobilMi = window.innerWidth <= 768;
+    const yeniGrupBoyu = mobilMi ? 2 : 3;
     const yeniGrupSayisi = Math.ceil(pozisyonlar.length / yeniGrupBoyu);
     
     if (yeniGrupSayisi !== toplamGrupSayisi) {
