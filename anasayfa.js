@@ -205,10 +205,9 @@ function pozisyonlariCiz() {
     return;
   }
   
-  // 📐 Desktop'ta 3 kart yan yana, tablet 2, mobil 1
+  // 📐 Desktop'ta 2 kart yan yana, mobilde 1
   const mobilMi = window.innerWidth <= 768;
-  const tabletMi = window.innerWidth <= 1024 && window.innerWidth > 768;
-  const grupBoyu = mobilMi ? 1 : (tabletMi ? 2 : 3);
+  const grupBoyu = mobilMi ? 1 : 2;
   
   // Slider'a gerek yok mu? (yeterli ilan yoksa düz göster)
   if (pozisyonlar.length <= grupBoyu) {
@@ -218,10 +217,10 @@ function pozisyonlariCiz() {
     return;
   }
   
-  // 4+ ise SLIDER MOD
+  // 3+ ise SLIDER MOD
   liste.classList.add('slider-mod');
   
-  // Her grup 3 kart yan yana
+  // Her grup 2 kart yan yana
   const gruplar = [];
   for (let i = 0; i < pozisyonlar.length; i += grupBoyu) {
     gruplar.push(pozisyonlar.slice(i, i + grupBoyu));
@@ -292,10 +291,9 @@ function sliderEkranDegisimi() {
   if (resizeRenderTimer) clearTimeout(resizeRenderTimer);
   resizeRenderTimer = setTimeout(() => {
     // Eğer grup sayısı değişmesi gereken bir geçişte ise tamamen render et
-    // Ekran boyutuna göre grup boyu
+    // Ekran boyutuna göre grup boyu (2 kart, mobilde 1)
     const mobilMi = window.innerWidth <= 768;
-    const tabletMi = window.innerWidth <= 1024 && window.innerWidth > 768;
-    const yeniGrupBoyu = mobilMi ? 1 : (tabletMi ? 2 : 3);
+    const yeniGrupBoyu = mobilMi ? 1 : 2;
     const yeniGrupSayisi = Math.ceil(pozisyonlar.length / yeniGrupBoyu);
     
     if (yeniGrupSayisi !== toplamGrupSayisi) {
