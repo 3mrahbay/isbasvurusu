@@ -1154,8 +1154,39 @@ function cvKartiHTML(a, k) {
   const cvUrl = a.cvUrl || k.cvUrl;
   const cvAd = a.cvDosyaAdi || k.cvDosyaAdi || 'CV';
   const cvBoyut = a.cvBoyut || k.cvBoyut;
+  const cvTip = (a.cvTip || k.cvTip || '').toLowerCase();
   
   if (cvUrl) {
+    // Dosya tipine göre önizleme yapılabilir mi?
+    const urlKucuk = cvUrl.toLowerCase();
+    const pdfMi = cvTip.includes('pdf') || urlKucuk.includes('.pdf');
+    const resimMi = cvTip.includes('image') || /\.(jpg|jpeg|png|webp|gif)/.test(urlKucuk);
+    
+    let onizlemeHTML = '';
+    if (resimMi) {
+      onizlemeHTML = `
+        <div style="margin-top:14px;">
+          <img src="${cvUrl}" alt="${cvAd}" 
+               style="max-width:100%; max-height:600px; border-radius:10px; border:1px solid #ddd; display:block;">
+        </div>`;
+    } else if (pdfMi) {
+      onizlemeHTML = `
+        <div style="margin-top:14px;">
+          <iframe src="${cvUrl}#toolbar=1" 
+                  style="width:100%; height:600px; border:1px solid #ddd; border-radius:10px;"
+                  title="CV önizleme"></iframe>
+          <div style="font-size:12px; color:#888; margin-top:6px;">
+            Önizleme yüklenmezse "Yeni Sekmede Aç" butonunu kullanın.
+          </div>
+        </div>`;
+    } else {
+      // Word vb. — önizlenemez
+      onizlemeHTML = `
+        <div style="margin-top:14px; background:#fff8e1; border:1px solid #ffe082; border-radius:10px; padding:14px; font-size:13px; color:#8d6e00;">
+          ℹ️ Bu dosya tipi (Word vb.) tarayıcıda önizlenemiyor. Görmek için "İndir" veya "Yeni Sekmede Aç" butonunu kullanın.
+        </div>`;
+    }
+    
     return `
     <div class="kart" style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border-left: 4px solid var(--ana-yesil);">
       <h3>📄 Özgeçmiş (CV)</h3>
@@ -1167,11 +1198,13 @@ function cvKartiHTML(a, k) {
             ${cvBoyut ? `<div style="font-size:12px; color:#888;">${(cvBoyut/1024/1024).toFixed(2)} MB</div>` : ''}
           </div>
         </div>
-        <div style="display:flex; gap:8px;">
-          <a href="${cvUrl}" target="_blank" class="btn btn-kucuk" style="background:var(--ana-yesil); color:white;">🔍 Görüntüle</a>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button onclick="cvOnizlemeToggle(this)" class="btn btn-kucuk" style="background:var(--ana-yesil); color:white;">👁️ Önizlemeyi Gizle</button>
+          <a href="${cvUrl}" target="_blank" class="btn btn-ikincil btn-kucuk">🔍 Yeni Sekmede Aç</a>
           <a href="${cvUrl}" download="${cvAd}" class="btn btn-ikincil btn-kucuk">⬇️ İndir</a>
         </div>
       </div>
+      <div class="cv-onizleme-alani">${onizlemeHTML}</div>
     </div>`;
   }
   return `
@@ -1180,6 +1213,20 @@ function cvKartiHTML(a, k) {
       <p style="color:#e65100; margin:0; font-size:13px;">⚠️ Bu aday henüz CV yüklememiş.</p>
     </div>`;
 }
+
+// CV önizlemesini aç/kapat
+window.cvOnizlemeToggle = function(btn) {
+  const kart = btn.closest('.kart');
+  const alan = kart.querySelector('.cv-onizleme-alani');
+  if (!alan) return;
+  if (alan.style.display === 'none') {
+    alan.style.display = 'block';
+    btn.textContent = '👁️ Önizlemeyi Gizle';
+  } else {
+    alan.style.display = 'none';
+    btn.textContent = '👁️ Önizlemeyi Göster';
+  }
+};
 
 function cevaplarDetayHTML(cevaplar) {
   // Bölümlere göre grupla
