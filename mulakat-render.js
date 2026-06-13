@@ -186,7 +186,7 @@ export function ozetTabHTML(aday, analiz, cevaplar) {
       <div class="bigFive-grid">
         ${cubukChart('Açıklık', bf.aciklik || 0, '#9c27b0')}
         ${cubukChart('Sorumluluk', bf.sorumluluk || 0, '#1976d2')}
-        ${cubukChart('Dışa Dönüklük', bf.disaDonukluk || 0, '#f57c00')}
+        ${cubukChart('Dışa Dönüklük', bf.disaDonukluk || bf.disadonukluk || 0, '#f57c00')}
         ${cubukChart('Uyumluluk ⭐', bf.uyumluluk || 0, '#2c5530')}
         ${cubukChart('Duygusal Denge', bf.duygusalDenge || 0, '#0097a7')}
       </div>
