@@ -30,14 +30,6 @@ import {
   serverTimestamp,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-import {
-  getStorage,
-  ref as storageRef,
-  uploadBytes,
-  uploadBytesResumable,
-  getDownloadURL,
-  deleteObject
-} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
 // ⚠️ DOĞRU API KEY (yenikayit projesinden)
 const firebaseConfig = {
@@ -52,7 +44,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
 // Apps Script proxy URL - güvenli mail ve AI analiz
@@ -84,12 +75,6 @@ export {
   limit,
   serverTimestamp,
   Timestamp,
-  storage,
-  storageRef,
-  uploadBytes,
-  uploadBytesResumable,
-  getDownloadURL,
-  deleteObject,
   PROXY_URL,
   ADMIN_EPOSTA
 };

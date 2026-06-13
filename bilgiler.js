@@ -11,10 +11,7 @@ import {
   serverTimestamp,
   onAuthStateChanged,
   signOut,
-  storage,
-  storageRef,
-  uploadBytesResumable,
-  getDownloadURL
+  PROXY_URL
 } from './firebase-config.js';
 
 import { 
@@ -177,46 +174,60 @@ async function cvYukle(dosya) {
   const durum = document.getElementById('cvYuklemeDurum');
   
   bar.classList.remove('gizli');
-  durum.textContent = 'Yükleniyor...';
+  dolgu.style.width = '30%';
+  durum.textContent = 'Dosya hazırlanıyor...';
   durum.style.color = 'var(--gri, #666)';
   
   try {
-    // Storage yolu: cv/{email_temiz}/{timestamp}.{uzanti}
-    const emailTemiz = (mevcutKullanici.email || 'aday').replace(/[^a-zA-Z0-9]/g, '_');
-    const zaman = Date.now();
-    const yol = `cv/${emailTemiz}/${zaman}${uzanti}`;
-    const ref = storageRef(storage, yol);
+    // Dosyayı base64'e çevir
+    const base64 = await dosyaBase64Cevir(dosya);
     
-    const gorev = uploadBytesResumable(ref, dosya, { contentType: dosya.type });
+    dolgu.style.width = '60%';
+    durum.textContent = 'Sunucuya yükleniyor...';
     
-    gorev.on('state_changed',
-      (snapshot) => {
-        const yuzde = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-        dolgu.style.width = yuzde + '%';
-        durum.textContent = `Yükleniyor... %${yuzde}`;
-      },
-      (hata) => {
-        console.error('CV yükleme hatası:', hata);
-        durum.textContent = '❌ Yükleme başarısız: ' + (hata.code || hata.message);
-        durum.style.color = 'var(--hata, #d32f2f)';
-        bar.classList.add('gizli');
-      },
-      async () => {
-        const url = await getDownloadURL(gorev.snapshot.ref);
-        yuklenenCV = { url, dosyaAdi: dosya.name, boyut: dosya.size, tip: dosya.type };
-        dolgu.style.width = '100%';
-        durum.textContent = '✅ CV başarıyla yüklendi';
-        durum.style.color = 'var(--basari, #2e7d32)';
-        cvGosterDolu(dosya.name, dosya.size);
-        setTimeout(() => bar.classList.add('gizli'), 1500);
-      }
-    );
+    // Apps Script proxy üzerinden Bunny.net'e yükle
+    const yanit = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        islem: 'cvYukle',
+        adayEposta: mevcutKullanici.email,
+        dosyaAdi: dosya.name,
+        dosyaIcerik: base64,
+        dosyaTipi: dosya.type,
+        dosyaBoyutu: dosya.size
+      })
+    });
+    
+    const sonuc = await yanit.json();
+    
+    if (!sonuc.basarili) {
+      throw new Error(sonuc.hata || 'Yükleme başarısız');
+    }
+    
+    yuklenenCV = { url: sonuc.url, dosyaAdi: dosya.name, boyut: dosya.size, tip: dosya.type };
+    dolgu.style.width = '100%';
+    durum.textContent = '✅ CV başarıyla yüklendi';
+    durum.style.color = 'var(--basari, #2e7d32)';
+    cvGosterDolu(dosya.name, dosya.size);
+    setTimeout(() => bar.classList.add('gizli'), 1500);
+    
   } catch (hata) {
     console.error('CV yükleme hatası:', hata);
-    durum.textContent = '❌ Hata: ' + hata.message;
+    durum.textContent = '❌ Yükleme başarısız: ' + hata.message;
     durum.style.color = 'var(--hata, #d32f2f)';
     bar.classList.add('gizli');
   }
+}
+
+// Dosyayı base64'e çevir (Bunny upload için)
+function dosyaBase64Cevir(dosya) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(dosya);
+  });
 }
 
 function cvGosterDolu(ad, boyut) {

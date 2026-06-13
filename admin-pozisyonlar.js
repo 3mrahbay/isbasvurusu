@@ -22,11 +22,7 @@ import {
   orderBy,
   Timestamp,
   serverTimestamp,
-  storage,
-  storageRef,
-  uploadBytesResumable,
-  getDownloadURL,
-  deleteObject,
+  PROXY_URL,
   ADMIN_EPOSTA
 } from './firebase-config.js';
 
@@ -340,43 +336,57 @@ async function ilanResimYukle(dosya) {
   const durum = document.getElementById('resimYuklemeDurum');
   
   bar.classList.remove('gizli');
-  durum.textContent = 'Yükleniyor...';
+  dolgu.style.width = '30%';
+  durum.textContent = 'Görsel hazırlanıyor...';
   durum.style.color = '#666';
   
   try {
-    const uzanti = '.' + dosya.name.split('.').pop().toLowerCase();
-    const yol = `ilanlar/${Date.now()}${uzanti}`;
-    const ref = storageRef(storage, yol);
-    const gorev = uploadBytesResumable(ref, dosya, { contentType: dosya.type });
+    const base64 = await dosyaBase64Cevir(dosya);
     
-    gorev.on('state_changed',
-      (snap) => {
-        const yuzde = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
-        dolgu.style.width = yuzde + '%';
-        durum.textContent = `Yükleniyor... %${yuzde}`;
-      },
-      (hata) => {
-        console.error('Resim yükleme hatası:', hata);
-        durum.textContent = '❌ Yükleme başarısız: ' + (hata.code || hata.message);
-        durum.style.color = '#d32f2f';
-        bar.classList.add('gizli');
-      },
-      async () => {
-        const url = await getDownloadURL(gorev.snapshot.ref);
-        yuklenenResim = { url };
-        dolgu.style.width = '100%';
-        durum.textContent = '✅ Görsel yüklendi';
-        durum.style.color = '#2e7d32';
-        ilanResimOnizlemeGoster(url);
-        setTimeout(() => bar.classList.add('gizli'), 1200);
-      }
-    );
+    dolgu.style.width = '60%';
+    durum.textContent = 'Yükleniyor...';
+    
+    const yanit = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        islem: 'ilanResimYukle',
+        dosyaAdi: dosya.name,
+        dosyaIcerik: base64,
+        dosyaTipi: dosya.type,
+        dosyaBoyutu: dosya.size
+      })
+    });
+    
+    const sonuc = await yanit.json();
+    
+    if (!sonuc.basarili) {
+      throw new Error(sonuc.hata || 'Yükleme başarısız');
+    }
+    
+    yuklenenResim = { url: sonuc.url };
+    dolgu.style.width = '100%';
+    durum.textContent = '✅ Görsel yüklendi';
+    durum.style.color = '#2e7d32';
+    ilanResimOnizlemeGoster(sonuc.url);
+    setTimeout(() => bar.classList.add('gizli'), 1200);
+    
   } catch (hata) {
     console.error('Resim yükleme hatası:', hata);
-    durum.textContent = '❌ Hata: ' + hata.message;
+    durum.textContent = '❌ Yükleme başarısız: ' + hata.message;
     durum.style.color = '#d32f2f';
     bar.classList.add('gizli');
   }
+}
+
+// Dosyayı base64'e çevir (Bunny upload için)
+function dosyaBase64Cevir(dosya) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(dosya);
+  });
 }
 
 function ilanResimOnizlemeGoster(url) {
