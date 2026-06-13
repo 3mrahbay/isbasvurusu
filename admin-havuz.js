@@ -18,8 +18,31 @@ import {
   pozisyonKategorisiBul,
   tarihSaatFormatla,
   tarihFormatla,
-  alertGoster
+  alertGoster,
+  testTipiBul
 } from './yardimci.js';
+
+// Soru bankaları (cevapları tam soru metniyle göstermek için)
+import { BOLUM1_KISILIK, BOLUM2_DEGERLER, BOLUM3_SENARYOLAR, BOLUM4_HIKAYELER, BOLUM5_KORUMA, BOLUM6_HIZLI } from './test-sorular.js';
+import { IDARI_BOLUM1_KISILIK, IDARI_BOLUM2_DEGERLER, IDARI_BOLUM3_SENARYOLAR, IDARI_BOLUM4_HIKAYELER, IDARI_BOLUM5_ETIK, IDARI_BOLUM6_HIZLI } from './test-sorular-idari.js';
+import { DESTEK_BOLUM1_KISILIK, DESTEK_BOLUM2_DEGERLER, DESTEK_BOLUM3_SENARYOLAR, DESTEK_BOLUM4_HIKAYELER, DESTEK_BOLUM5_ETIK, DESTEK_BOLUM6_HIZLI } from './test-sorular-destek.js';
+
+// soruId → soru objesi haritası (test tipine göre)
+function soruHaritasiOlustur(testTipi) {
+  let bolumler;
+  if (testTipi === 'destek') {
+    bolumler = [DESTEK_BOLUM1_KISILIK, DESTEK_BOLUM2_DEGERLER, DESTEK_BOLUM3_SENARYOLAR, DESTEK_BOLUM4_HIKAYELER, DESTEK_BOLUM5_ETIK, DESTEK_BOLUM6_HIZLI];
+  } else if (testTipi === 'idari') {
+    bolumler = [IDARI_BOLUM1_KISILIK, IDARI_BOLUM2_DEGERLER, IDARI_BOLUM3_SENARYOLAR, IDARI_BOLUM4_HIKAYELER, IDARI_BOLUM5_ETIK, IDARI_BOLUM6_HIZLI];
+  } else {
+    bolumler = [BOLUM1_KISILIK, BOLUM2_DEGERLER, BOLUM3_SENARYOLAR, BOLUM4_HIKAYELER, BOLUM5_KORUMA, BOLUM6_HIZLI];
+  }
+  const harita = {};
+  bolumler.forEach(b => {
+    if (Array.isArray(b)) b.forEach(s => { if (s && s.id) harita[s.id] = s; });
+  });
+  return harita;
+}
 
 let tumAdaylar = [];
 let aktifAday = null;
@@ -288,7 +311,10 @@ function detayCiz() {
             <span style="color:var(--gri); font-size:13px;"> • ${a.olusturmaZamani ? tarihSaatFormatla(a.olusturmaZamani) : '-'}</span>
           </div>
         </div>
-        <div>${durumRozetHTML(a.durum)}</div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px;">
+          ${durumRozetHTML(a.durum)}
+          <div id="ustAiPuan"></div>
+        </div>
       </div>
     </div>
   `;
@@ -426,6 +452,28 @@ function detayCiz() {
 // ───────────────────────────────────────────────
 // AI RAPORUNU YÜKLE
 // ───────────────────────────────────────────────
+// Üst karttaki dairesel AI puanı grafiği
+function ustAiPuanHTML(skor) {
+  let renk = '#2e7d32';
+  if (skor < 50) renk = '#d32f2f';
+  else if (skor < 70) renk = '#f57c00';
+  const aci = Math.max(0, Math.min(100, skor)) * 3.6;
+  return `
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div style="text-align:right;">
+        <div style="font-size:11px; color:#888;">AI Uyum Puanı</div>
+        <div style="font-weight:700; color:${renk}; font-size:14px;">${skor}/100</div>
+      </div>
+      <div style="width:56px; height:56px; border-radius:50%; background:conic-gradient(${renk} ${aci}deg, #e8e8e8 0deg); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <div style="width:42px; height:42px; border-radius:50%; background:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; color:${renk};">${skor}</div>
+      </div>
+    </div>
+  `;
+}
+
+// ───────────────────────────────────────────────
+// AI Raporu yükle
+// ───────────────────────────────────────────────
 async function aiRaporYukle(adayEposta) {
   const alani = document.getElementById('aiRaporAlani');
   if (!alani) return;
@@ -482,6 +530,12 @@ async function aiRaporYukle(adayEposta) {
     }
     
     alani.innerHTML = aiRaporHTML(analiz, veri, davranisAnalizi);
+    
+    // Üst karttaki AI puanı halkasını doldur
+    const ustEl = document.getElementById('ustAiPuan');
+    if (ustEl && analiz.genelUyumSkoru !== undefined && analiz.genelUyumSkoru !== null) {
+      ustEl.innerHTML = ustAiPuanHTML(analiz.genelUyumSkoru);
+    }
     
   } catch (hata) {
     console.error('AI rapor yükleme hatası:', hata);
@@ -1086,6 +1140,10 @@ async function testCevaplariYukle(adayEposta) {
     const veri = snap.data();
     const cevaplar = veri.cevaplar || {};
     
+    // Test tipini belirle (soru metinlerini doğru bankadan çekmek için)
+    const testTipi = testTipiBul(veri.kategoriId || aktifAday?.kategoriId || 'okulOncesiOgretmen');
+    const soruHaritasi = soruHaritasiOlustur(testTipi);
+    
     alani.innerHTML = `
       <div class="kart">
         <h3>📝 Test Cevapları</h3>
@@ -1094,10 +1152,10 @@ async function testCevaplariYukle(adayEposta) {
           ${veri.tamamlandi ? '✅ Tamamlandı' : '⏳ Devam ediyor'}
         </p>
         <button class="btn btn-ikincil btn-kucuk" onclick="testCevaplariToggle()">
-          📂 Tüm Cevapları Göster/Gizle
+          📂 Tüm Soru ve Cevapları Göster/Gizle
         </button>
         <div id="cevaplarDetay" class="gizli" style="margin-top: 16px;">
-          ${cevaplarDetayHTML(cevaplar)}
+          ${cevaplarDetayHTML(cevaplar, soruHaritasi)}
         </div>
       </div>
     `;
@@ -1228,7 +1286,45 @@ window.cvOnizlemeToggle = function(btn) {
   }
 };
 
-function cevaplarDetayHTML(cevaplar) {
+// Bir cevabı okunaklı metne çevir (soru objesiyle birlikte)
+function cevapMetniCoz(soru, cevap) {
+  if (cevap === null || cevap === undefined || cevap === '') return '<em style="color:#999;">Boş</em>';
+  
+  // Likert (1-5 sayı)
+  if (typeof cevap === 'number' || (typeof cevap === 'string' && /^[1-5]$/.test(cevap))) {
+    const et = {1:'Kesinlikle katılmıyorum',2:'Katılmıyorum',3:'Kararsızım',4:'Katılıyorum',5:'Kesinlikle katılıyorum'};
+    const v = parseInt(cevap);
+    return `<strong style="color:var(--ana-yesil);">${v}/5</strong> <span style="color:#666;">— ${et[v] || ''}</span>`;
+  }
+  
+  // Seçimli cevap {secim, neden}
+  if (typeof cevap === 'object') {
+    const secim = cevap.secim ?? cevap.secilen ?? '';
+    let secenekMetni = secim;
+    if (soru && soru.secenekler) {
+      if (Array.isArray(soru.secenekler)) {
+        const bulunan = soru.secenekler.find(x => x && x.id === secim);
+        if (bulunan) secenekMetni = `<strong>${secim})</strong> ${bulunan.metin}`;
+      } else if (typeof soru.secenekler === 'object' && soru.secenekler[secim]) {
+        secenekMetni = `<strong>${secim})</strong> ${soru.secenekler[secim].metin}`;
+      }
+    }
+    let html = `<div style="color:#1a1a1a;">${secenekMetni}</div>`;
+    if (cevap.neden) html += `<div style="margin-top:6px; padding:8px 10px; background:#f5f9f6; border-radius:6px; font-style:italic; color:#555; font-size:13px;">💬 ${cevap.neden}</div>`;
+    return html;
+  }
+  
+  // String — hikaye (uzun) veya hızlı seçim (kısa)
+  if (typeof cevap === 'string') {
+    if (cevap.length > 60) {
+      return `<div style="white-space:pre-wrap; background:#fafafa; padding:10px 12px; border-radius:6px; font-size:13px; color:#333; line-height:1.5;">${cevap}</div>`;
+    }
+    return `<strong style="color:#1a1a1a;">${cevap}</strong>`;
+  }
+  return String(cevap);
+}
+
+function cevaplarDetayHTML(cevaplar, soruHaritasi = {}) {
   // Bölümlere göre grupla
   const gruplar = {
     'Kişilik (Big Five)': [],
@@ -1253,31 +1349,28 @@ function cevaplarDetayHTML(cevaplar) {
   Object.keys(gruplar).forEach(grup => {
     if (gruplar[grup].length === 0) return;
     
-    html += `<h4 style="color: var(--ana-yesil); margin-top: 20px; margin-bottom: 8px;">${grup}</h4>`;
-    html += '<div style="background: #fafafa; padding: 12px; border-radius: 8px;">';
+    // soruId'leri sırala (k01, k02...)
+    gruplar[grup].sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+    
+    html += `<h4 style="color: var(--ana-yesil); margin-top: 20px; margin-bottom: 10px;">${grup}</h4>`;
     
     gruplar[grup].forEach(({ id, cevap }) => {
-      let cevapMetni = '';
-      if (typeof cevap === 'object' && cevap !== null) {
-        cevapMetni = `<strong>Seçim:</strong> ${cevap.secim}`;
-        if (cevap.neden) {
-          cevapMetni += `<br><em style="color:var(--gri);">"${cevap.neden}"</em>`;
-        }
-      } else if (typeof cevap === 'string' && cevap.length > 50) {
-        // Hikaye - uzun metin
-        cevapMetni = `<div style="white-space: pre-wrap; padding: 8px; background: white; border-radius: 4px; margin-top: 4px; font-size: 13px;">${cevap}</div>`;
-      } else {
-        cevapMetni = `<strong>${cevap}</strong>`;
-      }
+      const soru = soruHaritasi[id];
+      const soruMetni = soru ? (soru.soru || soru.senaryo || soru.metin || '') : '';
+      const cevapHtml = cevapMetniCoz(soru, cevap);
       
       html += `
-        <div style="margin-bottom: 8px; font-size: 13px;">
-          <span style="color: var(--gri); font-weight: 600;">${id}:</span> ${cevapMetni}
+        <div style="background:white; border:1px solid #ececec; border-radius:10px; padding:14px 16px; margin-bottom:10px;">
+          <div style="font-weight:600; color:#333; font-size:13px; margin-bottom:8px; line-height:1.5;">
+            <span style="color:var(--ana-yesil); margin-right:4px;">${id.toUpperCase()}.</span>
+            ${soruMetni || '<em style="color:#999; font-weight:400;">(Soru metni bulunamadı — aday eski test sürümünü çözmüş olabilir)</em>'}
+          </div>
+          <div style="font-size:13px; color:#444; padding-left:8px; border-left:3px solid #e3ede5;">
+            ${cevapHtml}
+          </div>
         </div>
       `;
     });
-    
-    html += '</div>';
   });
   
   return html || '<p style="color: var(--gri);">Cevap yok</p>';
