@@ -39,6 +39,17 @@ onAuthStateChanged(auth, async (kullanici) => {
   
   kategoriFiltreDoldur();
   await adaylariYukle();
+  
+  // URL'de ?aday=eposta varsa o adayın detayını otomatik aç
+  // (Genel Bakış sayfasından isme tıklanınca buraya gelir)
+  const urlParams = new URLSearchParams(window.location.search);
+  const adayParam = urlParams.get('aday');
+  if (adayParam) {
+    const hedef = tumAdaylar.find(a => a.id === adayParam || a.adayEposta === adayParam);
+    if (hedef) {
+      adayDetay(hedef.id);
+    }
+  }
 });
 
 // ───────────────────────────────────────────────
