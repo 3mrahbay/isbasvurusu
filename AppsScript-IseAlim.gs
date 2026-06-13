@@ -136,6 +136,10 @@ Aşağıdaki JSON formatında yanıt ver (başka hiçbir metin ekleme, sadece JS
   "guclu Yonler": ["...", "...", "..."],
   "gelisimAlanlari": ["...", "...", "..."],
   "kirmiziBayraklar": ["..."] veya [],
+  "durustlukAnalizi": {
+    "skor": 0-100,
+    "yorum": "Adayın kendini olduğundan mükemmel gösterip göstermediği değerlendirmesi"
+  },
   "aiYorumu": "3-4 paragraflık derinlemesine değerlendirme. Adayın yazılı cevaplarındaki dil, empati derinliği, çocuk merkezli yaklaşım, çözüm odaklılığı analiz et.",
   "mulakatOnerileri": [
     "Mülakatta sorulması önerilen 1. soru",
@@ -153,7 +157,15 @@ Aşağıdaki JSON formatında yanıt ver (başka hiçbir metin ekleme, sadece JS
 - Empati, sabır ve çocuk merkezli düşünce en önemli faktörler
 - Montessori felsefesine uyum: bağımsızlık, hazırlanmış çevre, gözlem
 - Yazılı cevaplarda yüzeysel/genel cevaplar düşük puan, somut deneyim/duygu ifadesi yüksek puan
-- 90+ = çok güçlü aday, 70-89 = mülakatta değerlendirilmeli, 50-69 = sınırda, 50- = uygun değil`;
+- 90+ = çok güçlü aday, 70-89 = mülakatta değerlendirilmeli, 50-69 = sınırda, 50- = uygun değil
+
+DÜRÜSTLÜK / SOSYAL BEĞENİRLİK ANALİZİ (ÇOK ÖNEMLİ):
+- Test cevaplarında "boyut": "sosyalBegenirlik" ve "sahteIdeal": true olan sorular vardır (örn. k26, k27).
+- Bu sorular kasıtlı olarak, hiçbir dürüst insanın gerçekte "kesinlikle katılıyorum" (5) diyemeyeceği abartılı ifadelerdir. Örnek: "Söylediğim her sözü her zaman yerine getiririm", "Hata yaptığımda her zaman hemen kabul ederim".
+- Bu sorulara 4 veya 5 veren aday, kendini olduğundan daha mükemmel/ideal gösteriyor olabilir (sosyal beğenirlik yanlılığı).
+- Değerlendirme: Bu sorulara verilen yüksek puanlar (4-5) durustlukAnalizi.skor'unu DÜŞÜRÜR. Her iki soruya da 5 verildiyse skor düşük (40 altı), 1-3 arası verildiyse yüksek (80+) olmalı.
+- Eğer aday bu sorulara abartılı katılım gösteriyorsa, diğer kişilik cevaplarına da temkinli yaklaş ve durustlukAnalizi.yorum kısmında bunu belirt. Çok belirginse kirmiziBayraklar'a ekle.
+- NOT: Bu sorular sadece dürüstlük ölçümü içindir; bigFive boyut skorlarını HESAPLAMAYA KATMA.`;
 }
 
 // ═══════════════════════════════════════════════════════════

@@ -43,7 +43,11 @@ export const BOLUM1_KISILIK = [
   { id: 'k22', soru: 'Genellikle iyimserim ve umutlu bakarım.', boyut: 'duygusalDenge' },
   { id: 'k23', soru: 'Küçük şeyler beni kolayca üzer veya endişelendirir.', boyut: 'duygusalDenge', ters: true },
   { id: 'k24', soru: 'Hatalar yaptığımda kendimi çok suçlu hissetmem, ders çıkarırım.', boyut: 'duygusalDenge' },
-  { id: 'k25', soru: 'Zorluklar karşısında pes etmem, yol arar bulurum.', boyut: 'duygusalDenge' }
+  { id: 'k25', soru: 'Zorluklar karşısında pes etmem, yol arar bulurum.', boyut: 'duygusalDenge' },
+  
+  // SOSYAL BEĞENİRLİK (dürüstlük / yalan yakalama - kimse gerçekte "kesinlikle katılıyorum" diyemez)
+  { id: 'k26', soru: 'Söylediğim her sözü her zaman yerine getiririm.', boyut: 'sosyalBegenirlik', sahteIdeal: true },
+  { id: 'k27', soru: 'Hata yaptığımda her zaman hemen kabul ederim.', boyut: 'sosyalBegenirlik', sahteIdeal: true }
 ];
 
 // ───────────────────────────────────────────────

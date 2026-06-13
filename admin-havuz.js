@@ -679,6 +679,7 @@ function aiRaporHTML(analiz, veri, davranisAnalizi) {
     </div>
     
     ${bayraklarHTML}
+    ${durustlukHTML}
     ${bigFiveHTML}
     ${yetkinliklerHTML}
     
