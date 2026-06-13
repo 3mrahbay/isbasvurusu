@@ -19,6 +19,12 @@ function doPost(e) {
       case 'mailGonder':
         sonuc = mailGonder(veri.alici, veri.aliciAdi, veri.tip, veri.parametreler);
         break;
+      case 'cvYukle':
+        sonuc = bunnyDosyaYukle(veri.dosyaIcerik, veri.dosyaAdi, veri.dosyaTipi, 'cv', veri.adayEposta);
+        break;
+      case 'ilanResimYukle':
+        sonuc = bunnyDosyaYukle(veri.dosyaIcerik, veri.dosyaAdi, veri.dosyaTipi, 'ilanlar', null);
+        break;
       case 'test':
         sonuc = { durum: 'OK', mesaj: 'Apps Script çalışıyor!' };
         break;
@@ -42,6 +48,64 @@ function doGet(e) {
   return ContentService
     .createTextOutput(JSON.stringify({ durum: 'BCK İş Başvurusu Proxy aktif' }))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ═══════════════════════════════════════════════════════════
+// BUNNY.NET DOSYA YÜKLEME (CV + İlan görselleri)
+// API anahtarı Script Properties'te güvende tutulur
+// ═══════════════════════════════════════════════════════════
+function bunnyDosyaYukle(base64Icerik, dosyaAdi, dosyaTipi, klasor, adayEposta) {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const STORAGE_ZONE = props.getProperty('BUNNY_CV_STORAGE_ZONE'); // bircicek-cv
+    const ACCESS_KEY   = props.getProperty('BUNNY_CV_ACCESS_KEY');
+    const CDN_URL      = props.getProperty('BUNNY_CV_CDN_URL');       // https://bircicek-cv-cdn.b-cdn.net
+    const REGION       = props.getProperty('BUNNY_CV_REGION') || 'storage.bunnycdn.com';
+
+    if (!STORAGE_ZONE || !ACCESS_KEY || !CDN_URL) {
+      return { basarili: false, hata: 'Bunny ayarları eksik. KURULUM_YAP fonksiyonunu çalıştırın.' };
+    }
+
+    // Dosya uzantısı
+    const uzanti = (dosyaAdi.indexOf('.') > -1) ? '.' + dosyaAdi.split('.').pop().toLowerCase() : '';
+    const zaman = new Date().getTime();
+
+    // Yol: cv/{email_temiz}/{zaman}.uzanti  veya  ilanlar/{zaman}.uzanti
+    let yol;
+    if (klasor === 'cv') {
+      const emailTemiz = (adayEposta || 'aday').replace(/[^a-zA-Z0-9]/g, '_');
+      yol = 'cv/' + emailTemiz + '/' + zaman + uzanti;
+    } else {
+      yol = 'ilanlar/' + zaman + uzanti;
+    }
+
+    // base64 → byte
+    const bytes = Utilities.base64Decode(base64Icerik);
+
+    // Bunny Storage'a PUT
+    const yuklemeUrl = 'https://' + REGION + '/' + STORAGE_ZONE + '/' + yol;
+    const yanit = UrlFetchApp.fetch(yuklemeUrl, {
+      method: 'PUT',
+      headers: {
+        'AccessKey': ACCESS_KEY,
+        'Content-Type': dosyaTipi || 'application/octet-stream'
+      },
+      payload: bytes,
+      muteHttpExceptions: true
+    });
+
+    const kod = yanit.getResponseCode();
+    if (kod === 200 || kod === 201) {
+      // CDN üzerinden erişim URL'i
+      const cdnTemiz = CDN_URL.replace(/\/+$/, ''); // sondaki / temizle
+      return { basarili: true, url: cdnTemiz + '/' + yol, yol: yol };
+    } else {
+      return { basarili: false, hata: 'Bunny yükleme hatası (kod ' + kod + '): ' + yanit.getContentText() };
+    }
+
+  } catch (hata) {
+    return { basarili: false, hata: hata.toString() };
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -86,7 +150,17 @@ function aiAnalizYap(adayBilgileri, testCevaplari) {
     const analizMetni = veri.content[0].text;
     
     // Claude'dan JSON formatında yanıt bekliyoruz, parse edelim
-    const temizMetin = analizMetni.replace(/```json|```/g, '').trim();
+    // Önce markdown işaretlerini temizle
+    let temizMetin = analizMetni.replace(/```json|```/g, '').trim();
+    
+    // AI bazen JSON öncesi/sonrası açıklama metni ekler.
+    // Sadece ilk { ile son } arasındaki geçerli JSON'u al.
+    const ilkParantez = temizMetin.indexOf('{');
+    const sonParantez = temizMetin.lastIndexOf('}');
+    if (ilkParantez !== -1 && sonParantez !== -1 && sonParantez > ilkParantez) {
+      temizMetin = temizMetin.substring(ilkParantez, sonParantez + 1);
+    }
+    
     const analizSonucu = JSON.parse(temizMetin);
     
     return { 
