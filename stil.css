@@ -1413,3 +1413,36 @@ body {
   transition: background 0.2s;
 }
 .resim-sil-btn:hover { background: #fcc; }
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN ADAY DETAY - İKİ SÜTUN GRID DÜZENİ
+   ═══════════════════════════════════════════════════════════ */
+.detay-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.detay-grid .kart {
+  margin: 0;
+  height: fit-content;
+}
+/* Tam genişlik kartlar (üst özet, AI rapor, test cevapları vb.) */
+.detay-grid .kart-genis {
+  grid-column: 1 / -1;
+}
+/* aiRaporAlani / testCevaplariAlani gibi wrapper'lar tam genişlik */
+.detay-grid > #aiRaporAlani,
+.detay-grid > #testCevaplariAlani {
+  grid-column: 1 / -1;
+}
+
+/* Tablet ve mobilde tek sütun */
+@media (max-width: 900px) {
+  .detay-grid {
+    grid-template-columns: 1fr;
+  }
+  .detay-grid .kart-genis {
+    grid-column: auto;
+  }
+}

@@ -246,10 +246,21 @@ function detayCiz() {
   // Kişisel bilgiler — yeni kayıtlar kök seviyede, eski kayıtlar kisiselBilgiler altında olabilir
   const k = (a.kisiselBilgiler && Object.keys(a.kisiselBilgiler).length > 0) ? a.kisiselBilgiler : a;
   
-  let html = `
-    <!-- ÜST KART: TEMEL BİLGİ -->
-    <div class="kart">
-      <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+  const maasFormat = (v) => v ? `<strong style="color:#2c5530; font-size:15px;">${parseInt(v).toLocaleString('tr-TR')} TL</strong>` : '-';
+  const isDurumlari = {
+    'issiz': '🔍 İş arıyor (çalışmıyor)',
+    'aktif': '💼 Çalışıyor, geçiş arıyor',
+    'staj': '🎓 Stajda',
+    'ogrenci': '📚 Öğrenci'
+  };
+  const veriVar = Object.keys(k).length > 0;
+  
+  // ── 1) ÜST ÖZET (tam genişlik) ──
+  let html = `<div class="detay-grid">`;
+  
+  html += `
+    <div class="kart kart-genis">
+      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
         ${a.googleFoto 
           ? `<img src="${a.googleFoto}" style="width:64px; height:64px; border-radius:50%; flex-shrink:0;">` 
           : `<div style="width:64px; height:64px; border-radius:50%; background:#e8f5e9; 
@@ -262,165 +273,137 @@ function detayCiz() {
           <h2 style="color: var(--ana-yesil); margin: 0 0 6px;">${a.adayAdi || '(İsim yok)'}</h2>
           <div style="color: var(--gri); font-size: 14px;">📧 ${a.adayEposta || '-'}</div>
           ${(k.telefon || a.telefon) ? `<div style="color: var(--gri); font-size: 14px;">📱 0${k.telefon || a.telefon}</div>` : ''}
-          ${(k.eposta && k.eposta !== a.adayEposta) ? `<div style="color: var(--gri); font-size: 13px;">✉️ İletişim: ${k.eposta}</div>` : ''}
+          <div style="margin-top:6px;"><strong>${kategori.ikon} ${a.pozisyonBaslik || kategori.ad}</strong>
+            <span style="color:var(--gri); font-size:13px;"> • ${a.olusturmaZamani ? tarihSaatFormatla(a.olusturmaZamani) : '-'}</span>
+          </div>
         </div>
         <div>${durumRozetHTML(a.durum)}</div>
       </div>
-      
-      <div style="background: var(--cok-acik-yesil); padding: 12px 16px; border-radius: 8px;">
-        <strong>${kategori.ikon} Pozisyon:</strong> ${a.pozisyonBaslik || kategori.ad}<br>
-        <small style="color: var(--gri);">
-          Başvuru Tarihi: ${a.olusturmaZamani ? tarihSaatFormatla(a.olusturmaZamani) : '-'}
-          ${a.tekrarBasvuruZamani ? '<br>Tekrar Başvuru: ' + tarihSaatFormatla(a.tekrarBasvuruZamani) : ''}
-        </small>
+    </div>
+  `;
+  
+  // ── 2) KİŞİSEL BİLGİLER + İŞ TECRÜBESİ (sol) ──
+  if (veriVar) {
+    html += `
+    <div class="kart">
+      <h3>👤 Kişisel Bilgiler & Tecrübe</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        ${(a.adayAdi || (k.ad && k.soyad)) ? `<tr><td style="padding:7px; color:#666; width:130px;">Ad Soyad:</td><td style="padding:7px;"><strong>${a.adayAdi || (k.ad + ' ' + k.soyad)}</strong></td></tr>` : ''}
+        ${(k.telefon || a.telefon) ? `<tr><td style="padding:7px; color:#666;">Telefon:</td><td style="padding:7px;">0${k.telefon || a.telefon}</td></tr>` : ''}
+        ${k.eposta ? `<tr><td style="padding:7px; color:#666;">E-posta:</td><td style="padding:7px;">${k.eposta}</td></tr>` : ''}
+        ${k.dogumTarihi ? `<tr><td style="padding:7px; color:#666;">Doğum Tarihi:</td><td style="padding:7px;">${k.dogumTarihi}</td></tr>` : ''}
+        ${k.cinsiyet ? `<tr><td style="padding:7px; color:#666;">Cinsiyet:</td><td style="padding:7px;">${k.cinsiyet}</td></tr>` : ''}
+        ${k.medeniDurum ? `<tr><td style="padding:7px; color:#666;">Medeni Durum:</td><td style="padding:7px;">${k.medeniDurum}</td></tr>` : ''}
+        ${k.adres ? `<tr><td style="padding:7px; color:#666;">İkamet:</td><td style="padding:7px;">${k.adres}</td></tr>` : ''}
+        ${k.egitimDurumu ? `<tr><td style="padding:7px; color:#666;">Eğitim:</td><td style="padding:7px;">${k.egitimDurumu}${k.bolum ? ' — ' + k.bolum : ''}${k.okul ? ' (' + k.okul + ')' : ''}</td></tr>` : ''}
+        ${(k.deneyimYili || k.deneyimYil) ? `<tr><td style="padding:7px; color:#666;">Toplam Deneyim:</td><td style="padding:7px;"><strong>${k.deneyimYili || k.deneyimYil} yıl</strong></td></tr>` : ''}
+      </table>
+      ${deneyimGecmisiHTML(k)}
+    </div>
+    `;
+    
+    // ── 3) CV (sağ) ──
+    html += cvKartiHTML(a, k);
+    
+    // ── 4) ÇALIŞMA TERCİHLERİ (sol) ──
+    html += `
+    <div class="kart" style="border-left: 4px solid var(--ana-yesil);">
+      <h3>💰 Çalışma Tercihleri</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr><td style="padding:8px; color:#666; width:130px;">Maaş Beklentisi:</td><td style="padding:8px;">${maasFormat(k.ucretBeklenti)}</td></tr>
+        ${k.baslamaTarihi ? `<tr><td style="padding:8px; color:#666;">Başlama Tarihi:</td><td style="padding:8px;"><strong>${k.baslamaTarihi}</strong></td></tr>` : ''}
+        ${k.mevcutIsDurumu ? `<tr><td style="padding:8px; color:#666;">Mevcut Durum:</td><td style="padding:8px;">${isDurumlari[k.mevcutIsDurumu] || k.mevcutIsDurumu}</td></tr>` : ''}
+        ${k.duyumKaynagi ? `<tr><td style="padding:8px; color:#666;">Nereden Duydu:</td><td style="padding:8px;">${k.duyumKaynagi}</td></tr>` : ''}
+        ${k.nedenBCK ? `<tr><td style="padding:8px; color:#666; vertical-align:top;">Neden BCK?</td><td style="padding:8px; white-space:pre-wrap; font-style:italic; color:#444;">"${k.nedenBCK}"</td></tr>` : ''}
+      </table>
+    </div>
+    `;
+    
+    // ── 5) YETKİNLİKLER (sağ) — varsa ──
+    if ((k.ozelEgitim && k.ozelEgitim !== 'hicbiri') || (k.yabanciDil && k.yabanciDil !== 'hicbiri') || k.sertifikalar) {
+      html += `
+      <div class="kart">
+        <h3>🎓 Yetkinlikler</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          ${k.ozelEgitim && k.ozelEgitim !== 'hicbiri' ? `<tr><td style="padding:7px; color:#666; width:130px;">Özel Eğitim:</td><td style="padding:7px;"><strong>${k.ozelEgitim}</strong></td></tr>` : ''}
+          ${k.yabanciDil && k.yabanciDil !== 'hicbiri' ? `<tr><td style="padding:7px; color:#666;">Yabancı Dil:</td><td style="padding:7px;">${k.yabanciDil}</td></tr>` : ''}
+          ${k.sertifikalar ? `<tr><td style="padding:7px; color:#666; vertical-align:top;">Sertifikalar:</td><td style="padding:7px; white-space:pre-wrap;">${k.sertifikalar}</td></tr>` : ''}
+        </table>
+      </div>
+      `;
+    }
+  }
+  
+  // ── 6) HIZLI İLETİŞİM (sol) ──
+  html += `
+    <div class="kart">
+      <h3>📞 Hızlı İletişim</h3>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <a href="mailto:${a.adayEposta}" class="btn btn-ikincil btn-kucuk">✉️ Mail</a>
+        ${k.telefon ? `
+          <a href="tel:0${k.telefon}" class="btn btn-ikincil btn-kucuk">📞 Ara</a>
+          <a href="https://wa.me/90${k.telefon}" target="_blank" class="btn btn-ikincil btn-kucuk">💬 WhatsApp</a>
+        ` : ''}
       </div>
     </div>
-    
-    <!-- DURUM DEĞİŞTİRME -->
+  `;
+  
+  // ── 7) DURUM DEĞİŞTİRME (sağ) ──
+  html += `
     <div class="kart">
       <h3>⚙️ Durumu Değiştir</h3>
-      <p style="color: var(--gri); font-size: 14px;">
-        Adayın durumunu değiştirdiğinizde, kullanıcı tekrar giriş yaptığında ona uygun bilgilendirme popup'ı gösterilecektir.
-      </p>
-      
       <div class="form-grup">
         <select id="yeniDurum">
           <option value="bilgilerEksik" ${a.durum === 'bilgilerEksik' ? 'selected' : ''}>⏸️ Bilgi bekleniyor</option>
           <option value="testEksik" ${a.durum === 'testEksik' ? 'selected' : ''}>🟡 Test bekleniyor</option>
-          <option value="tamamlandi" ${a.durum === 'tamamlandi' ? 'selected' : ''}>✅ Tamamlandı (değerlendirme aşamasında)</option>
+          <option value="tamamlandi" ${a.durum === 'tamamlandi' ? 'selected' : ''}>✅ Tamamlandı</option>
           <option value="mulakat" ${a.durum === 'mulakat' ? 'selected' : ''}>🎙️ Mülakat aşamasında</option>
           <option value="kabul" ${a.durum === 'kabul' ? 'selected' : ''}>🎉 Kabul edildi</option>
           <option value="red" ${a.durum === 'red' ? 'selected' : ''}>❌ Reddedildi</option>
           <option value="havuz" ${a.durum === 'havuz' ? 'selected' : ''}>🌊 Havuzda</option>
         </select>
       </div>
-      
       <div class="form-grup">
-        <label>Admin Notu (isteğe bağlı, sadece sizin görmeniz için)</label>
-        <textarea id="adminNotu" rows="3" placeholder="Bu adayla ilgili notlarınız...">${a.adminNotu || ''}</textarea>
+        <label>Admin Notu (sadece sizin için)</label>
+        <textarea id="adminNotu" rows="2" placeholder="Notlarınız...">${a.adminNotu || ''}</textarea>
       </div>
-      
       <button class="btn" onclick="durumGuncelle()">💾 Durumu Kaydet</button>
     </div>
-    
-    <!-- 🔄 TEST SIFIRLAMA -->
-    <div class="kart" style="background: #fff3e0; border-left: 4px solid #f57c00;">
+  `;
+  
+  // ── Eski başvuru uyarısı (tam genişlik, varsa) ──
+  if (a.eskiBasvuruVarUyari) {
+    html += `
+    <div class="kart kart-genis" style="background: #fff3cd;">
+      <h3>⚠️ Bu Aday Tekrar Başvurdu</h3>
+      <p><strong>Eski:</strong> ${a.eskiPozisyonBaslik || '-'} → <strong>Yeni:</strong> ${a.pozisyonBaslik}</p>
+    </div>
+    `;
+  }
+  
+  // ── 8) Mülakat profili (tam genişlik) ──
+  html += `<div class="kart-genis">${mulakatProfiliButonHTML(a)}</div>`;
+  
+  // ── 9) AI RAPORU (tam genişlik, async) ──
+  html += `<div id="aiRaporAlani" class="kart-genis"></div>`;
+  
+  // ── 10) TEST CEVAPLARI (tam genişlik, async) ──
+  html += `<div id="testCevaplariAlani" class="kart-genis"></div>`;
+  
+  // ── 11) TEST SIFIRLAMA (tam genişlik, en altta - tehlikeli işlem) ──
+  html += `
+    <div class="kart kart-genis" style="background: #fff3e0; border-left: 4px solid #f57c00;">
       <h3 style="color: #e65100;">🔄 Adayın Testini Sıfırla</h3>
       <p style="color: var(--gri); font-size: 14px;">
-        Adayın test cevaplarını ve AI analizini SİLER. Aday tekrar giriş yaptığında 
-        baştan test çözmek zorunda kalır. Bu adayın cevaplarında problem varsa kullanın.
+        Test cevaplarını ve AI analizini SİLER. Aday tekrar giriş yaptığında baştan test çözer.
       </p>
-      <button class="btn" onclick="testiSifirla('${a.adayEposta}')" 
-              style="background: #f57c00;">
+      <button class="btn" onclick="testiSifirla('${a.adayEposta}')" style="background: #f57c00;">
         🗑️ Test Cevaplarını ve Analizi Sil
       </button>
     </div>
   `;
   
-  // Kişisel bilgiler
-  if (Object.keys(k).length > 0) {
-    // Maaş için TL formatı
-    const maasFormat = (v) => v ? `<strong style="color:#2c5530; font-size:15px;">${parseInt(v).toLocaleString('tr-TR')} TL</strong>` : '-';
-    
-    // Mevcut iş durumu çevirisi
-    const isDurumlari = {
-      'issiz': '🔍 İş arıyor (çalışmıyor)',
-      'aktif': '💼 Çalışıyor, geçiş arıyor',
-      'staj': '🎓 Stajda',
-      'ogrenci': '📚 Öğrenci'
-    };
-    
-    html += `
-    <div class="kart">
-      <h3>👤 Kişisel Bilgiler</h3>
-      <table style="width: 100%; border-collapse: collapse;">
-        ${(a.adayAdi || (k.ad && k.soyad)) ? `<tr><td style="padding:8px; color:#666; width:160px;">Ad Soyad:</td><td style="padding:8px;"><strong>${a.adayAdi || (k.ad + ' ' + k.soyad)}</strong></td></tr>` : ''}
-        ${(k.telefon || a.telefon) ? `<tr><td style="padding:8px; color:#666;">Telefon:</td><td style="padding:8px;">0${k.telefon || a.telefon}</td></tr>` : ''}
-        ${k.eposta ? `<tr><td style="padding:8px; color:#666;">E-posta:</td><td style="padding:8px;">${k.eposta}</td></tr>` : ''}
-        ${k.dogumTarihi ? `<tr><td style="padding:8px; color:#666;">Doğum Tarihi:</td><td style="padding:8px;">${k.dogumTarihi}</td></tr>` : ''}
-        ${k.cinsiyet ? `<tr><td style="padding:8px; color:#666;">Cinsiyet:</td><td style="padding:8px;">${k.cinsiyet}</td></tr>` : ''}
-        ${k.medeniDurum ? `<tr><td style="padding:8px; color:#666;">Medeni Durum:</td><td style="padding:8px;">${k.medeniDurum}</td></tr>` : ''}
-        ${k.adres ? `<tr><td style="padding:8px; color:#666;">İkamet:</td><td style="padding:8px;">${k.adres}</td></tr>` : ''}
-        ${k.egitimDurumu ? `<tr><td style="padding:8px; color:#666;">Eğitim:</td><td style="padding:8px;">${k.egitimDurumu}${k.bolum ? ' — ' + k.bolum : ''}${k.okul ? ' (' + k.okul + ')' : ''}</td></tr>` : ''}
-        ${(k.deneyimYili || k.deneyimYil) ? `<tr><td style="padding:8px; color:#666;">Toplam Deneyim:</td><td style="padding:8px;">${k.deneyimYili || k.deneyimYil} yıl</td></tr>` : ''}
-        ${k.sertifikalar ? `<tr><td style="padding:8px; color:#666; vertical-align:top;">Sertifikalar:</td><td style="padding:8px; white-space:pre-wrap;">${k.sertifikalar}</td></tr>` : ''}
-      </table>
-      ${deneyimGecmisiHTML(k)}
-    </div>
-    
-    ${cvKartiHTML(a, k)}
-    
-    <!-- 💰 ÇALIŞMA TERCİHLERİ - VURGULU KART -->
-    <div class="kart" style="background: linear-gradient(135deg, #f8fffa 0%, white 100%); border-left: 4px solid var(--ana-yesil);">
-      <h3>💰 Çalışma Tercihleri</h3>
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding:10px; color:#666; width:160px;">Maaş Beklentisi:</td>
-          <td style="padding:10px;">${maasFormat(k.ucretBeklenti)}</td>
-        </tr>
-        ${k.baslamaTarihi ? `<tr><td style="padding:10px; color:#666;">Başlama Tarihi:</td><td style="padding:10px;"><strong>${k.baslamaTarihi}</strong></td></tr>` : ''}
-        ${k.mevcutIsDurumu ? `<tr><td style="padding:10px; color:#666;">Mevcut Durum:</td><td style="padding:10px;">${isDurumlari[k.mevcutIsDurumu] || k.mevcutIsDurumu}</td></tr>` : ''}
-        ${k.duyumKaynagi ? `<tr><td style="padding:10px; color:#666;">Bizi Nereden Duydu:</td><td style="padding:10px;">${k.duyumKaynagi}</td></tr>` : ''}
-        ${k.nedenBCK ? `<tr><td style="padding:10px; color:#666; vertical-align:top;">Neden BCK?</td><td style="padding:10px; white-space:pre-wrap; font-style:italic; color:#444;">"${k.nedenBCK}"</td></tr>` : ''}
-      </table>
-    </div>
-    
-    ${(k.ozelEgitim && k.ozelEgitim !== 'hicbiri') || k.yabanciDil || k.sertifikalar ? `
-    <div class="kart">
-      <h3>🎓 Yetkinlikler</h3>
-      <table style="width: 100%; border-collapse: collapse;">
-        ${k.ozelEgitim && k.ozelEgitim !== 'hicbiri' ? `<tr><td style="padding:8px; color:#666; width:160px;">Özel Eğitim:</td><td style="padding:8px;"><strong>${k.ozelEgitim}</strong></td></tr>` : ''}
-        ${k.yabanciDil && k.yabanciDil !== 'hicbiri' ? `<tr><td style="padding:8px; color:#666;">Yabancı Dil:</td><td style="padding:8px;">${k.yabanciDil}</td></tr>` : ''}
-        ${k.sertifikalar ? `<tr><td style="padding:8px; color:#666; vertical-align:top;">Sertifikalar:</td><td style="padding:8px; white-space:pre-wrap;">${k.sertifikalar}</td></tr>` : ''}
-      </table>
-    </div>
-    ` : ''}
-    `;
-  }
-  
-  // Eski başvuru uyarısı
-  if (a.eskiBasvuruVarUyari) {
-    html += `
-    <div class="kart" style="background: #fff3cd;">
-      <h3>⚠️ Bu Aday Tekrar Başvurdu</h3>
-      <p>
-        <strong>Eski pozisyon:</strong> ${a.eskiPozisyonBaslik || '-'}<br>
-        <strong>Yeni pozisyon:</strong> ${a.pozisyonBaslik}<br>
-        <small style="color: var(--gri);">
-          Aday önce başka bir pozisyona başvurmuş, sonra bu pozisyonu seçmiş.
-        </small>
-      </p>
-    </div>
-    `;
-  }
-  
-  // İletişim aksiyonları
-  html += `
-    <div class="kart">
-      <h3>📞 Hızlı İletişim</h3>
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <a href="mailto:${a.adayEposta}" class="btn btn-ikincil btn-kucuk">
-          ✉️ Mail Gönder
-        </a>
-        ${k.telefon ? `
-          <a href="tel:0${k.telefon}" class="btn btn-ikincil btn-kucuk">
-            📞 Ara
-          </a>
-          <a href="https://wa.me/90${k.telefon}" target="_blank" class="btn btn-ikincil btn-kucuk">
-            💬 WhatsApp
-          </a>
-        ` : ''}
-      </div>
-    </div>
-    
-    ${mulakatProfiliButonHTML(a)}
-    
-    <!-- 🤖 AI ANALİZ RAPORU - Async yüklenecek -->
-    <div id="aiRaporAlani"></div>
-    
-    <!-- 📝 TEST CEVAPLARI - Async yüklenecek -->
-    <div id="testCevaplariAlani"></div>
-  `;
+  html += `</div>`; // .detay-grid kapat
   
   detay.innerHTML = html;
   

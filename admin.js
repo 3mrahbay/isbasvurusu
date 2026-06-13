@@ -12,10 +12,15 @@ import {
   onAuthStateChanged,
   signOut,
   collection,
+  doc,
+  getDoc,
+  getDocs,
+  deleteDoc,
+  updateDoc,
   query,
   where,
-  getDocs,
   orderBy,
+  serverTimestamp,
   ADMIN_EPOSTA
 } from './firebase-config.js';
 
@@ -155,8 +160,22 @@ async function sonBasvurulariYukle() {
       basvurular.push({ id: doc.id, ...doc.data() });
     });
     
-    // Son 10 başvuru
-    basvurular = basvurular.slice(0, 10);
+    // Arşivlenenleri gizle (varsayılan)
+    basvurular = basvurular.filter(b => !b.arsivlendi);
+    
+    // Son 15 başvuru
+    basvurular = basvurular.slice(0, 15);
+    
+    // AI analizlerini topluca çek (puanları göstermek için)
+    const analizSkorlari = {};
+    try {
+      const analizSnap = await getDocs(collection(db, 'analizler'));
+      analizSnap.forEach(d => {
+        const veri = d.data();
+        const skor = veri.analiz?.genelUyumSkoru;
+        if (skor !== undefined && skor !== null) analizSkorlari[d.id] = skor;
+      });
+    } catch (e) { console.warn('Analiz skorları çekilemedi:', e); }
     
     let html = `
       <div class="tablo">
@@ -166,7 +185,9 @@ async function sonBasvurulariYukle() {
               <th>Aday</th>
               <th>Pozisyon</th>
               <th>Durum</th>
-              <th>Başvuru Tarihi</th>
+              <th>AI Puanı</th>
+              <th>Tarih</th>
+              <th>İşlem</th>
             </tr>
           </thead>
           <tbody>
@@ -175,6 +196,20 @@ async function sonBasvurulariYukle() {
     basvurular.forEach(b => {
       const kategori = pozisyonKategorisiBul(b.kategoriId || 'okulOncesiOgretmen');
       const durumRozet = durumRozetHTML(b.durum);
+      
+      // AI puanı
+      const skor = analizSkorlari[b.adayEposta];
+      let aiPuanHTML;
+      if (skor !== undefined) {
+        let renk = '#2e7d32';
+        if (skor < 50) renk = '#d32f2f';
+        else if (skor < 70) renk = '#f57c00';
+        aiPuanHTML = `<span style="display:inline-block; min-width:42px; text-align:center; background:${renk}; color:white; padding:4px 8px; border-radius:12px; font-weight:700; font-size:13px;">${skor}</span>`;
+      } else if (b.durum === 'tamamlandi') {
+        aiPuanHTML = `<span style="color:#f57c00; font-size:12px;">⏳ bekliyor</span>`;
+      } else {
+        aiPuanHTML = `<span style="color:#bbb; font-size:12px;">—</span>`;
+      }
       
       html += `
         <tr>
@@ -189,7 +224,16 @@ async function sonBasvurulariYukle() {
           </td>
           <td>${kategori.ikon} ${b.pozisyonBaslik || kategori.ad}</td>
           <td>${durumRozet}</td>
-          <td>${b.olusturmaZamani ? tarihSaatFormatla(b.olusturmaZamani) : '-'}</td>
+          <td>${aiPuanHTML}</td>
+          <td style="font-size:13px;">${b.olusturmaZamani ? tarihSaatFormatla(b.olusturmaZamani) : '-'}</td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <button onclick="basvuruArsivle('${b.adayEposta}')" title="Arşivle"
+                style="background:#fff3e0; color:#e65100; border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px;">📦</button>
+              <button onclick="basvuruSil('${b.adayEposta}', '${(b.adayAdi||'').replace(/'/g,'')}')" title="Sil"
+                style="background:#ffebee; color:#d32f2f; border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px;">🗑️</button>
+            </div>
+          </td>
         </tr>
       `;
     });
@@ -197,6 +241,9 @@ async function sonBasvurulariYukle() {
     html += `
           </tbody>
         </table>
+      </div>
+      <div style="margin-top:12px; text-align:right;">
+        <button onclick="arsivGoster()" style="background:none; border:1px solid #ddd; color:#666; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px;">📦 Arşivi Göster</button>
       </div>
     `;
     
@@ -209,6 +256,97 @@ async function sonBasvurulariYukle() {
     `;
   }
 }
+
+// ───────────────────────────────────────────────
+// Başvuru arşivle / arşivden çıkar / sil
+// ───────────────────────────────────────────────
+window.basvuruArsivle = async function(eposta) {
+  if (!confirm('Bu başvuru arşive taşınsın mı?\n\nArşivlenen başvurular listeden gizlenir ama silinmez, istediğinizde geri alabilirsiniz.')) return;
+  try {
+    await updateDoc(doc(db, 'isBasvurulari', eposta), {
+      arsivlendi: true,
+      arsivlenmeZamani: serverTimestamp()
+    });
+    await sonBasvurulariYukle();
+  } catch (hata) {
+    alert('Arşivlenemedi: ' + hata.message);
+  }
+};
+
+window.basvuruArsivdenCikar = async function(eposta) {
+  try {
+    await updateDoc(doc(db, 'isBasvurulari', eposta), { arsivlendi: false });
+    await arsivGoster();
+  } catch (hata) {
+    alert('İşlem başarısız: ' + hata.message);
+  }
+};
+
+window.basvuruSil = async function(eposta, ad) {
+  if (!confirm(`⚠️ DİKKAT — KALICI SİLME\n\n"${ad || eposta}" adayının başvurusu, test cevapları ve AI analizi KALICI olarak silinecek. Bu işlem geri alınamaz.\n\nDevam etmek istiyor musunuz?`)) return;
+  if (!confirm('Son kez soruyorum: Bu adayı tamamen silmek istediğinize emin misiniz?')) return;
+  try {
+    // İlişkili tüm verileri sil
+    await deleteDoc(doc(db, 'isBasvurulari', eposta));
+    try { await deleteDoc(doc(db, 'testCevaplari', eposta)); } catch(e) {}
+    try { await deleteDoc(doc(db, 'analizler', eposta)); } catch(e) {}
+    try { await deleteDoc(doc(db, 'mulakatNotlari', eposta)); } catch(e) {}
+    await sonBasvurulariYukle();
+    alert('✅ Başvuru ve ilişkili tüm veriler silindi.');
+  } catch (hata) {
+    alert('Silinemedi: ' + hata.message);
+  }
+};
+
+// ───────────────────────────────────────────────
+// Arşivlenmiş başvuruları göster
+// ───────────────────────────────────────────────
+window.arsivGoster = async function() {
+  const alan = document.getElementById('sonBasvurular');
+  alan.innerHTML = '<p style="padding:20px; color:#666;">Arşiv yükleniyor...</p>';
+  try {
+    const snapshot = await getDocs(query(collection(db, 'isBasvurulari'), orderBy('olusturmaZamani', 'desc')));
+    const arsiv = [];
+    snapshot.forEach(d => {
+      const v = { id: d.id, ...d.data() };
+      if (v.arsivlendi) arsiv.push(v);
+    });
+    
+    if (arsiv.length === 0) {
+      alan.innerHTML = `
+        <p style="text-align:center; color:var(--gri); padding:30px;">📦 Arşivde başvuru yok.</p>
+        <div style="text-align:right;"><button onclick="sonBasvurulariYukle()" style="background:none; border:1px solid #ddd; color:#666; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px;">← Aktif Başvurulara Dön</button></div>
+      `;
+      return;
+    }
+    
+    let html = `<div class="tablo"><table><thead><tr>
+      <th>Aday</th><th>Pozisyon</th><th>Durum</th><th>İşlem</th>
+    </tr></thead><tbody>`;
+    arsiv.forEach(b => {
+      const kategori = pozisyonKategorisiBul(b.kategoriId || 'okulOncesiOgretmen');
+      html += `
+        <tr style="opacity:0.75;">
+          <td><div style="font-weight:600;">${b.adayAdi || '(İsim yok)'}</div><div style="font-size:12px; color:var(--gri);">${b.adayEposta}</div></td>
+          <td>${kategori.ikon} ${b.pozisyonBaslik || kategori.ad}</td>
+          <td>${durumRozetHTML(b.durum)}</td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <button onclick="basvuruArsivdenCikar('${b.adayEposta}')" title="Geri al"
+                style="background:#e8f5e9; color:#2e7d32; border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px;">↩️ Geri Al</button>
+              <button onclick="basvuruSil('${b.adayEposta}', '${(b.adayAdi||'').replace(/'/g,'')}')" title="Sil"
+                style="background:#ffebee; color:#d32f2f; border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px;">🗑️</button>
+            </div>
+          </td>
+        </tr>`;
+    });
+    html += `</tbody></table></div>
+      <div style="margin-top:12px; text-align:right;"><button onclick="sonBasvurulariYukle()" style="background:none; border:1px solid #ddd; color:#666; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px;">← Aktif Başvurulara Dön</button></div>`;
+    alan.innerHTML = html;
+  } catch (hata) {
+    alan.innerHTML = `<div class="alert hata">Arşiv yüklenemedi: ${hata.message}</div>`;
+  }
+};
 
 // ───────────────────────────────────────────────
 // Durum rozet HTML
