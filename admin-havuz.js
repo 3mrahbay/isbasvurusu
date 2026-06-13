@@ -611,7 +611,7 @@ function aiRaporHTML(analiz, veri, davranisAnalizi) {
       <div class="bigFive-grid">
         ${cubukChart('Açıklık', bigFive.aciklik || 0, '#9c27b0')}
         ${cubukChart('Sorumluluk', bigFive.sorumluluk || 0, '#1976d2')}
-        ${cubukChart('Dışa Dönüklük', bigFive.disaDonukluk || 0, '#f57c00')}
+        ${cubukChart('Dışa Dönüklük', bigFive.disaDonukluk || bigFive.disadonukluk || 0, '#f57c00')}
         ${cubukChart('Uyumluluk ⭐', bigFive.uyumluluk || 0, '#2c5530')}
         ${cubukChart('Duygusal Denge', bigFive.duygusalDenge || 0, '#0097a7')}
       </div>
