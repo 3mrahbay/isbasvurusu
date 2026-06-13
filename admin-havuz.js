@@ -583,6 +583,26 @@ function aiRaporHTML(analiz, veri, davranisAnalizi) {
     `;
   }
   
+  // Dürüstlük / Sosyal Beğenirlik analizi
+  let durustlukHTML = '';
+  if (analiz.durustlukAnalizi) {
+    const dSkor = analiz.durustlukAnalizi.skor ?? null;
+    const dYorum = analiz.durustlukAnalizi.yorum || '';
+    let renk = '#2e7d32', etiket = 'Dürüst / Tutarlı', bg = '#e8f5e9';
+    if (dSkor !== null) {
+      if (dSkor < 40) { renk = '#d32f2f'; etiket = 'Şüpheli — Kendini idealize ediyor'; bg = '#ffebee'; }
+      else if (dSkor < 70) { renk = '#f57c00'; etiket = 'Dikkat — Kısmen abartılı'; bg = '#fff3e0'; }
+    }
+    durustlukHTML = `
+      <div class="kart" style="background: ${bg}; border-left: 4px solid ${renk};">
+        <h3 style="color: ${renk};">🔍 Dürüstlük Analizi (Yalan Yakalama)</h3>
+        ${dSkor !== null ? `<div style="font-size:15px; margin-bottom:6px;"><strong>Dürüstlük Skoru:</strong> <span style="color:${renk}; font-weight:700;">${dSkor}/100</span> — ${etiket}</div>` : ''}
+        ${dYorum ? `<div style="color:#444; font-size:14px; line-height:1.5;">${dYorum}</div>` : ''}
+        <div style="font-size:12px; color:#888; margin-top:8px;">Bu analiz, "her sözümü tutarım / her zaman hatamı kabul ederim" gibi abartılı sorulara verilen cevaplara dayanır.</div>
+      </div>
+    `;
+  }
+  
   // Big Five
   const bigFive = analiz.bigFive || {};
   const bigFiveHTML = `
