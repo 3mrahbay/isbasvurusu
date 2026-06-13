@@ -158,9 +158,9 @@ async function pozisyonlariYukle() {
     
     pozisyonlariCiz();
     
-    // Sayaç başlat (varsa)
+    // Sayaç başlat (varsa) - kompakt kartta sadece gün gösterildiği için dakikada bir yeterli
     if (pozisyonlar.some(p => p.sonBasvuruTarihi && !p.havuzModu)) {
-      sayacInterval = setInterval(sayaclariGuncelle, 1000);
+      sayacInterval = setInterval(sayaclariGuncelle, 60000);
     }
     
   } catch (hata) {
@@ -172,29 +172,21 @@ async function pozisyonlariYukle() {
 // ───────────────────────────────────────────────
 // Pozisyonları ekrana çiz
 // ───────────────────────────────────────────────
-let sliderInterval = null;
-let aktifGrupIndex = 0;
-let toplamGrupSayisi = 0;
-
 function pozisyonlariCiz() {
   const liste = document.getElementById('pozisyonListesi');
-  
-  // Önceki slider'ı temizle
-  if (sliderInterval) {
-    clearInterval(sliderInterval);
-    sliderInterval = null;
-  }
-  
+
   console.log('🎨 pozisyonlariCiz çağrıldı, pozisyon sayısı:', pozisyonlar.length);
-  
+
   if (pozisyonlar.length === 0) {
+    liste.classList.remove('slider-mod');
+    liste.classList.add('pozisyon-grid');
     liste.innerHTML = `
       <div class="pozisyon-yok-mesaj">
         <div class="ikon">🌱</div>
         <h3>Şu An Aktif Bir İlanımız Yok</h3>
         <p>
-          Ama merak etmeyin! Aday havuzumuza katılarak ilerideki açılışlardan 
-          ilk siz haberdar olabilirsiniz. Sizinle uygun bir pozisyon açıldığında 
+          Ama merak etmeyin! Aday havuzumuza katılarak ilerideki açılışlardan
+          ilk siz haberdar olabilirsiniz. Sizinle uygun bir pozisyon açıldığında
           mail göndererek haber vereceğiz.
         </p>
         <a href="basvuru.html?havuz=true" class="btn">
@@ -204,283 +196,17 @@ function pozisyonlariCiz() {
     `;
     return;
   }
-  
-  // 📐 Desktop'ta 2 kart yan yana, mobilde 1
-  const mobilMi = window.innerWidth <= 768;
-  const grupBoyu = mobilMi ? 1 : 2;
-  
-  // Slider'a gerek yok mu? (yeterli ilan yoksa düz göster)
-  if (pozisyonlar.length <= grupBoyu) {
-    liste.classList.remove('slider-mod');
-    liste.innerHTML = pozisyonlar.map(p => pozisyonKartHTML(p)).join('');
-    console.log('✅ Slider gerekmedi, düz liste oluşturuldu');
-    return;
-  }
-  
-  // 3+ ise SLIDER MOD
-  liste.classList.add('slider-mod');
-  
-  // Her grup 2 kart yan yana
-  const gruplar = [];
-  for (let i = 0; i < pozisyonlar.length; i += grupBoyu) {
-    gruplar.push(pozisyonlar.slice(i, i + grupBoyu));
-  }
-  
-  toplamGrupSayisi = gruplar.length;
-  aktifGrupIndex = 0;
-  
-  console.log(`✅ Slider modu: ${gruplar.length} grup oluşturuldu`);
-  
-  // Slider HTML
-  liste.innerHTML = `
-    <div class="pozisyon-slider-pencere" id="pozisyonSliderPencere">
-      <div class="pozisyon-slider-track" id="pozisyonSliderTrack">
-        ${gruplar.map((grup, idx) => `
-          <div class="pozisyon-slider-grup" data-grup-index="${idx}">
-            ${grup.map(p => pozisyonKartHTML(p)).join('')}
-          </div>
-        `).join('')}
-      </div>
-      
-      <div class="slider-pause-uyari">⏸ Otomatik geçiş duraklatıldı</div>
-    </div>
-    
-    <!-- 🔘 SAĞ ORTA - DİKEY BUTONLAR -->
-    <div class="slider-nav-grup">
-      <button class="slider-ok-btn" onclick="sliderOnceki()" aria-label="Önceki" title="Önceki">
-        ‹
-      </button>
-      <button class="slider-ok-btn" onclick="sliderSonraki()" aria-label="Sonraki" title="Sonraki">
-        ›
-      </button>
-    </div>
-    
-    <!-- Nokta göstergeler -->
-    <div class="pozisyon-slider-noktalar">
-      ${gruplar.map((_, idx) => `
-        <button class="slider-nokta ${idx === 0 ? 'aktif' : ''}" 
-                onclick="sliderManuelDegistir(${idx})"
-                aria-label="Grup ${idx + 1}"></button>
-      `).join('')}
-    </div>
-    
-    <!-- Sayaç -->
-    <div class="pozisyon-slider-sayac">
-      <span id="sliderSayacAktif">1</span> / ${gruplar.length} 
-      <span style="color: var(--gri); font-size: 12px;">
-        (${pozisyonlar.length} aktif ilan)
-      </span>
-    </div>
-  `;
-  
-  // Touch + Hover desteği başlat
-  setTimeout(() => {
-    sliderTouchKurulum();
-    baslatPozisyonSlider();
-  }, 100);
-  
-  // Pencere boyutu değişirse → tekrar render et (mobilden desktop'a geçiş için)
-  window.addEventListener('resize', sliderEkranDegisimi);
+
+  // 📐 KUTUCUK GRID — yan yana + alt alta (slider yok)
+  liste.classList.remove('slider-mod');
+  liste.classList.add('pozisyon-grid');
+  liste.innerHTML = pozisyonlar.map(p => pozisyonKartHTML(p)).join('');
+
+  console.log(`✅ ${pozisyonlar.length} ilan grid olarak çizildi`);
+
+  // Sayaç güncellemesi için (varsa) interval zaten pozisyonlariYukle'de başlatılıyor
 }
 
-// ───────────────────────────────────────────────
-// 📐 EKRAN BOYUTU DEĞİŞİMİ - Mobil/Desktop geçişi
-// ───────────────────────────────────────────────
-let resizeRenderTimer = null;
-function sliderEkranDegisimi() {
-  if (resizeRenderTimer) clearTimeout(resizeRenderTimer);
-  resizeRenderTimer = setTimeout(() => {
-    // Eğer grup sayısı değişmesi gereken bir geçişte ise tamamen render et
-    // Ekran boyutuna göre grup boyu (2 kart, mobilde 1)
-    const mobilMi = window.innerWidth <= 768;
-    const yeniGrupBoyu = mobilMi ? 1 : 2;
-    const yeniGrupSayisi = Math.ceil(pozisyonlar.length / yeniGrupBoyu);
-    
-    if (yeniGrupSayisi !== toplamGrupSayisi) {
-      // Grup sayısı değişti, tamamen yeniden render et
-      pozisyonlariCiz();
-    } else {
-      // Sadece pozisyonu güncelle
-      sliderGrubaGit(aktifGrupIndex);
-    }
-  }, 200);
-}
-
-// ───────────────────────────────────────────────
-// 🎠 OTOMATİK DÖNGÜ
-// ───────────────────────────────────────────────
-function baslatPozisyonSlider() {
-  if (toplamGrupSayisi <= 1) return;
-  
-  if (sliderInterval) {
-    clearInterval(sliderInterval);
-  }
-  
-  sliderInterval = setInterval(() => {
-    aktifGrupIndex = (aktifGrupIndex + 1) % toplamGrupSayisi;
-    sliderGrubaGit(aktifGrupIndex);
-  }, 3000); // 3 saniyede bir
-}
-
-function sliderDuraklat() {
-  if (sliderInterval) {
-    clearInterval(sliderInterval);
-    sliderInterval = null;
-  }
-}
-
-// ───────────────────────────────────────────────
-// 📍 BELLİ BİR GRUBA GİT - YATAY HAREKET
-// ───────────────────────────────────────────────
-function sliderGrubaGit(grupIndex) {
-  const track = document.getElementById('pozisyonSliderTrack');
-  if (!track) return;
-  
-  // Track'in parent'ı (pencere) iç genişliği = bir grubun genişliği
-  // İç padding düşülmüş net iç alan
-  const ilkGrup = track.querySelector('.pozisyon-slider-grup');
-  if (!ilkGrup) return;
-  
-  const grupGenislik = ilkGrup.offsetWidth;
-  
-  // YATAY hareket - donanım ivmesiyle
-  track.style.transform = `translate3d(-${grupIndex * grupGenislik}px, 0, 0)`;
-  
-  // Nokta göstergeleri güncelle
-  document.querySelectorAll('.slider-nokta').forEach((n, i) => {
-    n.classList.toggle('aktif', i === grupIndex);
-  });
-  
-  // Sayaç
-  const sayac = document.getElementById('sliderSayacAktif');
-  if (sayac) sayac.textContent = grupIndex + 1;
-}
-
-// ───────────────────────────────────────────────
-// 🎮 MANUEL KONTROLLER
-// ───────────────────────────────────────────────
-window.sliderManuelDegistir = function(grupIndex) {
-  sliderDuraklat();
-  aktifGrupIndex = grupIndex;
-  sliderGrubaGit(grupIndex);
-  
-  // 8 saniye sonra otomatik döngüyü tekrar başlat
-  setTimeout(() => {
-    if (toplamGrupSayisi > 1 && !sliderInterval) {
-      baslatPozisyonSlider();
-    }
-  }, 8000);
-};
-
-window.sliderSonraki = function() {
-  const yeniIndex = (aktifGrupIndex + 1) % toplamGrupSayisi;
-  sliderManuelDegistir(yeniIndex);
-};
-
-window.sliderOnceki = function() {
-  const yeniIndex = aktifGrupIndex - 1 < 0 ? toplamGrupSayisi - 1 : aktifGrupIndex - 1;
-  sliderManuelDegistir(yeniIndex);
-};
-
-// ───────────────────────────────────────────────
-// 👆 TOUCH (Dokunma) DESTEĞİ - Telefon için
-// ───────────────────────────────────────────────
-function sliderTouchKurulum() {
-  const pencere = document.getElementById('pozisyonSliderPencere');
-  const track = document.getElementById('pozisyonSliderTrack');
-  if (!pencere || !track) return;
-  
-  let baslangicX = 0;
-  let mevcutX = 0;
-  let surukleniyor = false;
-  let baslangicGenislik = 0;
-  
-  // Hover'da duraklatma (desktop)
-  pencere.addEventListener('mouseenter', () => {
-    sliderDuraklat();
-  });
-  
-  pencere.addEventListener('mouseleave', () => {
-    if (!sliderInterval && toplamGrupSayisi > 1 && !surukleniyor) {
-      baslatPozisyonSlider();
-    }
-  });
-  
-  // ─── DOKUNMATIK BAŞLANGIÇ ───
-  const baslangicEvent = (e) => {
-    surukleniyor = true;
-    
-    const dokunma = e.touches ? e.touches[0] : e;
-    baslangicX = dokunma.clientX;
-    mevcutX = dokunma.clientX;
-    
-    // Mevcut grup genişliğini al (pencere değil!)
-    const ilkGrup = track.querySelector('.pozisyon-slider-grup');
-    baslangicGenislik = ilkGrup ? ilkGrup.offsetWidth : pencere.clientWidth;
-    
-    track.classList.add('suruklenirken');
-    sliderDuraklat();
-  };
-  
-  // ─── DOKUNMATIK HAREKET ───
-  const hareketEvent = (e) => {
-    if (!surukleniyor) return;
-    
-    const dokunma = e.touches ? e.touches[0] : e;
-    mevcutX = dokunma.clientX;
-    
-    const fark = mevcutX - baslangicX;
-    const aktifPozisyon = -aktifGrupIndex * baslangicGenislik;
-    
-    // Sürükleme sırasında manuel transform
-    track.style.transform = `translate3d(${aktifPozisyon + fark}px, 0, 0)`;
-  };
-  
-  // ─── DOKUNMATIK BİTİŞ ───
-  const bitisEvent = () => {
-    if (!surukleniyor) return;
-    surukleniyor = false;
-    track.classList.remove('suruklenirken');
-    
-    const fark = mevcutX - baslangicX;
-    const esik = baslangicGenislik * 0.2; // %20 sürükleme yeterli
-    
-    if (Math.abs(fark) > esik) {
-      // Yeterli sürükleme yapıldı
-      if (fark < 0) {
-        // Sola sürüklendi → sonraki
-        sliderSonraki();
-      } else {
-        // Sağa sürüklendi → önceki
-        sliderOnceki();
-      }
-    } else {
-      // Yetersiz sürükleme → mevcut grupta kal
-      sliderGrubaGit(aktifGrupIndex);
-    }
-    
-    // 8 sn sonra otomatik başlat
-    setTimeout(() => {
-      if (!sliderInterval && toplamGrupSayisi > 1) {
-        baslatPozisyonSlider();
-      }
-    }, 8000);
-  };
-  
-  // Touch events (mobil)
-  pencere.addEventListener('touchstart', baslangicEvent, { passive: true });
-  pencere.addEventListener('touchmove', hareketEvent, { passive: true });
-  pencere.addEventListener('touchend', bitisEvent);
-  pencere.addEventListener('touchcancel', bitisEvent);
-  
-  // Mouse events (desktop)
-  pencere.addEventListener('mousedown', baslangicEvent);
-  pencere.addEventListener('mousemove', hareketEvent);
-  pencere.addEventListener('mouseup', bitisEvent);
-  pencere.addEventListener('mouseleave', () => {
-    if (surukleniyor) bitisEvent();
-  });
-}
 
 // ───────────────────────────────────────────────
 // Tek bir pozisyon kartı HTML'i
@@ -489,98 +215,65 @@ function pozisyonKartHTML(p) {
   const kategori = pozisyonKategorisiBul(p.kategoriId || 'okulOncesiOgretmen');
   
   let rozetHTML = '';
-  let sayacHTML = '';
+  let sayacKompaktHTML = '';
   
   if (p.havuzModu) {
     rozetHTML = '<span class="pozisyon-rozet havuz">🌊 Sürekli Açık</span>';
-    sayacHTML = `
-      <div class="pozisyon-sayac">
-        <span class="ikon">🌊</span>
-        <div class="metin">
-          <strong>Sürekli açık pozisyon</strong> — Başvuru havuzuna katılın, 
-          ihtiyaç olduğunda size dönüş yapalım.
-        </div>
-      </div>
-    `;
+    sayacKompaktHTML = '<div class="pozisyon-mini-bilgi havuz">🌊 Sürekli açık pozisyon</div>';
   } else if (p.sonBasvuruTarihi) {
     const kalan = geriSayimHesapla(p.sonBasvuruTarihi);
-    
     if (!kalan) {
       rozetHTML = '<span class="pozisyon-rozet" style="background:#ffebee; color:#c62828;">⏰ Süre Doldu</span>';
-      sayacHTML = `
-        <div class="pozisyon-sayac acil">
-          <span class="ikon">⏰</span>
-          <div class="metin">Bu pozisyona başvuru süresi sona erdi.</div>
-        </div>
-      `;
+      sayacKompaktHTML = '<div class="pozisyon-mini-bilgi suredoldu">⏰ Başvuru süresi doldu</div>';
     } else {
       const acilMi = kalan.gun <= 7;
       rozetHTML = acilMi 
         ? '<span class="pozisyon-rozet acil">🔥 Son Günler!</span>'
-        : '<span class="pozisyon-rozet aktif">✨ Aktif İlan</span>';
-      
-      sayacHTML = `
-        <div class="pozisyon-sayac ${acilMi ? 'acil' : ''}">
-          <span class="ikon">${acilMi ? '🔥' : '📅'}</span>
-          <div class="metin">
-            <strong>Son başvuru tarihi:</strong> ${tarihFormatla(p.sonBasvuruTarihi)}
-          </div>
-          <div class="sayac-grid" data-sayac-id="${p.id}">
-            <div class="sayac-birim">
-              <div class="deger sayac-gun">${kalan.gun}</div>
-              <div class="etiket">Gün</div>
-            </div>
-            <div class="sayac-birim">
-              <div class="deger sayac-saat">${String(kalan.saat).padStart(2,'0')}</div>
-              <div class="etiket">Saat</div>
-            </div>
-            <div class="sayac-birim">
-              <div class="deger sayac-dakika">${String(kalan.dakika).padStart(2,'0')}</div>
-              <div class="etiket">Dakika</div>
-            </div>
-            <div class="sayac-birim">
-              <div class="deger sayac-saniye">${String(kalan.saniye).padStart(2,'0')}</div>
-              <div class="etiket">Saniye</div>
-            </div>
-          </div>
-        </div>
-      `;
+        : '<span class="pozisyon-rozet aktif">✨ Aktif</span>';
+      sayacKompaktHTML = `
+        <div class="pozisyon-mini-bilgi ${acilMi ? 'acil' : ''}" data-sayac-id="${p.id}">
+          ${acilMi ? '🔥' : '📅'} Son başvuru: 
+          <strong><span class="sayac-gun">${kalan.gun}</span> gün</strong>
+        </div>`;
     }
   } else {
-    rozetHTML = '<span class="pozisyon-rozet aktif">✨ Aktif İlan</span>';
+    rozetHTML = '<span class="pozisyon-rozet aktif">✨ Aktif</span>';
   }
   
-  // Aktif çalışan sayısı/lokasyon gibi meta
-  const lokasyon = p.lokasyon || 'Aydınlı Mah. Bahçeler Sk. No:45 Tuzla / İstanbul';
+  const lokasyon = p.lokasyon || 'Tuzla / İstanbul';
   const calismaTipi = p.calismaTipi || 'Tam zamanlı';
+  // Lokasyonu kısalt (kompakt kart için)
+  const lokasyonKisa = lokasyon.length > 30 ? lokasyon.split(',')[0].split('/').slice(-2).join('/').trim() : lokasyon;
+  
+  // Kare resim alanı (resim varsa göster, yoksa kategori ikonlu placeholder)
+  const resimHTML = p.resimUrl
+    ? `<div class="pozisyon-resim"><img src="${p.resimUrl}" alt="${p.baslik || kategori.ad}" loading="lazy"></div>`
+    : `<div class="pozisyon-resim pozisyon-resim-bos"><span class="placeholder-ikon">${kategori.ikon}</span></div>`;
+  
+  // Kısa açıklamayı düz metne çevir ve kırp
+  let aciklamaMetni = '';
+  if (p.kisaAciklama) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = p.kisaAciklama;
+    aciklamaMetni = (tmp.textContent || tmp.innerText || '').trim();
+  }
   
   return `
-    <div class="pozisyon-kart">
-      <div class="pozisyon-ust">
-        <div class="pozisyon-baslik">
-          <h3>${kategori.ikon} ${p.baslik || kategori.ad}</h3>
-          <div class="meta">
-            <span>📍 ${lokasyon}</span>
-            <span>💼 ${calismaTipi}</span>
-            ${p.olusturmaZamani ? `<span>📅 ${tarihFormatla(p.olusturmaZamani)}</span>` : ''}
-          </div>
+    <div class="pozisyon-kart-kompakt">
+      ${resimHTML}
+      <div class="pozisyon-rozet-katman">${rozetHTML}</div>
+      <div class="pozisyon-kart-govde">
+        <h3 class="pozisyon-kart-baslik">${kategori.ikon} ${p.baslik || kategori.ad}</h3>
+        <div class="pozisyon-kart-meta">
+          <span>📍 ${lokasyonKisa}</span>
+          <span>💼 ${calismaTipi}</span>
         </div>
-        <div>${rozetHTML}</div>
-      </div>
-      
-      <div class="pozisyon-aciklama zengin-icerik">${p.kisaAciklama ? metniRender(p.kisaAciklama) : '<p>Bu pozisyon hakkında daha fazla bilgi için detaya tıklayın.</p>'}</div>
-      
-      ${sayacHTML}
-      
-      <div class="pozisyon-altbutonlar">
-        <a href="basvuru.html?pozisyon=${p.id}" class="btn">
-          🚀 Bu Pozisyona Başvur
-        </a>
-        ${p.detayAciklama ? `
-          <button class="btn btn-ikincil" onclick="pozisyonDetayGoster('${p.id}')">
-            📖 Detayları Gör
-          </button>
-        ` : ''}
+        ${aciklamaMetni ? `<p class="pozisyon-kart-aciklama">${aciklamaMetni}</p>` : ''}
+        ${sayacKompaktHTML}
+        <div class="pozisyon-kart-butonlar">
+          <a href="basvuru.html?pozisyon=${p.id}" class="btn btn-kompakt">🚀 Başvur</a>
+          ${p.detayAciklama ? `<button class="btn btn-ikincil btn-kompakt" onclick="pozisyonDetayGoster('${p.id}')">📖 Detay</button>` : ''}
+        </div>
       </div>
     </div>
   `;
@@ -598,15 +291,12 @@ function sayaclariGuncelle() {
     if (!sayacEl) return;
     
     if (!kalan) {
-      // Süre doldu, kartı yeniden çiz
       pozisyonlariCiz();
       return;
     }
     
-    sayacEl.querySelector('.sayac-gun').textContent = kalan.gun;
-    sayacEl.querySelector('.sayac-saat').textContent = String(kalan.saat).padStart(2, '0');
-    sayacEl.querySelector('.sayac-dakika').textContent = String(kalan.dakika).padStart(2, '0');
-    sayacEl.querySelector('.sayac-saniye').textContent = String(kalan.saniye).padStart(2, '0');
+    const gunEl = sayacEl.querySelector('.sayac-gun');
+    if (gunEl) gunEl.textContent = kalan.gun;
   });
 }
 

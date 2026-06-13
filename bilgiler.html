@@ -108,6 +108,12 @@
             <div class="yardim-metni">Sadece cep telefonu numaranızı yazın</div>
           </div>
           
+          <div class="form-grup">
+            <label for="eposta">E-posta Adresi <span class="zorunlu">*</span></label>
+            <input type="email" id="eposta" placeholder="ornek@mail.com" maxlength="150" required>
+            <div class="yardim-metni">Sizinle iletişim kuracağımız e-posta adresi (Google hesabınızdan otomatik geldi, değiştirebilirsiniz)</div>
+          </div>
+          
           <!-- DOĞUM TARİHİ + CİNSİYET -->
           <div class="iki-kolon">
             <div class="form-grup">
@@ -203,11 +209,64 @@
             </select>
           </div>
           
-          <!-- SON İŞYERİ -->
+          <!-- SON 3 DENEYİM -->
           <div class="form-grup">
-            <label for="sonIsyeri">Son Çalıştığınız Kurum (varsa)</label>
-            <input type="text" id="sonIsyeri" placeholder="Örn: ABC Anaokulu" maxlength="150">
-            <div class="yardim-metni">Yeni mezunsanız boş bırakabilirsiniz</div>
+            <label>Son Deneyimleriniz (en fazla 3 kurum)</label>
+            <div class="yardim-metni" style="margin-bottom: 12px;">En son çalıştığınız kurumlardan başlayın. Yeni mezunsanız boş bırakabilirsiniz.</div>
+            
+            <div class="deneyim-blok">
+              <div class="deneyim-blok-baslik">1. Deneyim (en son)</div>
+              <div class="form-satir-3">
+                <div class="form-grup">
+                  <label for="deneyim1Kurum">Kurum / İş Yeri</label>
+                  <input type="text" id="deneyim1Kurum" placeholder="Örn: ABC Anaokulu" maxlength="120">
+                </div>
+                <div class="form-grup">
+                  <label for="deneyim1Pozisyon">Göreviniz</label>
+                  <input type="text" id="deneyim1Pozisyon" placeholder="Örn: Sınıf Öğretmeni" maxlength="100">
+                </div>
+                <div class="form-grup">
+                  <label for="deneyim1Sure">Süre</label>
+                  <input type="text" id="deneyim1Sure" placeholder="Örn: 2 yıl" maxlength="40">
+                </div>
+              </div>
+            </div>
+            
+            <div class="deneyim-blok">
+              <div class="deneyim-blok-baslik">2. Deneyim</div>
+              <div class="form-satir-3">
+                <div class="form-grup">
+                  <label for="deneyim2Kurum">Kurum / İş Yeri</label>
+                  <input type="text" id="deneyim2Kurum" placeholder="Örn: XYZ Kreş" maxlength="120">
+                </div>
+                <div class="form-grup">
+                  <label for="deneyim2Pozisyon">Göreviniz</label>
+                  <input type="text" id="deneyim2Pozisyon" placeholder="Örn: Yardımcı Öğretmen" maxlength="100">
+                </div>
+                <div class="form-grup">
+                  <label for="deneyim2Sure">Süre</label>
+                  <input type="text" id="deneyim2Sure" placeholder="Örn: 1.5 yıl" maxlength="40">
+                </div>
+              </div>
+            </div>
+            
+            <div class="deneyim-blok">
+              <div class="deneyim-blok-baslik">3. Deneyim</div>
+              <div class="form-satir-3">
+                <div class="form-grup">
+                  <label for="deneyim3Kurum">Kurum / İş Yeri</label>
+                  <input type="text" id="deneyim3Kurum" placeholder="Kurum adı" maxlength="120">
+                </div>
+                <div class="form-grup">
+                  <label for="deneyim3Pozisyon">Göreviniz</label>
+                  <input type="text" id="deneyim3Pozisyon" placeholder="Pozisyon" maxlength="100">
+                </div>
+                <div class="form-grup">
+                  <label for="deneyim3Sure">Süre</label>
+                  <input type="text" id="deneyim3Sure" placeholder="Örn: 6 ay" maxlength="40">
+                </div>
+              </div>
+            </div>
           </div>
           
           <!-- MONTESSORI / FOREST SCHOOL DENEYİMİ -->
@@ -241,6 +300,35 @@
             <label for="sertifikalar">Sahip Olduğunuz Sertifikalar / Kurslar</label>
             <textarea id="sertifikalar" rows="3" maxlength="500" 
               placeholder="Örn: İlk yardım sertifikası, MEB onaylı pedagojik formasyon, çocuk gelişimi sertifikası..."></textarea>
+          </div>
+          
+          <!-- CV YÜKLEME -->
+          <div class="form-grup">
+            <label for="cvDosya">📄 Özgeçmiş (CV) Yükleyin</label>
+            <div class="yardim-metni" style="margin-bottom: 10px;">PDF, Word veya resim formatında, en fazla 5 MB. CV'niz değerlendirme sürecinde bize yardımcı olur.</div>
+            
+            <input type="file" id="cvDosya" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png" style="display:none;">
+            
+            <div id="cvAlani" class="cv-alani" onclick="document.getElementById('cvDosya').click()">
+              <div class="cv-bos" id="cvBos">
+                <div class="cv-ikon">📎</div>
+                <div class="cv-metin"><strong>CV yüklemek için tıklayın</strong></div>
+                <div class="cv-alt">veya dosyayı buraya sürükleyin</div>
+              </div>
+              <div class="cv-dolu gizli" id="cvDolu">
+                <div class="cv-dosya-ikon">📄</div>
+                <div class="cv-dosya-bilgi">
+                  <div class="cv-dosya-ad" id="cvDosyaAd"></div>
+                  <div class="cv-dosya-boyut" id="cvDosyaBoyut"></div>
+                </div>
+                <button type="button" class="cv-sil-btn" onclick="event.stopPropagation(); cvKaldir();">✕</button>
+              </div>
+            </div>
+            
+            <div id="cvYuklemeBar" class="cv-yukleme-bar gizli">
+              <div class="cv-yukleme-dolgu" id="cvYuklemeDolgu"></div>
+            </div>
+            <div id="cvYuklemeDurum" class="cv-yukleme-durum"></div>
           </div>
           
         </form>

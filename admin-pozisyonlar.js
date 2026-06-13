@@ -22,6 +22,11 @@ import {
   orderBy,
   Timestamp,
   serverTimestamp,
+  storage,
+  storageRef,
+  uploadBytesResumable,
+  getDownloadURL,
+  deleteObject,
   ADMIN_EPOSTA
 } from './firebase-config.js';
 
@@ -37,6 +42,7 @@ import { editorOlustur } from './metin-editor.js';
 let tumPozisyonlar = [];
 let aktifFiltre = 'hepsi';
 let duzenlemeMod = null; // null, 'yeni', veya pozisyonId
+let yuklenenResim = null; // { url } veya null
 
 // ───────────────────────────────────────────────
 // Auth kontrol
@@ -220,6 +226,9 @@ window.yeniPozisyon = function() {
   document.getElementById('sonBasvuruTarihi').value = '';
   document.getElementById('aktif').checked = true;
   
+  // İlan resmini temizle
+  ilanResimKaldir();
+  
   // Varsayılan tarih: 30 gün sonrası
   const sonra = new Date();
   sonra.setDate(sonra.getDate() + 30);
@@ -260,6 +269,14 @@ window.pozisyonDuzenle = function(pozisyonId) {
   document.getElementById('havuzModu').checked = p.havuzModu === true;
   document.getElementById('aktif').checked = p.aktif !== false;
   
+  // İlan resmini göster (varsa)
+  if (p.resimUrl) {
+    yuklenenResim = { url: p.resimUrl };
+    ilanResimOnizlemeGoster(p.resimUrl);
+  } else {
+    ilanResimKaldir();
+  }
+  
   if (p.sonBasvuruTarihi) {
     const tarih = p.sonBasvuruTarihi.toDate ? p.sonBasvuruTarihi.toDate() : new Date(p.sonBasvuruTarihi);
     // Yerel saat dilimi formatına çevir
@@ -281,6 +298,102 @@ window.pozisyonDuzenle = function(pozisyonId) {
     editorOlustur('kisaAciklama', { onizleme: false });
     editorOlustur('detayAciklama', { onizleme: true });
   }, 100);
+};
+
+// ───────────────────────────────────────────────
+// İLAN GÖRSELİ YÜKLEME (Firebase Storage)
+// ───────────────────────────────────────────────
+const RESIM_TIPLER = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+const MAX_RESIM = 3 * 1024 * 1024; // 3 MB
+
+document.getElementById('ilanResim').addEventListener('change', (e) => {
+  if (e.target.files.length > 0) ilanResimYukle(e.target.files[0]);
+});
+
+// Sürükle-bırak
+const resimAlani = document.getElementById('resimAlani');
+if (resimAlani) {
+  resimAlani.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    resimAlani.classList.add('surukleniyor');
+  });
+  resimAlani.addEventListener('dragleave', () => resimAlani.classList.remove('surukleniyor'));
+  resimAlani.addEventListener('drop', (e) => {
+    e.preventDefault();
+    resimAlani.classList.remove('surukleniyor');
+    if (e.dataTransfer.files.length > 0) ilanResimYukle(e.dataTransfer.files[0]);
+  });
+}
+
+async function ilanResimYukle(dosya) {
+  if (!RESIM_TIPLER.includes(dosya.type)) {
+    alert('Sadece resim yükleyebilirsiniz (JPG, PNG, WEBP).');
+    return;
+  }
+  if (dosya.size > MAX_RESIM) {
+    alert(`Görsel çok büyük! En fazla 3 MB olabilir.\nSizin dosyanız: ${(dosya.size/1024/1024).toFixed(1)} MB`);
+    return;
+  }
+  
+  const bar = document.getElementById('resimYuklemeBar');
+  const dolgu = document.getElementById('resimYuklemeDolgu');
+  const durum = document.getElementById('resimYuklemeDurum');
+  
+  bar.classList.remove('gizli');
+  durum.textContent = 'Yükleniyor...';
+  durum.style.color = '#666';
+  
+  try {
+    const uzanti = '.' + dosya.name.split('.').pop().toLowerCase();
+    const yol = `ilanlar/${Date.now()}${uzanti}`;
+    const ref = storageRef(storage, yol);
+    const gorev = uploadBytesResumable(ref, dosya, { contentType: dosya.type });
+    
+    gorev.on('state_changed',
+      (snap) => {
+        const yuzde = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+        dolgu.style.width = yuzde + '%';
+        durum.textContent = `Yükleniyor... %${yuzde}`;
+      },
+      (hata) => {
+        console.error('Resim yükleme hatası:', hata);
+        durum.textContent = '❌ Yükleme başarısız: ' + (hata.code || hata.message);
+        durum.style.color = '#d32f2f';
+        bar.classList.add('gizli');
+      },
+      async () => {
+        const url = await getDownloadURL(gorev.snapshot.ref);
+        yuklenenResim = { url };
+        dolgu.style.width = '100%';
+        durum.textContent = '✅ Görsel yüklendi';
+        durum.style.color = '#2e7d32';
+        ilanResimOnizlemeGoster(url);
+        setTimeout(() => bar.classList.add('gizli'), 1200);
+      }
+    );
+  } catch (hata) {
+    console.error('Resim yükleme hatası:', hata);
+    durum.textContent = '❌ Hata: ' + hata.message;
+    durum.style.color = '#d32f2f';
+    bar.classList.add('gizli');
+  }
+}
+
+function ilanResimOnizlemeGoster(url) {
+  document.getElementById('resimBos').classList.add('gizli');
+  document.getElementById('resimOnizleme').classList.remove('gizli');
+  document.getElementById('resimImg').src = url;
+}
+
+window.ilanResimKaldir = function() {
+  yuklenenResim = null;
+  const inp = document.getElementById('ilanResim');
+  if (inp) inp.value = '';
+  document.getElementById('resimBos').classList.remove('gizli');
+  document.getElementById('resimOnizleme').classList.add('gizli');
+  document.getElementById('resimImg').src = '';
+  document.getElementById('resimYuklemeBar').classList.add('gizli');
+  document.getElementById('resimYuklemeDurum').textContent = '';
 };
 
 // ───────────────────────────────────────────────
@@ -349,6 +462,7 @@ window.pozisyonKaydet = async function() {
       baslik,
       kisaAciklama,
       detayAciklama: detayAciklama || null,
+      resimUrl: yuklenenResim ? yuklenenResim.url : null,
       lokasyon: lokasyon || 'Aydınlı Mah. Bahçeler Sk. No:45 Tuzla / İstanbul',
       calismaTipi,
       havuzModu,

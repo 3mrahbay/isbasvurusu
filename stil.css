@@ -1088,3 +1088,328 @@ body {
 .pozisyon-slider-pencere:hover .slider-pause-uyari {
   opacity: 1;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   BİLGİLER FORMU - DENEYİM BLOKLARI + CV YÜKLEME
+   ═══════════════════════════════════════════════════════════ */
+
+/* 3'lü form satırı (deneyim için) */
+.form-satir-3 {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 0.7fr;
+  gap: 12px;
+}
+.form-satir-3 .form-grup { margin-bottom: 0; }
+
+/* Deneyim blokları */
+.deneyim-blok {
+  background: #fafafa;
+  border: 1px solid #ececec;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.deneyim-blok-baslik {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ana-yesil, #4A7C59);
+  margin-bottom: 10px;
+}
+
+/* CV Yükleme Alanı */
+.cv-alani {
+  border: 2px dashed #c8d6cb;
+  border-radius: 14px;
+  padding: 26px 18px;
+  text-align: center;
+  background: #f8fbf9;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.cv-alani:hover {
+  border-color: var(--ana-yesil, #4A7C59);
+  background: #eef6f0;
+}
+.cv-alani.surukleniyor {
+  border-color: var(--ana-yesil, #4A7C59);
+  background: #e3f0e7;
+  border-style: solid;
+}
+.cv-ikon { font-size: 40px; margin-bottom: 8px; opacity: 0.75; }
+.cv-metin { font-size: 15px; color: #2D5E3E; margin-bottom: 4px; }
+.cv-alt { font-size: 12px; color: #999; }
+
+/* CV Dolu Durumu */
+.cv-dolu {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+}
+.cv-dosya-ikon { font-size: 34px; flex-shrink: 0; }
+.cv-dosya-bilgi { flex: 1; min-width: 0; }
+.cv-dosya-ad {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1a1a1a;
+  word-break: break-all;
+}
+.cv-dosya-boyut { font-size: 12px; color: #888; margin-top: 2px; }
+.cv-sil-btn {
+  background: #fee;
+  color: #d32f2f;
+  border: none;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.cv-sil-btn:hover { background: #fcc; }
+
+/* CV Yükleme Bar */
+.cv-yukleme-bar {
+  margin-top: 12px;
+  height: 8px;
+  background: #e8e8e8;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.cv-yukleme-dolgu {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #4A7C59, #2D5E3E);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+.cv-yukleme-durum {
+  font-size: 13px;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+/* Mobil */
+@media (max-width: 768px) {
+  .form-satir-3 {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .cv-alani { padding: 20px 14px; }
+  .cv-ikon { font-size: 34px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ANASAYFA - İLAN KUTUCUK GRID (slider yerine)
+   ═══════════════════════════════════════════════════════════ */
+
+.pozisyon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 22px;
+  align-items: stretch;
+}
+
+/* Tek/çok ilan ortala */
+.pozisyon-grid:has(.pozisyon-kart-kompakt:only-child) {
+  grid-template-columns: minmax(280px, 380px);
+  justify-content: center;
+}
+
+/* Kompakt İlan Kartı */
+.pozisyon-kart-kompakt {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.pozisyon-kart-kompakt:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(44,85,48,0.15);
+  border-color: var(--ana-yesil, #4A7C59);
+}
+
+/* Kare Resim Alanı */
+.pozisyon-resim {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;          /* KARE */
+  overflow: hidden;
+  background: #f0f5f1;
+}
+.pozisyon-resim img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.pozisyon-resim-bos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+}
+.pozisyon-resim-bos .placeholder-ikon {
+  font-size: 72px;
+  opacity: 0.5;
+}
+
+/* Rozet (resim üstünde köşe) */
+.pozisyon-rozet-katman {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+}
+.pozisyon-rozet-katman .pozisyon-rozet {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Kart Gövde */
+.pozisyon-kart-govde {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px 18px;
+  flex: 1;
+}
+.pozisyon-kart-baslik {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pozisyon-kart-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: #777;
+}
+.pozisyon-kart-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.pozisyon-kart-aciklama {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Mini bilgi (sayaç yerine kompakt) */
+.pozisyon-mini-bilgi {
+  font-size: 12px;
+  color: #555;
+  background: #f5f9f6;
+  border-radius: 8px;
+  padding: 7px 10px;
+  border: 1px solid #e3ede5;
+}
+.pozisyon-mini-bilgi.acil {
+  background: #fff4e5;
+  border-color: #ffd9a8;
+  color: #b25c00;
+}
+.pozisyon-mini-bilgi.suredoldu {
+  background: #ffebee;
+  border-color: #ffcdd2;
+  color: #c62828;
+}
+.pozisyon-mini-bilgi.havuz {
+  background: #e8f5fb;
+  border-color: #b3e0f2;
+  color: #0277bd;
+}
+
+/* Butonlar */
+.pozisyon-kart-butonlar {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+.btn-kompakt {
+  padding: 9px 14px !important;
+  font-size: 13px !important;
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Mobil - 2 sütun küçük ekranda bile yan yana */
+@media (max-width: 768px) {
+  .pozisyon-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+  }
+  .pozisyon-kart-baslik { font-size: 14px; }
+  .pozisyon-kart-govde { padding: 12px 13px 14px; }
+  .pozisyon-resim-bos .placeholder-ikon { font-size: 52px; }
+  .pozisyon-kart-butonlar { flex-direction: column; }
+  .pozisyon-kart-aciklama { -webkit-line-clamp: 3; }
+}
+
+@media (max-width: 380px) {
+  .pozisyon-grid { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN - İLAN GÖRSELİ YÜKLEME
+   ═══════════════════════════════════════════════════════════ */
+.ilan-resim-alani {
+  border: 2px dashed #c8d6cb;
+  border-radius: 14px;
+  padding: 22px 16px;
+  text-align: center;
+  background: #f8fbf9;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.ilan-resim-alani:hover { border-color: var(--ana-yesil, #4A7C59); background: #eef6f0; }
+.ilan-resim-alani.surukleniyor {
+  border-color: var(--ana-yesil, #4A7C59);
+  background: #e3f0e7;
+  border-style: solid;
+}
+.ilan-resim-onizleme {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.ilan-resim-onizleme img {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.resim-sil-btn {
+  background: #fee;
+  color: #d32f2f;
+  border: 1px solid #fcc;
+  padding: 6px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.resim-sil-btn:hover { background: #fcc; }

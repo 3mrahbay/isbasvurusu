@@ -243,8 +243,8 @@ function detayCiz() {
   const kategori = pozisyonKategorisiBul(a.kategoriId || 'okulOncesiOgretmen');
   const detay = document.getElementById('detayIcerik');
   
-  // Kişisel bilgiler (varsa)
-  const k = a.kisiselBilgiler || {};
+  // Kişisel bilgiler — yeni kayıtlar kök seviyede, eski kayıtlar kisiselBilgiler altında olabilir
+  const k = (a.kisiselBilgiler && Object.keys(a.kisiselBilgiler).length > 0) ? a.kisiselBilgiler : a;
   
   let html = `
     <!-- ÜST KART: TEMEL BİLGİ -->
@@ -261,7 +261,8 @@ function detayCiz() {
         <div style="flex: 1; min-width: 200px;">
           <h2 style="color: var(--ana-yesil); margin: 0 0 6px;">${a.adayAdi || '(İsim yok)'}</h2>
           <div style="color: var(--gri); font-size: 14px;">📧 ${a.adayEposta || '-'}</div>
-          ${k.telefon ? `<div style="color: var(--gri); font-size: 14px;">📱 0${k.telefon}</div>` : ''}
+          ${(k.telefon || a.telefon) ? `<div style="color: var(--gri); font-size: 14px;">📱 0${k.telefon || a.telefon}</div>` : ''}
+          ${(k.eposta && k.eposta !== a.adayEposta) ? `<div style="color: var(--gri); font-size: 13px;">✉️ İletişim: ${k.eposta}</div>` : ''}
         </div>
         <div>${durumRozetHTML(a.durum)}</div>
       </div>
@@ -333,18 +334,21 @@ function detayCiz() {
     <div class="kart">
       <h3>👤 Kişisel Bilgiler</h3>
       <table style="width: 100%; border-collapse: collapse;">
-        ${k.adSoyad ? `<tr><td style="padding:8px; color:#666; width:160px;">Ad Soyad:</td><td style="padding:8px;"><strong>${k.adSoyad}</strong></td></tr>` : ''}
+        ${(a.adayAdi || (k.ad && k.soyad)) ? `<tr><td style="padding:8px; color:#666; width:160px;">Ad Soyad:</td><td style="padding:8px;"><strong>${a.adayAdi || (k.ad + ' ' + k.soyad)}</strong></td></tr>` : ''}
+        ${(k.telefon || a.telefon) ? `<tr><td style="padding:8px; color:#666;">Telefon:</td><td style="padding:8px;">0${k.telefon || a.telefon}</td></tr>` : ''}
+        ${k.eposta ? `<tr><td style="padding:8px; color:#666;">E-posta:</td><td style="padding:8px;">${k.eposta}</td></tr>` : ''}
         ${k.dogumTarihi ? `<tr><td style="padding:8px; color:#666;">Doğum Tarihi:</td><td style="padding:8px;">${k.dogumTarihi}</td></tr>` : ''}
         ${k.cinsiyet ? `<tr><td style="padding:8px; color:#666;">Cinsiyet:</td><td style="padding:8px;">${k.cinsiyet}</td></tr>` : ''}
         ${k.medeniDurum ? `<tr><td style="padding:8px; color:#666;">Medeni Durum:</td><td style="padding:8px;">${k.medeniDurum}</td></tr>` : ''}
-        ${k.adres ? `<tr><td style="padding:8px; color:#666;">Adres:</td><td style="padding:8px;">${k.adres}</td></tr>` : ''}
-        ${k.egitimDurumu ? `<tr><td style="padding:8px; color:#666;">Eğitim:</td><td style="padding:8px;">${k.egitimDurumu}</td></tr>` : ''}
-        ${k.bolum ? `<tr><td style="padding:8px; color:#666;">Bölüm:</td><td style="padding:8px;">${k.bolum}</td></tr>` : ''}
-        ${k.deneyimYil ? `<tr><td style="padding:8px; color:#666;">Deneyim:</td><td style="padding:8px;">${k.deneyimYil} yıl</td></tr>` : ''}
-        ${k.sonIsyeri ? `<tr><td style="padding:8px; color:#666;">Son İşyeri:</td><td style="padding:8px;">${k.sonIsyeri}</td></tr>` : ''}
-        ${k.aciklamaDeneyim ? `<tr><td style="padding:8px; color:#666; vertical-align:top;">Önceki Deneyim:</td><td style="padding:8px; white-space:pre-wrap;">${k.aciklamaDeneyim}</td></tr>` : ''}
+        ${k.adres ? `<tr><td style="padding:8px; color:#666;">İkamet:</td><td style="padding:8px;">${k.adres}</td></tr>` : ''}
+        ${k.egitimDurumu ? `<tr><td style="padding:8px; color:#666;">Eğitim:</td><td style="padding:8px;">${k.egitimDurumu}${k.bolum ? ' — ' + k.bolum : ''}${k.okul ? ' (' + k.okul + ')' : ''}</td></tr>` : ''}
+        ${(k.deneyimYili || k.deneyimYil) ? `<tr><td style="padding:8px; color:#666;">Toplam Deneyim:</td><td style="padding:8px;">${k.deneyimYili || k.deneyimYil} yıl</td></tr>` : ''}
+        ${k.sertifikalar ? `<tr><td style="padding:8px; color:#666; vertical-align:top;">Sertifikalar:</td><td style="padding:8px; white-space:pre-wrap;">${k.sertifikalar}</td></tr>` : ''}
       </table>
+      ${deneyimGecmisiHTML(k)}
     </div>
+    
+    ${cvKartiHTML(a, k)}
     
     <!-- 💰 ÇALIŞMA TERCİHLERİ - VURGULU KART -->
     <div class="kart" style="background: linear-gradient(135deg, #f8fffa 0%, white 100%); border-left: 4px solid var(--ana-yesil);">
@@ -1111,6 +1115,76 @@ window.testCevaplariToggle = function() {
   const el = document.getElementById('cevaplarDetay');
   if (el) el.classList.toggle('gizli');
 };
+
+// ───────────────────────────────────────────────
+// Son 3 deneyim geçmişi HTML
+// ───────────────────────────────────────────────
+function deneyimGecmisiHTML(k) {
+  const deneyimler = [];
+  for (let i = 1; i <= 3; i++) {
+    const kurum = k['deneyim' + i + 'Kurum'];
+    const pozisyon = k['deneyim' + i + 'Pozisyon'];
+    const sure = k['deneyim' + i + 'Sure'];
+    if (kurum || pozisyon || sure) {
+      deneyimler.push({ kurum, pozisyon, sure });
+    }
+  }
+  
+  // Eski format (tek sonIsyeri) fallback
+  if (deneyimler.length === 0 && k.sonIsyeri) {
+    deneyimler.push({ kurum: k.sonIsyeri, pozisyon: '', sure: '' });
+  }
+  
+  if (deneyimler.length === 0) return '';
+  
+  let html = `<div style="margin-top: 14px;">
+    <div style="font-weight:600; color:#2c5530; margin-bottom:8px; font-size:14px;">💼 Son Deneyimler</div>`;
+  deneyimler.forEach((d, idx) => {
+    html += `
+      <div style="background:#f8faf9; border-left:3px solid var(--ana-yesil); border-radius:6px; padding:10px 12px; margin-bottom:8px;">
+        <div style="font-weight:600; color:#1a1a1a; font-size:14px;">${d.kurum || '(Kurum belirtilmemiş)'}</div>
+        <div style="color:#666; font-size:13px; margin-top:2px;">
+          ${d.pozisyon ? d.pozisyon : ''}${d.pozisyon && d.sure ? ' • ' : ''}${d.sure ? '⏱ ' + d.sure : ''}
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+// ───────────────────────────────────────────────
+// CV kartı HTML (görüntüle / indir)
+// ───────────────────────────────────────────────
+function cvKartiHTML(a, k) {
+  const cvUrl = a.cvUrl || k.cvUrl;
+  const cvAd = a.cvDosyaAdi || k.cvDosyaAdi || 'CV';
+  const cvBoyut = a.cvBoyut || k.cvBoyut;
+  
+  if (cvUrl) {
+    return `
+    <div class="kart" style="background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border-left: 4px solid var(--ana-yesil);">
+      <h3>📄 Özgeçmiş (CV)</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:14px 18px; border-radius:10px; flex-wrap:wrap; gap:12px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="font-size:32px;">📄</div>
+          <div>
+            <div style="font-weight:600; color:#1a1a1a; word-break:break-all;">${cvAd}</div>
+            ${cvBoyut ? `<div style="font-size:12px; color:#888;">${(cvBoyut/1024/1024).toFixed(2)} MB</div>` : ''}
+          </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <a href="${cvUrl}" target="_blank" class="btn btn-kucuk" style="background:var(--ana-yesil); color:white;">🔍 Görüntüle</a>
+          <a href="${cvUrl}" download="${cvAd}" class="btn btn-ikincil btn-kucuk">⬇️ İndir</a>
+        </div>
+      </div>
+    </div>`;
+  }
+  return `
+    <div class="kart" style="background:#fff3e0; border-left:4px solid #f57c00;">
+      <h3>📄 Özgeçmiş (CV)</h3>
+      <p style="color:#e65100; margin:0; font-size:13px;">⚠️ Bu aday henüz CV yüklememiş.</p>
+    </div>`;
+}
 
 function cevaplarDetayHTML(cevaplar) {
   // Bölümlere göre grupla

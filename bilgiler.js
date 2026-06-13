@@ -10,7 +10,11 @@ import {
   setDoc,
   serverTimestamp,
   onAuthStateChanged,
-  signOut
+  signOut,
+  storage,
+  storageRef,
+  uploadBytesResumable,
+  getDownloadURL
 } from './firebase-config.js';
 
 import { 
@@ -25,6 +29,7 @@ import {
 
 let mevcutKullanici = null;
 let mevcutVeri = null;
+let yuklenenCV = null;  // { url, dosyaAdi, boyut, tip }
 
 // ───────────────────────────────────────────────
 // Auth kontrol
@@ -44,6 +49,12 @@ onAuthStateChanged(auth, async (kullanici) => {
   document.getElementById('kullaniciAd').textContent = kullanici.displayName || 'Aday';
   document.getElementById('kullaniciEposta').textContent = kullanici.email;
   document.getElementById('kullaniciBar').classList.remove('gizli');
+  
+  // E-posta alanını Google hesabından otomatik doldur
+  const epostaInput = document.getElementById('eposta');
+  if (epostaInput && !epostaInput.value) {
+    epostaInput.value = kullanici.email || '';
+  }
   
   // Mevcut başvuru verisi var mı?
   await mevcutVeriyiYukle();
@@ -75,9 +86,12 @@ async function mevcutVeriyiYukle() {
       
       // Diğer alanları doldur
       const alanlar = [
-        'soyad', 'telefon', 'dogumTarihi', 'cinsiyet', 'adres',
+        'soyad', 'telefon', 'eposta', 'dogumTarihi', 'cinsiyet', 'adres',
         'medeniDurum', 'cocukSayisi', 'egitimDurumu', 'bolum', 
-        'okul', 'mezuniyetYili', 'deneyimYili', 'sonIsyeri',
+        'okul', 'mezuniyetYili', 'deneyimYili',
+        'deneyim1Kurum', 'deneyim1Pozisyon', 'deneyim1Sure',
+        'deneyim2Kurum', 'deneyim2Pozisyon', 'deneyim2Sure',
+        'deneyim3Kurum', 'deneyim3Pozisyon', 'deneyim3Sure',
         'ozelEgitim', 'yabanciDil', 'sertifikalar', 'baslamaTarihi',
         'ucretBeklenti', 'mevcutIsDurumu', 'duyumKaynagi', 'nedenBCK'
       ];
@@ -88,6 +102,21 @@ async function mevcutVeriyiYukle() {
           if (el) el.value = mevcutVeri[alan];
         }
       });
+      
+      // E-posta hala boşsa Google'dan al
+      const epostaEl = document.getElementById('eposta');
+      if (epostaEl && !epostaEl.value) epostaEl.value = mevcutKullanici.email || '';
+      
+      // CV daha önce yüklenmişse göster
+      if (mevcutVeri.cvUrl) {
+        yuklenenCV = {
+          url: mevcutVeri.cvUrl,
+          dosyaAdi: mevcutVeri.cvDosyaAdi || 'CV',
+          boyut: mevcutVeri.cvBoyut || 0,
+          tip: mevcutVeri.cvTip || ''
+        };
+        cvGosterDolu(yuklenenCV.dosyaAdi, yuklenenCV.boyut);
+      }
     }
   } catch (hata) {
     console.error('Veri yükleme hatası:', hata);
@@ -102,8 +131,113 @@ document.getElementById('telefon').addEventListener('input', (e) => {
   hataTemizle('telefon');
 });
 
+// ───────────────────────────────────────────────
+// CV YÜKLEME (Firebase Storage)
+// ───────────────────────────────────────────────
+const KABUL_TIPLER = ['application/pdf', 'application/msword', 
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'image/jpeg', 'image/png', 'image/jpg'];
+const KABUL_UZANTI = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'];
+const MAX_CV = 5 * 1024 * 1024; // 5 MB
+
+// Dosya seçildiğinde
+document.getElementById('cvDosya').addEventListener('change', (e) => {
+  if (e.target.files.length > 0) cvYukle(e.target.files[0]);
+});
+
+// Sürükle-bırak
+const cvAlani = document.getElementById('cvAlani');
+if (cvAlani) {
+  cvAlani.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    cvAlani.classList.add('surukleniyor');
+  });
+  cvAlani.addEventListener('dragleave', () => cvAlani.classList.remove('surukleniyor'));
+  cvAlani.addEventListener('drop', (e) => {
+    e.preventDefault();
+    cvAlani.classList.remove('surukleniyor');
+    if (e.dataTransfer.files.length > 0) cvYukle(e.dataTransfer.files[0]);
+  });
+}
+
+async function cvYukle(dosya) {
+  // Doğrulama
+  const uzanti = '.' + dosya.name.split('.').pop().toLowerCase();
+  if (!KABUL_TIPLER.includes(dosya.type) && !KABUL_UZANTI.includes(uzanti)) {
+    alert('Bu dosya tipi kabul edilmiyor.\n\nKabul edilen: PDF, Word, JPG, PNG');
+    return;
+  }
+  if (dosya.size > MAX_CV) {
+    alert(`Dosya çok büyük! En fazla 5 MB olabilir.\nSizin dosyanız: ${(dosya.size/1024/1024).toFixed(1)} MB`);
+    return;
+  }
+  
+  const bar = document.getElementById('cvYuklemeBar');
+  const dolgu = document.getElementById('cvYuklemeDolgu');
+  const durum = document.getElementById('cvYuklemeDurum');
+  
+  bar.classList.remove('gizli');
+  durum.textContent = 'Yükleniyor...';
+  durum.style.color = 'var(--gri, #666)';
+  
+  try {
+    // Storage yolu: cv/{email_temiz}/{timestamp}.{uzanti}
+    const emailTemiz = (mevcutKullanici.email || 'aday').replace(/[^a-zA-Z0-9]/g, '_');
+    const zaman = Date.now();
+    const yol = `cv/${emailTemiz}/${zaman}${uzanti}`;
+    const ref = storageRef(storage, yol);
+    
+    const gorev = uploadBytesResumable(ref, dosya, { contentType: dosya.type });
+    
+    gorev.on('state_changed',
+      (snapshot) => {
+        const yuzde = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        dolgu.style.width = yuzde + '%';
+        durum.textContent = `Yükleniyor... %${yuzde}`;
+      },
+      (hata) => {
+        console.error('CV yükleme hatası:', hata);
+        durum.textContent = '❌ Yükleme başarısız: ' + (hata.code || hata.message);
+        durum.style.color = 'var(--hata, #d32f2f)';
+        bar.classList.add('gizli');
+      },
+      async () => {
+        const url = await getDownloadURL(gorev.snapshot.ref);
+        yuklenenCV = { url, dosyaAdi: dosya.name, boyut: dosya.size, tip: dosya.type };
+        dolgu.style.width = '100%';
+        durum.textContent = '✅ CV başarıyla yüklendi';
+        durum.style.color = 'var(--basari, #2e7d32)';
+        cvGosterDolu(dosya.name, dosya.size);
+        setTimeout(() => bar.classList.add('gizli'), 1500);
+      }
+    );
+  } catch (hata) {
+    console.error('CV yükleme hatası:', hata);
+    durum.textContent = '❌ Hata: ' + hata.message;
+    durum.style.color = 'var(--hata, #d32f2f)';
+    bar.classList.add('gizli');
+  }
+}
+
+function cvGosterDolu(ad, boyut) {
+  document.getElementById('cvBos').classList.add('gizli');
+  document.getElementById('cvDolu').classList.remove('gizli');
+  document.getElementById('cvDosyaAd').textContent = ad;
+  document.getElementById('cvDosyaBoyut').textContent = boyut 
+    ? (boyut/1024/1024).toFixed(2) + ' MB' : '';
+}
+
+window.cvKaldir = function() {
+  yuklenenCV = null;
+  document.getElementById('cvDosya').value = '';
+  document.getElementById('cvBos').classList.remove('gizli');
+  document.getElementById('cvDolu').classList.add('gizli');
+  document.getElementById('cvYuklemeBar').classList.add('gizli');
+  document.getElementById('cvYuklemeDurum').textContent = '';
+};
+
 // Hata temizleme - input değiştiğinde
-['ad', 'soyad', 'dogumTarihi', 'cinsiyet', 'adres', 'egitimDurumu', 
+['ad', 'soyad', 'eposta', 'dogumTarihi', 'cinsiyet', 'adres', 'egitimDurumu', 
  'bolum', 'okul', 'mezuniyetYili', 'deneyimYili', 'baslamaTarihi',
  'mevcutIsDurumu', 'nedenBCK'].forEach(alan => {
   const el = document.getElementById(alan);
@@ -124,6 +258,7 @@ window.bilgileriKaydet = async function() {
     ad: document.getElementById('ad').value.trim(),
     soyad: document.getElementById('soyad').value.trim(),
     telefon: document.getElementById('telefon').value.trim(),
+    eposta: document.getElementById('eposta').value.trim(),
     dogumTarihi: document.getElementById('dogumTarihi').value,
     cinsiyet: document.getElementById('cinsiyet').value,
     adres: document.getElementById('adres').value.trim(),
@@ -135,7 +270,18 @@ window.bilgileriKaydet = async function() {
     okul: document.getElementById('okul').value.trim(),
     mezuniyetYili: document.getElementById('mezuniyetYili').value,
     deneyimYili: document.getElementById('deneyimYili').value,
-    sonIsyeri: document.getElementById('sonIsyeri').value.trim(),
+    
+    // Son 3 deneyim (yapılandırılmış)
+    deneyim1Kurum: document.getElementById('deneyim1Kurum').value.trim(),
+    deneyim1Pozisyon: document.getElementById('deneyim1Pozisyon').value.trim(),
+    deneyim1Sure: document.getElementById('deneyim1Sure').value.trim(),
+    deneyim2Kurum: document.getElementById('deneyim2Kurum').value.trim(),
+    deneyim2Pozisyon: document.getElementById('deneyim2Pozisyon').value.trim(),
+    deneyim2Sure: document.getElementById('deneyim2Sure').value.trim(),
+    deneyim3Kurum: document.getElementById('deneyim3Kurum').value.trim(),
+    deneyim3Pozisyon: document.getElementById('deneyim3Pozisyon').value.trim(),
+    deneyim3Sure: document.getElementById('deneyim3Sure').value.trim(),
+    
     ozelEgitim: document.getElementById('ozelEgitim').value || 'hicbiri',
     yabanciDil: document.getElementById('yabanciDil').value || 'hicbiri',
     sertifikalar: document.getElementById('sertifikalar').value.trim(),
@@ -155,6 +301,7 @@ window.bilgileriKaydet = async function() {
     'ad': 'Adınızı giriniz',
     'soyad': 'Soyadınızı giriniz',
     'telefon': 'Telefon numaranızı giriniz',
+    'eposta': 'E-posta adresinizi giriniz',
     'dogumTarihi': 'Doğum tarihinizi giriniz',
     'cinsiyet': 'Cinsiyet seçiniz',
     'adres': 'Adresinizi giriniz',
@@ -173,6 +320,12 @@ window.bilgileriKaydet = async function() {
       hataGoster(alan, mesaj);
       hataVar = true;
     }
+  }
+  
+  // E-posta format kontrolü
+  if (veri.eposta && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(veri.eposta)) {
+    hataGoster('eposta', 'Geçerli bir e-posta adresi giriniz');
+    hataVar = true;
   }
   
   // Telefon validasyonu
@@ -250,6 +403,11 @@ window.bilgileriKaydet = async function() {
       googleFoto: mevcutKullanici.photoURL,
       pozisyon: 'Okul Öncesi Öğretmeni',
       durum: 'testEksik',
+      // CV bilgileri
+      cvUrl: yuklenenCV ? yuklenenCV.url : (mevcutVeri?.cvUrl || null),
+      cvDosyaAdi: yuklenenCV ? yuklenenCV.dosyaAdi : (mevcutVeri?.cvDosyaAdi || null),
+      cvBoyut: yuklenenCV ? yuklenenCV.boyut : (mevcutVeri?.cvBoyut || null),
+      cvTip: yuklenenCV ? yuklenenCV.tip : (mevcutVeri?.cvTip || null),
       bilgilerTamamlanmaZamani: serverTimestamp(),
       sonGuncellemeZamani: serverTimestamp()
     }, { merge: true });

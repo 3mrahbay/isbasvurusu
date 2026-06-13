@@ -125,6 +125,33 @@
               placeholder="2-3 cümlelik özet. İlan kartlarında görünür."></textarea>
           </div>
           
+          <!-- İLAN GÖRSELİ (KARE) -->
+          <div class="form-grup">
+            <label>İlan Görseli (kare)</label>
+            <div class="yardim-metni" style="margin-bottom: 10px;">
+              Anasayfada ilan kartında görünür. Kare (1:1) görsel önerilir. PNG/JPG, en fazla 3 MB. Boş bırakırsanız kategori ikonu gösterilir.
+            </div>
+            
+            <input type="file" id="ilanResim" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" style="display:none;">
+            
+            <div id="resimAlani" class="ilan-resim-alani" onclick="document.getElementById('ilanResim').click()">
+              <div class="ilan-resim-bos" id="resimBos">
+                <div class="cv-ikon">🖼️</div>
+                <div class="cv-metin"><strong>Görsel yüklemek için tıklayın</strong></div>
+                <div class="cv-alt">veya sürükleyip bırakın (kare önerilir)</div>
+              </div>
+              <div class="ilan-resim-onizleme gizli" id="resimOnizleme">
+                <img id="resimImg" src="" alt="İlan görseli">
+                <button type="button" class="resim-sil-btn" onclick="event.stopPropagation(); ilanResimKaldir();">✕ Kaldır</button>
+              </div>
+            </div>
+            
+            <div id="resimYuklemeBar" class="cv-yukleme-bar gizli">
+              <div class="cv-yukleme-dolgu" id="resimYuklemeDolgu"></div>
+            </div>
+            <div id="resimYuklemeDurum" class="cv-yukleme-durum"></div>
+          </div>
+          
           <div class="form-grup">
             <label for="detayAciklama">Detay Açıklama</label>
             <textarea id="detayAciklama" rows="10" 
