@@ -214,13 +214,16 @@ async function sonBasvurulariYukle() {
       html += `
         <tr>
           <td>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              ${b.googleFoto ? `<img src="${b.googleFoto}" style="width:32px; height:32px; border-radius:50%;">` : ''}
-              <div>
-                <div style="font-weight: 600;">${b.adayAdi || '(İsim yok)'}</div>
-                <div style="font-size: 12px; color: var(--gri);">${b.adayEposta}</div>
+            <a href="admin-havuz.html?aday=${encodeURIComponent(b.adayEposta)}" style="text-decoration:none; color:inherit;">
+              <div style="display: flex; align-items: center; gap: 10px; cursor:pointer;" 
+                   onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">
+                ${b.googleFoto ? `<img src="${b.googleFoto}" style="width:32px; height:32px; border-radius:50%;">` : ''}
+                <div>
+                  <div style="font-weight: 600; color:var(--ana-yesil);">${b.adayAdi || '(İsim yok)'} →</div>
+                  <div style="font-size: 12px; color: var(--gri);">${b.adayEposta}</div>
+                </div>
               </div>
-            </div>
+            </a>
           </td>
           <td>${kategori.ikon} ${b.pozisyonBaslik || kategori.ad}</td>
           <td>${durumRozet}</td>
