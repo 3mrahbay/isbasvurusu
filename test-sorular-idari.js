@@ -13,7 +13,7 @@ export const IDARI_BOLUM1_KISILIK = [
   { id: 'k03', soru: 'Bazen son dakikaya bırakırım ve yetiştirmekte zorlanırım.', boyut: 'sorumluluk', ters: true },
   
   // 🔍 SOSYAL BEĞENİRLİK 1
-  { id: 'k04', soru: 'Hiçbir zaman söylediğim her şeyi hemen yapmadığım olmamıştır.', boyut: 'sosyalBegenirlik', sahteIdeal: true },
+  { id: 'k04', soru: 'Söylediğim her sözü her zaman yerine getiririm.', boyut: 'sosyalBegenirlik', sahteIdeal: true },
   
   // İLETİŞİM (DIŞA DÖNÜKLÜK)
   { id: 'k05', soru: 'İnsanlarla iletişim kurmaktan enerji alırım.', boyut: 'disaDonukluk' },
