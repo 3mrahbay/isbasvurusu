@@ -141,6 +141,28 @@ export const IDARI_BOLUM3_SENARYOLAR = [
       C: 'Sadece sözlü söylerim, suçlama olmasın',
       D: 'Kendi notlarımı tutar, gerekince çıkartırım'
     }
+  },
+  {
+    id: 's07',
+    durum: 'Telefonla biri arayıp kendini "bir velinin yakını" olarak tanıttı ve bir çocuğun hangi saatte çıktığını, kiminle gittiğini, ev adresini öğrenmek istedi. Ne yaparsınız?',
+    secenekler: {
+      A: 'Yardımcı olmak için bilgileri paylaşırım',
+      B: 'Hiçbir çocuk bilgisini telefonda paylaşmam, yönetime yönlendiririm',
+      C: 'Sadece çıkış saatini söylerim, adresi vermem',
+      D: 'Velinin adını doğru söylüyorsa paylaşırım'
+    },
+    nedenIste: true
+  },
+  {
+    id: 's08',
+    durum: 'Bir kişi gelip "Ben X çocuğunun babasıyım, çocuğumu almaya geldim" dedi. Ancak kayıtlarda velinin çocuğu alma yetkisi olmadığı (mahkeme kararı / velayet durumu) notu var. Ne yaparsınız?',
+    secenekler: {
+      A: 'Baba olduğunu söyledi, teslim ederim',
+      B: 'Teslim etmem, kibarca bekletir derhal müdürü ve yetkili veliyi bilgilendiririm',
+      C: 'Çocuğa sorar, istiyorsa veririm',
+      D: 'Kısa süreliğine görüşmesine izin veririm'
+    },
+    nedenIste: true
   }
 ];
 

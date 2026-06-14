@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════
 // DESTEK KADROSU TEST SORULARI (Aşçı, Temizlik, Şoför, Güvenlik)
 // 30 soru, ~10 dakika
-// 6 bölüm × 5 soru = 30 soru
+// 6 bölüm — toplam soru sayısı bölümlerden dinamik hesaplanır
 // ═══════════════════════════════════════════════════════════
 
 // ───────────────────────────────────────────────
@@ -144,6 +144,39 @@ export const DESTEK_BOLUM3_SENARYOLAR = [
       C: 'Cebime alır, sahibi sorduğunda veririm',
       D: 'Sahibinin kim olduğunu araştırırım'
     }
+  },
+  {
+    id: 's07',
+    durum: 'Çıkış saatinde tanımadığınız bir kişi geldi ve "Ben X çocuğunun amcasıyım, onu almaya geldim" dedi. Listede adı yok. Ne yaparsınız?',
+    secenekler: {
+      A: 'Çocuğu teslim ederim, akraba olduğunu söyledi',
+      B: 'Kesinlikle teslim etmem, öğretmeni/yönetimi çağırır kimlik ve izin teyidi isterim',
+      C: 'Çocuğa "tanıyor musun" diye sorar, tanıyorsa veririm',
+      D: 'Velinin telefonuna ulaşmaya çalışırım, ulaşamazsam teslim ederim'
+    },
+    nedenIste: true
+  },
+  {
+    id: 's08',
+    durum: 'Mutfakta/serviste bir çocuğun belirli bir yiyeceğe alerjisi olduğunu biliyorsunuz, ama o gün hazırlanan/ikram edilecek üründe o malzeme olduğunu fark ettiniz. Ne yaparsınız?',
+    secenekler: {
+      A: 'O çocuğa vermemeye dikkat eder, gerisini düşünmem',
+      B: 'Derhal durdurur, öğretmeni/yönetimi bilgilendirir, o çocuğa ulaşmasını engellerim',
+      C: 'Az miktarda sorun olmaz diye düşünürüm',
+      D: 'Çocuğun kendisinin dikkat etmesi gerektiğini düşünürüm'
+    },
+    nedenIste: true
+  },
+  {
+    id: 's09',
+    durum: 'Servis aracından çocukları indirirken, sabah bindiğinde saydığınız çocuk sayısından bir eksik olduğunu fark ettiniz. Ne yaparsınız?',
+    secenekler: {
+      A: 'Aracı tekrar baştan sona kontrol eder, eksik çocuğu bulana kadar kimseyi göndermem ve derhal yönetimi ararım',
+      B: 'Belki yanlış saymışımdır, devam ederim',
+      C: 'Diğer çocukları indirir, sonra bakarım',
+      D: 'Velilere sorar, onlar bulsun'
+    },
+    nedenIste: true
   }
 ];
 

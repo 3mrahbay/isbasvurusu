@@ -34,6 +34,12 @@ export function bolumRender(bolum, mevcutCevaplar) {
       case 'metin':
         icerik = renderMetin(soru, cevap);
         break;
+      case 'hikaye':
+        icerik = renderMetin(soru, cevap);
+        break;
+      case 'hizliTepki':
+        icerik = renderMetin(soru, cevap);
+        break;
       case 'cokSecmeli':
         icerik = renderCokSecmeli(soru, cevap);
         break;
@@ -105,18 +111,33 @@ function renderSenaryo(soru, cevap) {
   const secim = (typeof cevap === 'object' && cevap !== null) ? cevap.secim : cevap;
   const neden = (typeof cevap === 'object' && cevap !== null) ? (cevap.neden || '') : '';
   
-  const seceneklerHTML = soru.secenekler.map(s => `
+  // Senaryo metni: eğitim 'senaryo', destek/idari 'durum'
+  const senaryoMetni = soru.senaryo || soru.durum || '';
+  // Neden sorulsun mu: eğitim 'nedenSor', destek/idari 'nedenIste'
+  const nedenSorulsun = soru.nedenSor || soru.nedenIste || false;
+  
+  // Seçenekler iki formatta gelebilir:
+  //  - Eğitim: [{ id:'A', metin:'...' }, ...]  (dizi)
+  //  - Destek/İdari: { A:'...', B:'...' }       (nesne)
+  let secenekListesi = [];
+  if (Array.isArray(soru.secenekler)) {
+    secenekListesi = soru.secenekler.map(s => ({ id: s.id, metin: s.metin }));
+  } else if (soru.secenekler && typeof soru.secenekler === 'object') {
+    secenekListesi = Object.keys(soru.secenekler).map(k => ({ id: k, metin: soru.secenekler[k] }));
+  }
+  
+  const seceneklerHTML = secenekListesi.map(s => `
     <label class="cs-secenek ${secim === s.id ? 'secili' : ''}">
       <input type="radio" name="${soru.id}" value="${s.id}" 
              data-soru-id="${soru.id}"
-             data-neden-sor="${soru.nedenSor || false}"
+             data-neden-sor="${nedenSorulsun}"
              ${secim === s.id ? 'checked' : ''}>
       <div class="cs-harf">${s.id}</div>
       <div class="cs-metin">${s.metin}</div>
     </label>
   `).join('');
   
-  const nedenAlani = soru.nedenSor ? `
+  const nedenAlani = nedenSorulsun ? `
     <div class="neden-alani ${secim ? 'acik' : ''}">
       <label>💭 Neden bu cevabı verdiniz? <span style="font-weight:normal; color:var(--gri);">(en az birkaç cümle)</span></label>
       <textarea data-soru-id="${soru.id}" 
@@ -126,7 +147,7 @@ function renderSenaryo(soru, cevap) {
   ` : '';
   
   return `
-    <div class="soru-metni">📌 ${soru.senaryo}</div>
+    <div class="soru-metni">📌 ${senaryoMetni}</div>
     <div class="cs-grup">
       ${seceneklerHTML}
     </div>
@@ -140,19 +161,20 @@ function renderSenaryo(soru, cevap) {
 function renderMetin(soru, cevap) {
   const deger = cevap || '';
   const uzunluk = deger.length;
-  const yeterli = uzunluk >= soru.minKarakter;
+  const minK = soru.minKarakter || 0;
+  const yeterli = uzunluk >= minK;
   
   return `
     <div class="soru-metni">${soru.soru}</div>
     ${soru.yardim ? `<div class="soru-yardim">💡 ${soru.yardim}</div>` : ''}
     <div class="hikaye-alani">
       <textarea data-soru-id="${soru.id}"
-                data-min-karakter="${soru.minKarakter}"
+                data-min-karakter="${minK}"
                 placeholder="${soru.placeholder || ''}"
                 maxlength="${soru.maxKarakter || 2000}"
-                rows="6">${deger}</textarea>
+                rows="${minK >= 100 ? 6 : 3}">${deger}</textarea>
       <div class="karakter-sayisi ${yeterli ? 'yeterli' : (uzunluk > 0 ? 'az' : '')}">
-        ${uzunluk} karakter (en az ${soru.minKarakter})
+        ${uzunluk} karakter${minK > 0 ? ` (en az ${minK})` : ''}
       </div>
     </div>
   `;
@@ -225,8 +247,9 @@ export function bolumValidate(bolum, cevaplar) {
       return;
     }
     
-    // Senaryo - hem seçim hem neden gerekli olanlar
-    if (bolum.tip === 'senaryo' && soru.nedenSor) {
+    // Senaryo - hem seçim hem neden gerekli olanlar (egitim: nedenSor, destek/idari: nedenIste)
+    const nedenGerekli = soru.nedenSor || soru.nedenIste;
+    if (bolum.tip === 'senaryo' && nedenGerekli) {
       if (typeof cevap !== 'object' || !cevap.secim) {
         eksikIds.push(soru.id);
         return;
@@ -238,7 +261,7 @@ export function bolumValidate(bolum, cevaplar) {
     }
     
     // Senaryo - sadece seçim gereken
-    if (bolum.tip === 'senaryo' && !soru.nedenSor) {
+    if (bolum.tip === 'senaryo' && !nedenGerekli) {
       const secim = (typeof cevap === 'object') ? cevap.secim : cevap;
       if (!secim) {
         eksikIds.push(soru.id);
@@ -246,8 +269,8 @@ export function bolumValidate(bolum, cevaplar) {
       }
     }
     
-    // Hikaye - minimum karakter
-    if (bolum.tip === 'metin') {
+    // Hikaye/metin - minimum karakter (varsa)
+    if ((bolum.tip === 'metin' || bolum.tip === 'hikaye') && soru.minKarakter) {
       if (cevap.length < soru.minKarakter) {
         hikayeEksikIds.push({ id: soru.id, mevcut: cevap.length, gerekli: soru.minKarakter });
         return;
