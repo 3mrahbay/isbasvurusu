@@ -163,9 +163,9 @@ export const BOLUM3_SENARYOLAR = [
   },
   {
     id: 's04',
-    senaryo: '5 yaşındaki Zeynep, sınıfta utandığı bir şey olduğunda kendini suçlayıp ağlıyor: "Ben aptalım, hiçbir şey yapamıyorum." SİZ NE DERSİNİZ?',
+    senaryo: '5 yaşındaki Zeynep, sınıfta utandığı bir şey olduğunda kendini suçlayıp ağlıyor: "Ben hiçbir şeyi beceremiyorum, hep yanlış yapıyorum." SİZ NE DERSİNİZ?',
     secenekler: [
-      { id: 'A', metin: '"Aptal değilsin, çok zekisin!" diyerek kuvvetle reddederim', puan: 2, etiket: 'kabulEdilebilir' },
+      { id: 'A', metin: '"Beceriksiz değilsin, çok başarılısın!" diyerek kuvvetle reddederim', puan: 2, etiket: 'kabulEdilebilir' },
       { id: 'B', metin: 'Yanına oturur, sarılır, "Şu an çok zor hissediyorsun" diye duygusunu adlandırır, sakinleşince hep birlikte deneyebileceğimizi söylerim', puan: 4, etiket: 'ideal' },
       { id: 'C', metin: '"Ağlama, herkes hata yapar" der, etkinliğe geri dönmesini sağlarım', puan: 1, etiket: 'zayıf' },
       { id: 'D', metin: 'Onun başarabildiği bir şeyi hatırlatırım, "Bunu da yapmıştın!" diye motive ederim', puan: 3, etiket: 'iyi' }
