@@ -218,7 +218,7 @@ function pozisyonKartHTML(p) {
   let sayacKompaktHTML = '';
   
   if (p.havuzModu) {
-    rozetHTML = '<span class="pozisyon-rozet havuz">🌊 Sürekli Açık</span>';
+    rozetHTML = ''; // Görsel üstünde rozet gösterme — altta "Sürekli açık pozisyon" zaten yazıyor
     sayacKompaktHTML = '<div class="pozisyon-mini-bilgi havuz">🌊 Sürekli açık pozisyon</div>';
   } else if (p.sonBasvuruTarihi) {
     const kalan = geriSayimHesapla(p.sonBasvuruTarihi);
@@ -261,7 +261,7 @@ function pozisyonKartHTML(p) {
   return `
     <div class="pozisyon-kart-kompakt">
       ${resimHTML}
-      <div class="pozisyon-rozet-katman">${rozetHTML}</div>
+      ${rozetHTML ? `<div class="pozisyon-rozet-katman">${rozetHTML}</div>` : ''}
       <div class="pozisyon-kart-govde">
         <h3 class="pozisyon-kart-baslik">${kategori.ikon} ${p.baslik || kategori.ad}</h3>
         <div class="pozisyon-kart-meta">
