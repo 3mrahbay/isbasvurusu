@@ -136,8 +136,10 @@ window.filtreUygula = function() {
     liste = liste.filter(a => a.kategoriId === kategori);
   }
   
-  if (durum === '__yildizli') {
-    liste = liste.filter(a => a.yildizli);
+  if (durum === '__olumlu') {
+    liste = liste.filter(a => a.havuzTipi === 'olumlu');
+  } else if (durum === '__olumsuz') {
+    liste = liste.filter(a => a.havuzTipi === 'olumsuz');
   } else if (durum) {
     liste = liste.filter(a => a.durum === durum);
   }
@@ -154,24 +156,70 @@ window.filtreUygula = function() {
 };
 
 // ───────────────────────────────────────────────
-// Adayı yıldızla / yıldızı kaldır
+// Adayı havuza gönder (olumlu / olumsuz) + bildirim maili
 // ───────────────────────────────────────────────
-window.yildizDegistir = async function(adayId, ev) {
+window.havuzaGonder = async function(adayId, tip, ev) {
   if (ev) ev.stopPropagation();
   const aday = tumAdaylar.find(a => a.id === adayId);
   if (!aday) return;
-  const yeni = !aday.yildizli;
+  
+  // Aynı işarete tekrar basılırsa: işareti kaldır (havuzdan çıkar)
+  if (aday.havuzTipi === tip) {
+    if (!confirm(`Bu adayın "${tip === 'olumlu' ? 'olumlu' : 'olumsuz'}" havuz işareti kaldırılsın mı?`)) return;
+    try {
+      await updateDoc(doc(db, 'isBasvurulari', adayId), { havuzTipi: null });
+      aday.havuzTipi = null;
+      filtreUygula();
+    } catch (hata) { alert('İşlem başarısız: ' + hata.message); }
+    return;
+  }
+  
+  const tipAd = (tip === 'olumlu') ? 'OLUMLU (ihtiyaçta değerlendirilecek)' : 'OLUMSUZ (elenecek)';
+  if (!confirm(`"${aday.adayAdi || aday.adayEposta}" adayı ${tipAd} olarak havuza alınacak.\n\nAdaya, "başvurunuz havuza alındı" bilgilendirme maili gönderilecek (olumlu/olumsuz adaya BELLİ OLMAZ).\n\nDevam edilsin mi?`)) return;
+  
+  // Olumsuzsa opsiyonel not iste (boş geçilebilir)
+  let olumsuzNot = aday.olumsuzNot || null;
+  if (tip === 'olumsuz') {
+    const not = prompt('İsterseniz olumsuz değerlendirme notu ekleyin (sonradan hatırlamak için).\nBoş bırakabilirsiniz:', aday.olumsuzNot || '');
+    if (not !== null) olumsuzNot = not.trim() || null; // İptal'e basarsa eski not kalır
+  }
+  
   try {
-    await updateDoc(doc(db, 'isBasvurulari', adayId), { yildizli: yeni });
-    aday.yildizli = yeni;
-    filtreUygula(); // listeyi yenile (yıldız işareti güncellensin)
+    const guncelleme = {
+      durum: 'havuz',
+      havuzTipi: tip,
+      havuzaAlinmaZamani: serverTimestamp()
+    };
+    if (tip === 'olumsuz') guncelleme.olumsuzNot = olumsuzNot;
+    
+    await updateDoc(doc(db, 'isBasvurulari', adayId), guncelleme);
+    aday.durum = 'havuz';
+    aday.havuzTipi = tip;
+    if (tip === 'olumsuz') aday.olumsuzNot = olumsuzNot;
+    
+    // Bildirim maili gönder (her iki tipte de aynı nötr mail)
+    try {
+      await fetch(PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          islem: 'mailGonder',
+          alici: aday.adayEposta,
+          aliciAdi: aday.adayAdi || '',
+          tip: 'havuz',
+          parametreler: {}
+        })
+      });
+    } catch (mailHata) {
+      console.warn('Havuz maili gönderilemedi:', mailHata);
+    }
+    
+    filtreUygula();
+    alert(`✅ Aday ${tip === 'olumlu' ? 'olumlu' : 'olumsuz'} havuza alındı ve bilgilendirme maili gönderildi.`);
   } catch (hata) {
     alert('İşlem başarısız: ' + hata.message);
   }
 };
-
-// ───────────────────────────────────────────────
-// Tabloyu çiz
 // ───────────────────────────────────────────────
 function tabloyuCiz(liste) {
   const tablo = document.getElementById('tabloAlani');
@@ -222,7 +270,7 @@ function tabloyuCiz(liste) {
                    font-weight:700;">${(a.adayAdi || '?').charAt(0).toUpperCase()}</div>`
             }
             <div>
-              <div style="font-weight: 600;">${a.yildizli ? '⭐ ' : ''}${a.adayAdi || '(İsim yok)'}</div>
+              <div style="font-weight: 600;">${a.havuzTipi === 'olumlu' ? '⭐ ' : (a.havuzTipi === 'olumsuz' ? '👎 ' : '')}${a.adayAdi || '(İsim yok)'}</div>
               <div style="font-size: 12px; color: var(--gri);">${a.adayEposta || ''}</div>
             </div>
           </div>
@@ -232,14 +280,12 @@ function tabloyuCiz(liste) {
         <td>${maasHTML}</td>
         <td>${a.olusturmaZamani ? tarihFormatla(a.olusturmaZamani) : '-'}</td>
         <td>
-          <div style="display:flex; gap:6px; align-items:center;">
-            <button onclick="yildizDegistir('${a.id}', event)" title="${a.yildizli ? 'Yıldızı kaldır' : 'Yıldızla'}"
-              style="background:none; border:none; cursor:pointer; font-size:20px; padding:2px 4px;">
-              ${a.yildizli ? '⭐' : '☆'}
-            </button>
-            <button class="btn btn-kucuk btn-ikincil" onclick="adayDetay('${a.id}')">
-              📋 Detay
-            </button>
+          <div style="display:flex; gap:5px; align-items:center;">
+            <button onclick="havuzaGonder('${a.id}', 'olumlu', event)" title="Olumlu — Havuza al"
+              style="background:${a.havuzTipi === 'olumlu' ? '#e8f5e9' : 'none'}; border:1px solid ${a.havuzTipi === 'olumlu' ? '#4A7C59' : '#ddd'}; border-radius:8px; cursor:pointer; font-size:16px; padding:4px 8px;">⭐</button>
+            <button onclick="havuzaGonder('${a.id}', 'olumsuz', event)" title="Olumsuz — Havuza al (elenecek)"
+              style="background:${a.havuzTipi === 'olumsuz' ? '#ffebee' : 'none'}; border:1px solid ${a.havuzTipi === 'olumsuz' ? '#d32f2f' : '#ddd'}; border-radius:8px; cursor:pointer; font-size:16px; padding:4px 8px;">👎</button>
+            <button class="btn btn-kucuk btn-ikincil" onclick="adayDetay('${a.id}')">📋</button>
           </div>
         </td>
       </tr>
