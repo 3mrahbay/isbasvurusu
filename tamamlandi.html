@@ -47,10 +47,11 @@
     <div class="kart">
       <div id="yildizliMesaj" style="display:none; background:linear-gradient(135deg,#e8f5e9,#f1f8e9); border:2px solid var(--ana-yesil); border-radius:14px; padding:20px; margin-bottom:20px; text-align:center;">
         <div style="font-size:40px; margin-bottom:8px;">🌱</div>
-        <h3 style="color:var(--ana-yesil); margin:0 0 8px;">Başvurunuz Olumlu Değerlendiriliyor</h3>
+        <h3 style="color:var(--ana-yesil); margin:0 0 8px;">Başvurunuz Aday Havuzumuza Alındı</h3>
         <p style="color:#444; margin:0; line-height:1.6;">
-          Ekibimiz başvurunuzu ilgiyle inceledi ve sizinle ilgili olumlu bir izlenim edindi.
-          Süreç ilerledikçe sizinle iletişime geçeceğiz. İlginiz için teşekkür ederiz. 🌸
+          Başvurunuz değerlendirme sürecimizin ardından <strong>aday havuzumuza</strong> alınmıştır.
+          İlerleyen ilk alım sürecinde başvurunuz yeniden değerlendirmeye alınacaktır.
+          İlginiz için teşekkür eder, yolunuzun açık olmasını dileriz. 🌸
         </p>
       </div>
       <div class="basari-kutu">
@@ -106,12 +107,13 @@
   <script type="module">
     import { auth, db, doc, getDoc, signOut, onAuthStateChanged } from './firebase-config.js';
     
-    // Giriş yapılmamışsa ana sayfaya gönder; yapılmışsa yıldızlı mı kontrol et
+    // Giriş yapılmamışsa ana sayfaya gönder; yapılmışsa havuza alındı mı kontrol et
     onAuthStateChanged(auth, async (kullanici) => {
       if (!kullanici) { window.location.href = 'index.html'; return; }
       try {
         const snap = await getDoc(doc(db, 'isBasvurulari', kullanici.email));
-        if (snap.exists() && snap.data().yildizli) {
+        // Havuza alınmışsa (olumlu/olumsuz farketmez) nötr bilgilendirme mesajı göster
+        if (snap.exists() && snap.data().durum === 'havuz') {
           const kutu = document.getElementById('yildizliMesaj');
           if (kutu) kutu.style.display = 'block';
         }
