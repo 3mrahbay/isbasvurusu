@@ -45,6 +45,14 @@
     </div>
     
     <div class="kart">
+      <div id="yildizliMesaj" style="display:none; background:linear-gradient(135deg,#e8f5e9,#f1f8e9); border:2px solid var(--ana-yesil); border-radius:14px; padding:20px; margin-bottom:20px; text-align:center;">
+        <div style="font-size:40px; margin-bottom:8px;">🌱</div>
+        <h3 style="color:var(--ana-yesil); margin:0 0 8px;">Başvurunuz Olumlu Değerlendiriliyor</h3>
+        <p style="color:#444; margin:0; line-height:1.6;">
+          Ekibimiz başvurunuzu ilgiyle inceledi ve sizinle ilgili olumlu bir izlenim edindi.
+          Süreç ilerledikçe sizinle iletişime geçeceğiz. İlginiz için teşekkür ederiz. 🌸
+        </p>
+      </div>
       <div class="basari-kutu">
         <div class="ikon">🌸</div>
         <h2 style="color: var(--ana-yesil); margin-bottom: 12px;">Bilgileriniz Başarıyla Alındı!</h2>
@@ -96,11 +104,20 @@
   </div>
   
   <script type="module">
-    import { auth, signOut, onAuthStateChanged } from './firebase-config.js';
+    import { auth, db, doc, getDoc, signOut, onAuthStateChanged } from './firebase-config.js';
     
-    // Giriş yapılmamışsa ana sayfaya gönder
-    onAuthStateChanged(auth, (kullanici) => {
-      if (!kullanici) window.location.href = 'index.html';
+    // Giriş yapılmamışsa ana sayfaya gönder; yapılmışsa yıldızlı mı kontrol et
+    onAuthStateChanged(auth, async (kullanici) => {
+      if (!kullanici) { window.location.href = 'index.html'; return; }
+      try {
+        const snap = await getDoc(doc(db, 'isBasvurulari', kullanici.email));
+        if (snap.exists() && snap.data().yildizli) {
+          const kutu = document.getElementById('yildizliMesaj');
+          if (kutu) kutu.style.display = 'block';
+        }
+      } catch (e) {
+        console.warn('Durum kontrolü yapılamadı:', e);
+      }
     });
     
     window.cikisYap = async function() {
