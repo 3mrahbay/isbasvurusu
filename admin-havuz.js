@@ -136,7 +136,9 @@ window.filtreUygula = function() {
     liste = liste.filter(a => a.kategoriId === kategori);
   }
   
-  if (durum) {
+  if (durum === '__yildizli') {
+    liste = liste.filter(a => a.yildizli);
+  } else if (durum) {
     liste = liste.filter(a => a.durum === durum);
   }
   
@@ -149,6 +151,23 @@ window.filtreUygula = function() {
   // 'yeni' default zaten desc geldiğimiz için
   
   tabloyuCiz(liste);
+};
+
+// ───────────────────────────────────────────────
+// Adayı yıldızla / yıldızı kaldır
+// ───────────────────────────────────────────────
+window.yildizDegistir = async function(adayId, ev) {
+  if (ev) ev.stopPropagation();
+  const aday = tumAdaylar.find(a => a.id === adayId);
+  if (!aday) return;
+  const yeni = !aday.yildizli;
+  try {
+    await updateDoc(doc(db, 'isBasvurulari', adayId), { yildizli: yeni });
+    aday.yildizli = yeni;
+    filtreUygula(); // listeyi yenile (yıldız işareti güncellensin)
+  } catch (hata) {
+    alert('İşlem başarısız: ' + hata.message);
+  }
 };
 
 // ───────────────────────────────────────────────
@@ -203,7 +222,7 @@ function tabloyuCiz(liste) {
                    font-weight:700;">${(a.adayAdi || '?').charAt(0).toUpperCase()}</div>`
             }
             <div>
-              <div style="font-weight: 600;">${a.adayAdi || '(İsim yok)'}</div>
+              <div style="font-weight: 600;">${a.yildizli ? '⭐ ' : ''}${a.adayAdi || '(İsim yok)'}</div>
               <div style="font-size: 12px; color: var(--gri);">${a.adayEposta || ''}</div>
             </div>
           </div>
@@ -213,9 +232,15 @@ function tabloyuCiz(liste) {
         <td>${maasHTML}</td>
         <td>${a.olusturmaZamani ? tarihFormatla(a.olusturmaZamani) : '-'}</td>
         <td>
-          <button class="btn btn-kucuk btn-ikincil" onclick="adayDetay('${a.id}')">
-            📋 Detay
-          </button>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button onclick="yildizDegistir('${a.id}', event)" title="${a.yildizli ? 'Yıldızı kaldır' : 'Yıldızla'}"
+              style="background:none; border:none; cursor:pointer; font-size:20px; padding:2px 4px;">
+              ${a.yildizli ? '⭐' : '☆'}
+            </button>
+            <button class="btn btn-kucuk btn-ikincil" onclick="adayDetay('${a.id}')">
+              📋 Detay
+            </button>
+          </div>
         </td>
       </tr>
     `;
