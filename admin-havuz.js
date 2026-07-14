@@ -622,6 +622,39 @@ async function aiRaporYukle(adayEposta) {
 // ───────────────────────────────────────────────
 // AI Raporu HTML
 // ───────────────────────────────────────────────
+// Bir kırmızı bayrağın metnini güvenli şekilde çöz.
+// Bayrak; düz metin (yeni AI çıktısı) veya nesne (eski kayıtlar) olabilir.
+// Hiçbir durumda "undefined" göstermez.
+function bayrakMetniCoz(b) {
+  if (typeof b === 'string') return b.trim() || 'Detay belirtilmemiş.';
+  if (b === null || b === undefined) return 'Detay belirtilmemiş.';
+  if (typeof b !== 'object') return String(b);
+  
+  const metinAlanlari = ['aciklama', 'mesaj', 'metin', 'uyari', 'detay', 'text', 'description', 'not'];
+  for (const alan of metinAlanlari) {
+    if (typeof b[alan] === 'string' && b[alan].trim()) return b[alan].trim();
+  }
+  
+  if (b.soruId || b.secilen || b.secim) {
+    const parcalar = [];
+    if (b.soruId) parcalar.push(`Soru ${String(b.soruId).toUpperCase()}`);
+    const secim = b.secilen ?? b.secim;
+    if (secim !== undefined && secim !== null && secim !== '') parcalar.push(`Seçim: "${secim}"`);
+    if (b.dogru !== undefined && b.dogru !== null && b.dogru !== '') parcalar.push(`Beklenen: "${b.dogru}"`);
+    if (parcalar.length) return parcalar.join(' — ');
+  }
+  
+  for (const anahtar of Object.keys(b)) {
+    const deger = b[anahtar];
+    if (typeof deger === 'string' && deger.trim().length > 8 &&
+        ['tip', 'kritiklik', 'seviye'].indexOf(anahtar) === -1) {
+      return deger.trim();
+    }
+  }
+  
+  return '<em style="color:#888;">Bu uyarının detayı eski analiz formatında kaydedilmiş. Güncel açıklama için "AI Analizini Yeniden Çalıştır" butonunu kullanabilirsiniz.</em>';
+}
+
 function aiRaporHTML(analiz, veri, davranisAnalizi) {
   const skor = analiz.genelUyumSkoru || 0;
   const etiket = analiz.tavsiyeEtiketi || 'degerlendirilmeli';
@@ -642,11 +675,10 @@ function aiRaporHTML(analiz, veri, davranisAnalizi) {
         <h3 style="color: #d32f2f;">🚨 Kırmızı Bayraklar (${analiz.kirmiziBayraklar.length})</h3>
         <ul style="padding-left: 20px;">
           ${analiz.kirmiziBayraklar.map(b => {
-            if (typeof b === 'string') return `<li style="margin-bottom: 8px;">${b}</li>`;
+            const kritik = (b && typeof b === 'object' && b.kritiklik === 'cokYuksek');
             return `<li style="margin-bottom: 8px;">
-              <strong>${b.soruId || 'Bayrak'}:</strong> 
-              ${b.aciklama || `Seçim: ${b.secilen}, Doğru: ${b.dogru || '?'}`}
-              ${b.kritiklik === 'cokYuksek' ? ' <span style="color:#d32f2f;font-weight:700;">[ÇOK KRİTİK]</span>' : ''}
+              ${bayrakMetniCoz(b)}
+              ${kritik ? ' <span style="color:#d32f2f;font-weight:700;">[ÇOK KRİTİK]</span>' : ''}
             </li>`;
           }).join('')}
         </ul>

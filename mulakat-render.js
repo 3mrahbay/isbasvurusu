@@ -251,6 +251,44 @@ export function ozetTabHTML(aday, analiz, cevaplar) {
 // ───────────────────────────────────────────────
 // TAB 2: UYARILAR
 // ───────────────────────────────────────────────
+// Bir kırmızı bayrağın metnini güvenli şekilde çöz.
+// Bayrak; düz metin (yeni AI çıktısı) veya nesne (eski kayıtlar) olabilir.
+// Hiçbir durumda "undefined" göstermez.
+function bayrakMetniCoz(b) {
+  // 1) Düz metin
+  if (typeof b === 'string') return b.trim() || 'Detay belirtilmemiş.';
+  if (b === null || b === undefined) return 'Detay belirtilmemiş.';
+  if (typeof b !== 'object') return String(b);
+  
+  // 2) Nesne — bilinen açıklama alanlarını sırayla dene
+  const metinAlanlari = ['aciklama', 'mesaj', 'metin', 'uyari', 'detay', 'text', 'description', 'not'];
+  for (const alan of metinAlanlari) {
+    if (typeof b[alan] === 'string' && b[alan].trim()) return b[alan].trim();
+  }
+  
+  // 3) Soru bazlı eski format (yalnızca alanlar gerçekten varsa)
+  if (b.soruId || b.secilen || b.secim) {
+    const parcalar = [];
+    if (b.soruId) parcalar.push(`Soru ${String(b.soruId).toUpperCase()}`);
+    const secim = b.secilen ?? b.secim;
+    if (secim !== undefined && secim !== null && secim !== '') parcalar.push(`Seçim: "${secim}"`);
+    if (b.dogru !== undefined && b.dogru !== null && b.dogru !== '') parcalar.push(`Beklenen: "${b.dogru}"`);
+    if (parcalar.length) return parcalar.join(' — ');
+  }
+  
+  // 4) Son çare: nesnedeki ilk anlamlı metin değerini bul
+  for (const anahtar of Object.keys(b)) {
+    const deger = b[anahtar];
+    if (typeof deger === 'string' && deger.trim().length > 8 &&
+        ['tip', 'kritiklik', 'seviye'].indexOf(anahtar) === -1) {
+      return deger.trim();
+    }
+  }
+  
+  // 5) Hiçbir şey bulunamadı — kullanıcıya anlamlı bilgi ver
+  return '<em style="color:#888;">Bu uyarının detayı eski analiz formatında kaydedilmiş. Güncel açıklama için "AI Analizini Yeniden Çalıştır" butonunu kullanabilirsiniz.</em>';
+}
+
 export function uyarilarTabHTML(aday, analiz) {
   if (!analiz) return '<div class="kart"><p>AI analizi yok.</p></div>';
   
@@ -284,8 +322,10 @@ export function uyarilarTabHTML(aday, analiz) {
     });
     
     siralı.forEach(b => {
-      const kritiklikSinif = b.kritiklik || 'orta';
-      const tipSinif = `tip-${b.tip || 'ai_genel'}`;
+      const nesneMi = (b !== null && typeof b === 'object');
+      const kritiklikSinif = (nesneMi && b.kritiklik) ? b.kritiklik : 'orta';
+      const bTip = nesneMi ? b.tip : null;
+      const tipSinif = `tip-${bTip || 'ai_genel'}`;
       const tipMetin = {
         'cocukKoruma': '🚨 Çocuk Koruma',
         'etik': '⚠️ Etik',
@@ -293,7 +333,7 @@ export function uyarilarTabHTML(aday, analiz) {
         'tutarsizlik': '⚖️ Tutarsızlık',
         'baglılık': '💼 Bağlılık',
         'ai_genel': '🤖 AI Tespiti'
-      }[b.tip] || '⚠️ Uyarı';
+      }[bTip] || '⚠️ Uyarı';
       
       const kritiklikMetin = {
         'cokYuksek': '🔴 ÇOK KRİTİK',
@@ -308,7 +348,7 @@ export function uyarilarTabHTML(aday, analiz) {
             <span style="font-size: 12px; color: var(--gri); font-weight: 600;">${kritiklikMetin}</span>
           </div>
           <div style="line-height: 1.7;">
-            ${b.aciklama || `Soru ${b.soruId}: Seçim "${b.secilen}", Doğru: "${b.dogru || '?'}"`}
+            ${bayrakMetniCoz(b)}
           </div>
         </div>
       `;
