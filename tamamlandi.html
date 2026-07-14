@@ -45,6 +45,15 @@
     </div>
     
     <div class="kart">
+      <div id="degerlendirmeMesaj" style="display:none; background:linear-gradient(135deg,#e8f5e9,#f1f8e9); border:2px solid var(--ana-yesil); border-radius:14px; padding:20px; margin-bottom:20px; text-align:center;">
+        <div style="font-size:40px; margin-bottom:8px;">🌷</div>
+        <h3 style="color:var(--ana-yesil); margin:0 0 8px;">Başvurunuz Değerlendirmeye Alındı</h3>
+        <p style="color:#444; margin:0; line-height:1.6;">
+          Güzel bir haberimiz var: Başvurunuz <strong>değerlendirme aşamasına</strong> geçmiştir.
+          Ekibimiz başvurunuzu detaylı olarak inceliyor ve süreçle ilgili gelişmeleri
+          en kısa sürede sizinle paylaşacaktır. İlginiz için teşekkür ederiz. 🌸
+        </p>
+      </div>
       <div id="yildizliMesaj" style="display:none; background:linear-gradient(135deg,#e8f5e9,#f1f8e9); border:2px solid var(--ana-yesil); border-radius:14px; padding:20px; margin-bottom:20px; text-align:center;">
         <div style="font-size:40px; margin-bottom:8px;">🌱</div>
         <h3 style="color:var(--ana-yesil); margin:0 0 8px;">Başvurunuz Aday Havuzumuza Alındı</h3>
@@ -113,9 +122,15 @@
       try {
         const snap = await getDoc(doc(db, 'isBasvurulari', kullanici.email));
         // Havuza alınmışsa (olumlu/olumsuz farketmez) nötr bilgilendirme mesajı göster
-        if (snap.exists() && snap.data().durum === 'havuz') {
-          const kutu = document.getElementById('yildizliMesaj');
-          if (kutu) kutu.style.display = 'block';
+        if (snap.exists()) {
+          const durum = snap.data().durum;
+          if (durum === 'degerlendirme') {
+            const kutu = document.getElementById('degerlendirmeMesaj');
+            if (kutu) kutu.style.display = 'block';
+          } else if (durum === 'havuz') {
+            const kutu = document.getElementById('yildizliMesaj');
+            if (kutu) kutu.style.display = 'block';
+          }
         }
       } catch (e) {
         console.warn('Durum kontrolü yapılamadı:', e);

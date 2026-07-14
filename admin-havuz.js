@@ -158,6 +158,77 @@ window.filtreUygula = function() {
 // ───────────────────────────────────────────────
 // Adayı havuza gönder (olumlu / olumsuz) + bildirim maili
 // ───────────────────────────────────────────────
+// ───────────────────────────────────────────────
+// Detay sayfasından hızlı karar (işlem sonrası kartı tazeler)
+// ───────────────────────────────────────────────
+function detayTazele(adayId) {
+  if (!aktifAday || aktifAday.id !== adayId) return;
+  const guncel = tumAdaylar.find(a => a.id === adayId);
+  if (guncel) aktifAday = guncel;
+  detayCiz();
+}
+
+window.detayDegerlendir = async function(adayId, ev) {
+  await window.degerlendirmeyeAl(adayId, ev);
+  detayTazele(adayId);
+};
+
+window.detayHavuz = async function(adayId, tip, ev) {
+  await window.havuzaGonder(adayId, tip, ev);
+  detayTazele(adayId);
+};
+
+window.degerlendirmeyeAl = async function(adayId, ev) {
+  if (ev) ev.stopPropagation();
+  const aday = tumAdaylar.find(a => a.id === adayId);
+  if (!aday) return;
+  
+  // Zaten değerlendirmedeyse: işareti kaldır (tamamlandı durumuna dön)
+  if (aday.durum === 'degerlendirme') {
+    if (!confirm('Bu adayın "Değerlendirmede" işareti kaldırılsın mı?\n\n(Adaya yeni bir mail gönderilmez.)')) return;
+    try {
+      await updateDoc(doc(db, 'isBasvurulari', adayId), { durum: 'tamamlandi' });
+      aday.durum = 'tamamlandi';
+      filtreUygula();
+    } catch (hata) { alert('İşlem başarısız: ' + hata.message); }
+    return;
+  }
+  
+  if (!confirm(`"${aday.adayAdi || aday.adayEposta}" adayının başvurusu DEĞERLENDİRMEYE alınacak.\n\nAdaya "başvurunuz değerlendirmeye alındı" bilgilendirme maili gönderilecek.\n\nDevam edilsin mi?`)) return;
+  
+  try {
+    await updateDoc(doc(db, 'isBasvurulari', adayId), {
+      durum: 'degerlendirme',
+      havuzTipi: null, // havuzdaysa çıkar
+      degerlendirmeyeAlinmaZamani: serverTimestamp()
+    });
+    aday.durum = 'degerlendirme';
+    aday.havuzTipi = null;
+    
+    // Bilgilendirme maili
+    try {
+      await fetch(PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          islem: 'mailGonder',
+          alici: aday.adayEposta,
+          aliciAdi: aday.adayAdi || '',
+          tip: 'degerlendirme',
+          parametreler: {}
+        })
+      });
+    } catch (mailHata) {
+      console.warn('Değerlendirme maili gönderilemedi:', mailHata);
+    }
+    
+    filtreUygula();
+    alert('✅ Aday değerlendirmeye alındı ve bilgilendirme maili gönderildi.');
+  } catch (hata) {
+    alert('İşlem başarısız: ' + hata.message);
+  }
+};
+
 window.havuzaGonder = async function(adayId, tip, ev) {
   if (ev) ev.stopPropagation();
   const aday = tumAdaylar.find(a => a.id === adayId);
@@ -270,7 +341,7 @@ function tabloyuCiz(liste) {
                    font-weight:700;">${(a.adayAdi || '?').charAt(0).toUpperCase()}</div>`
             }
             <div>
-              <div style="font-weight: 600;">${a.havuzTipi === 'olumlu' ? '⭐ ' : (a.havuzTipi === 'olumsuz' ? '👎 ' : '')}${a.adayAdi || '(İsim yok)'}</div>
+              <div style="font-weight: 600;">${a.durum === 'degerlendirme' ? '⭐ ' : (a.havuzTipi === 'olumsuz' ? '👎 ' : (a.havuzTipi === 'olumlu' ? '🌊 ' : ''))}${a.adayAdi || '(İsim yok)'}</div>
               <div style="font-size: 12px; color: var(--gri);">${a.adayEposta || ''}</div>
             </div>
           </div>
@@ -281,9 +352,11 @@ function tabloyuCiz(liste) {
         <td>${a.olusturmaZamani ? tarihFormatla(a.olusturmaZamani) : '-'}</td>
         <td>
           <div style="display:flex; gap:5px; align-items:center;">
-            <button onclick="havuzaGonder('${a.id}', 'olumlu', event)" title="Olumlu — Havuza al"
-              style="background:${a.havuzTipi === 'olumlu' ? '#e8f5e9' : 'none'}; border:1px solid ${a.havuzTipi === 'olumlu' ? '#4A7C59' : '#ddd'}; border-radius:8px; cursor:pointer; font-size:16px; padding:4px 8px;">⭐</button>
-            <button onclick="havuzaGonder('${a.id}', 'olumsuz', event)" title="Olumsuz — Havuza al (elenecek)"
+            <button onclick="degerlendirmeyeAl('${a.id}', event)" title="Başvuruyu Değerlendir"
+              style="background:${a.durum === 'degerlendirme' ? '#e8f5e9' : 'none'}; border:1px solid ${a.durum === 'degerlendirme' ? '#4A7C59' : '#ddd'}; border-radius:8px; cursor:pointer; font-size:16px; padding:4px 8px;">⭐</button>
+            <button onclick="havuzaGonder('${a.id}', 'olumlu', event)" title="Havuza al (olumlu — ihtiyaçta değerlendirilir)"
+              style="background:${a.havuzTipi === 'olumlu' ? '#e3f2fd' : 'none'}; border:1px solid ${a.havuzTipi === 'olumlu' ? '#1976d2' : '#ddd'}; border-radius:8px; cursor:pointer; font-size:16px; padding:4px 8px;">🌊</button>
+            <button onclick="havuzaGonder('${a.id}', 'olumsuz', event)" title="Havuza al (olumsuz — elenecek)"
               style="background:${a.havuzTipi === 'olumsuz' ? '#ffebee' : 'none'}; border:1px solid ${a.havuzTipi === 'olumsuz' ? '#d32f2f' : '#ddd'}; border-radius:8px; cursor:pointer; font-size:16px; padding:4px 8px;">👎</button>
             <button class="btn btn-kucuk btn-ikincil" onclick="adayDetay('${a.id}')">📋</button>
           </div>
@@ -308,6 +381,7 @@ function durumRozetHTML(durum) {
     'bilgilerEksik': { ad: '⏸️ Bilgi bekleniyor', renk: '#999', bg: '#f5f5f5' },
     'testEksik': { ad: '🟡 Test bekleniyor', renk: '#f57c00', bg: '#fff3e0' },
     'tamamlandi': { ad: '✅ Tamamlandı', renk: '#2c5530', bg: '#d4f5d4' },
+    'degerlendirme': { ad: '⭐ Değerlendirmede', renk: '#fff', bg: '#4A7C59' },
     'mulakat': { ad: '🎙️ Mülakat', renk: '#1976d2', bg: '#e3f2fd' },
     'kabul': { ad: '🎉 Kabul', renk: '#fff', bg: '#2c5530' },
     'red': { ad: '❌ Red', renk: '#fff', bg: '#d32f2f' },
@@ -385,6 +459,16 @@ function detayCiz() {
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px;">
           ${durumRozetHTML(a.durum)}
           <div id="ustAiPuan"></div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button onclick="detayDegerlendir('${a.id}', event)" title="Başvuruyu Değerlendir"
+              style="display:flex; align-items:center; gap:5px; background:${a.durum === 'degerlendirme' ? '#e8f5e9' : '#fff'}; border:1px solid ${a.durum === 'degerlendirme' ? '#4A7C59' : '#ddd'}; color:${a.durum === 'degerlendirme' ? '#2c5530' : '#666'}; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; padding:6px 10px;">
+              ⭐ Değerlendir
+            </button>
+            <button onclick="detayHavuz('${a.id}', 'olumlu', event)" title="Havuza al (olumlu)"
+              style="background:${a.havuzTipi === 'olumlu' ? '#e3f2fd' : '#fff'}; border:1px solid ${a.havuzTipi === 'olumlu' ? '#1976d2' : '#ddd'}; border-radius:8px; cursor:pointer; font-size:15px; padding:6px 9px;">🌊</button>
+            <button onclick="detayHavuz('${a.id}', 'olumsuz', event)" title="Havuza al (olumsuz — elenecek)"
+              style="background:${a.havuzTipi === 'olumsuz' ? '#ffebee' : '#fff'}; border:1px solid ${a.havuzTipi === 'olumsuz' ? '#d32f2f' : '#ddd'}; border-radius:8px; cursor:pointer; font-size:15px; padding:6px 9px;">👎</button>
+          </div>
         </div>
       </div>
     </div>
@@ -465,6 +549,7 @@ function detayCiz() {
           <option value="bilgilerEksik" ${a.durum === 'bilgilerEksik' ? 'selected' : ''}>⏸️ Bilgi bekleniyor</option>
           <option value="testEksik" ${a.durum === 'testEksik' ? 'selected' : ''}>🟡 Test bekleniyor</option>
           <option value="tamamlandi" ${a.durum === 'tamamlandi' ? 'selected' : ''}>✅ Tamamlandı</option>
+          <option value="degerlendirme" ${a.durum === 'degerlendirme' ? 'selected' : ''}>⭐ Değerlendirmede</option>
           <option value="mulakat" ${a.durum === 'mulakat' ? 'selected' : ''}>🎙️ Mülakat aşamasında</option>
           <option value="kabul" ${a.durum === 'kabul' ? 'selected' : ''}>🎉 Kabul edildi</option>
           <option value="red" ${a.durum === 'red' ? 'selected' : ''}>❌ Reddedildi</option>
