@@ -45,6 +45,15 @@
     </div>
     
     <div class="kart">
+      <div id="iptalMesaj" style="display:none; background:#fff5f5; border:2px solid #d32f2f; border-radius:14px; padding:20px; margin-bottom:20px; text-align:center;">
+        <div style="font-size:40px; margin-bottom:8px;">🌿</div>
+        <h3 style="color:#c62828; margin:0 0 8px;">Başvurunuz İptal Edildi</h3>
+        <p style="color:#444; margin:0; line-height:1.6;">
+          Başvurunuzu iptal ettiğinizi bildirdiniz ve başvurunuz aktif süreçten çıkarıldı.
+          Bilgileriniz aday havuzumuzda kalmaya devam ediyor; ileride tekrar başvurmak
+          isterseniz her zaman bekleriz. 🌸
+        </p>
+      </div>
       <div id="degerlendirmeMesaj" style="display:none; background:linear-gradient(135deg,#e8f5e9,#f1f8e9); border:2px solid var(--ana-yesil); border-radius:14px; padding:20px; margin-bottom:20px; text-align:center;">
         <div style="font-size:40px; margin-bottom:8px;">🌷</div>
         <h3 style="color:var(--ana-yesil); margin:0 0 8px;">Başvurunuz Değerlendirmeye Alındı</h3>
@@ -123,8 +132,12 @@
         const snap = await getDoc(doc(db, 'isBasvurulari', kullanici.email));
         // Havuza alınmışsa (olumlu/olumsuz farketmez) nötr bilgilendirme mesajı göster
         if (snap.exists()) {
-          const durum = snap.data().durum;
-          if (durum === 'degerlendirme') {
+          const veri = snap.data();
+          const durum = veri.durum;
+          if (veri.iptalEdildi) {
+            const kutu = document.getElementById('iptalMesaj');
+            if (kutu) kutu.style.display = 'block';
+          } else if (durum === 'degerlendirme') {
             const kutu = document.getElementById('degerlendirmeMesaj');
             if (kutu) kutu.style.display = 'block';
           } else if (durum === 'havuz') {

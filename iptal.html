@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Başvuru İptali - Bir Çiçek Koleji</title>
+  <link rel="icon" type="image/png" href="https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png">
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+
+  <!-- NAVİGASYON -->
+  <nav class="nav-bar">
+    <div class="nav-icerik">
+      <a href="index.html" class="nav-logo">
+        <img src="https://3mrahbay.github.io/isbasvurusu/logo_kalkan_orta.png" alt="BCK">
+        <div class="ad">Bir Çiçek Koleji</div>
+      </a>
+      <ul class="nav-menu">
+        <li><a href="index.html">← Ana Sayfa</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="konteyner" style="max-width: 640px; margin: 40px auto;">
+    <div class="kart">
+
+      <!-- YÜKLENİYOR -->
+      <div id="yukleniyorAlani" style="text-align:center; padding:40px 20px;">
+        <div style="font-size:36px; margin-bottom:10px;">⏳</div>
+        <p style="color:#666;">Bilgileriniz kontrol ediliyor...</p>
+      </div>
+
+      <!-- GİRİŞ GEREKLİ -->
+      <div id="girisAlani" style="display:none; text-align:center; padding:20px;">
+        <div style="font-size:44px; margin-bottom:12px;">🔐</div>
+        <h2 style="color:var(--ana-yesil); margin-bottom:10px;">Kimliğinizi Doğrulayın</h2>
+        <p style="color:#666; line-height:1.6; margin-bottom:24px;">
+          Başvurunuzu iptal edebilmemiz için, başvuru sırasında kullandığınız
+          Google hesabınızla giriş yapmanız gerekiyor.
+        </p>
+        <button id="girisBtn" class="btn">Google ile Giriş Yap</button>
+      </div>
+
+      <!-- ONAY -->
+      <div id="onayAlani" style="display:none; padding:10px;">
+        <div style="text-align:center; margin-bottom:20px;">
+          <div style="font-size:44px; margin-bottom:10px;">🌸</div>
+          <h2 style="color:var(--ana-yesil); margin:0;">Başvurunuzu İptal Etmek İstiyor musunuz?</h2>
+        </div>
+
+        <div style="background:#f8f9fa; border-radius:12px; padding:16px 18px; margin-bottom:20px;">
+          <div style="font-size:14px; color:#666;">Başvuru sahibi</div>
+          <div style="font-weight:600; color:#333;" id="adayAdiAlani">-</div>
+          <div style="font-size:13px; color:#888;" id="adayEpostaAlani">-</div>
+          <div style="font-size:13px; color:#888; margin-top:6px;" id="pozisyonAlani"></div>
+        </div>
+
+        <div style="background:#fff8e1; border-left:4px solid #f0a500; border-radius:10px; padding:14px 16px; margin-bottom:20px;">
+          <p style="margin:0; font-size:14px; color:#7a5c00; line-height:1.6;">
+            İptal ettiğinizde başvurunuz aktif değerlendirme sürecinden çıkarılır.
+            Bilgileriniz aday havuzumuzda kalır; ileride tekrar başvurmak isterseniz
+            her zaman yeniden başvurabilirsiniz.
+          </p>
+        </div>
+
+        <div class="form-grup">
+          <label style="font-size:14px;">İsterseniz iptal nedeninizi yazabilirsiniz (zorunlu değil)</label>
+          <textarea id="iptalNedeni" rows="3" placeholder="Örn: Başka bir işte anlaştım..."></textarea>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
+          <button id="iptalEtBtn" class="btn" style="background:#d32f2f; flex:1; min-width:180px;">
+            Başvurumu İptal Et
+          </button>
+          <a href="index.html" class="btn btn-ikincil" style="flex:1; min-width:180px; text-align:center;">
+            Vazgeç, Devam Etmek İstiyorum
+          </a>
+        </div>
+      </div>
+
+      <!-- SONUÇ -->
+      <div id="sonucAlani" style="display:none; text-align:center; padding:30px 20px;">
+        <div style="font-size:44px; margin-bottom:12px;">🌿</div>
+        <h2 style="color:var(--ana-yesil); margin-bottom:10px;">Başvurunuz İptal Edildi</h2>
+        <p style="color:#555; line-height:1.7;">
+          Bilgilendirdiğiniz için teşekkür ederiz. Başvurunuz aktif süreçten çıkarıldı.<br>
+          Bir Çiçek Koleji'ne gösterdiğiniz ilgi için minnettarız; yolunuz açık olsun. 🌸
+        </p>
+        <a href="index.html" class="btn btn-ikincil" style="margin-top:20px;">Ana Sayfaya Dön</a>
+      </div>
+
+      <!-- HATA / BAŞVURU YOK -->
+      <div id="hataAlani" style="display:none; text-align:center; padding:30px 20px;">
+        <div style="font-size:44px; margin-bottom:12px;">🔍</div>
+        <h2 style="color:var(--ana-yesil); margin-bottom:10px;" id="hataBaslik">Başvuru Bulunamadı</h2>
+        <p style="color:#555; line-height:1.7;" id="hataMetin">
+          Bu hesapla yapılmış aktif bir başvuru bulunamadı.
+        </p>
+        <a href="index.html" class="btn btn-ikincil" style="margin-top:20px;">Ana Sayfaya Dön</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      auth, db, doc, getDoc, updateDoc, serverTimestamp,
+      googleProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+      onAuthStateChanged
+    } from './firebase-config.js';
+
+    let aktifKullanici = null;
+    let aktifBasvuru = null;
+
+    const goster = (id) => {
+      ['yukleniyorAlani', 'girisAlani', 'onayAlani', 'sonucAlani', 'hataAlani']
+        .forEach(x => {
+          const el = document.getElementById(x);
+          if (el) el.style.display = (x === id) ? 'block' : 'none';
+        });
+    };
+
+    const hataGoster = (baslik, metin) => {
+      document.getElementById('hataBaslik').textContent = baslik;
+      document.getElementById('hataMetin').textContent = metin;
+      goster('hataAlani');
+    };
+
+    // Yönlendirme ile dönenler için
+    getRedirectResult(auth).catch(() => {});
+
+    onAuthStateChanged(auth, async (kullanici) => {
+      if (!kullanici) { goster('girisAlani'); return; }
+      aktifKullanici = kullanici;
+      goster('yukleniyorAlani');
+
+      try {
+        const snap = await getDoc(doc(db, 'isBasvurulari', kullanici.email));
+        if (!snap.exists()) {
+          hataGoster('Başvuru Bulunamadı',
+            'Bu hesapla yapılmış bir başvuru bulunamadı. Başvuru sırasında kullandığınız e-posta ile giriş yaptığınızdan emin olun.');
+          return;
+        }
+
+        aktifBasvuru = snap.data();
+
+        // Zaten iptal edilmişse
+        if (aktifBasvuru.iptalEdildi) {
+          goster('sonucAlani');
+          return;
+        }
+
+        // Süreç sonuçlanmışsa iptal anlamsız
+        if (['kabul', 'red'].indexOf(aktifBasvuru.durum) > -1) {
+          hataGoster('Başvurunuz Sonuçlanmış',
+            'Bu başvurunun değerlendirme süreci tamamlanmış görünüyor. Sorularınız için bizimle iletişime geçebilirsiniz.');
+          return;
+        }
+
+        document.getElementById('adayAdiAlani').textContent = aktifBasvuru.adayAdi || kullanici.displayName || '-';
+        document.getElementById('adayEpostaAlani').textContent = kullanici.email;
+        document.getElementById('pozisyonAlani').textContent =
+          aktifBasvuru.pozisyonBaslik ? '📌 ' + aktifBasvuru.pozisyonBaslik : '';
+        goster('onayAlani');
+
+      } catch (hata) {
+        console.error(hata);
+        hataGoster('Bir Sorun Oluştu', 'Bilgileriniz alınamadı. Lütfen sayfayı yenileyip tekrar deneyin.');
+      }
+    });
+
+    document.getElementById('girisBtn').addEventListener('click', async () => {
+      try {
+        await signInWithPopup(auth, googleProvider);
+      } catch (e) {
+        // Popup engellenirse yönlendirme ile dene
+        try { await signInWithRedirect(auth, googleProvider); } catch (e2) { console.error(e2); }
+      }
+    });
+
+    document.getElementById('iptalEtBtn').addEventListener('click', async () => {
+      if (!aktifKullanici) return;
+      if (!confirm('Başvurunuz iptal edilecek. Onaylıyor musunuz?')) return;
+
+      const btn = document.getElementById('iptalEtBtn');
+      btn.disabled = true;
+      btn.textContent = 'İptal ediliyor...';
+
+      const neden = (document.getElementById('iptalNedeni').value || '').trim();
+
+      try {
+        await updateDoc(doc(db, 'isBasvurulari', aktifKullanici.email), {
+          durum: 'havuz',
+          iptalEdildi: true,
+          iptalEden: 'aday',
+          iptalNedeni: neden || null,
+          iptalZamani: serverTimestamp()
+        });
+        goster('sonucAlani');
+      } catch (hata) {
+        console.error(hata);
+        btn.disabled = false;
+        btn.textContent = 'Başvurumu İptal Et';
+        alert('İptal işlemi tamamlanamadı. Lütfen tekrar deneyin.');
+      }
+    });
+  </script>
+
+</body>
+</html>

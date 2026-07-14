@@ -123,6 +123,7 @@ onAuthStateChanged(auth, async (kullanici) => {
     }
     
     if (aktifBasvuru.durum === 'tamamlandi' || 
+        aktifBasvuru.durum === 'degerlendirme' ||
         aktifBasvuru.durum === 'kabul' || 
         aktifBasvuru.durum === 'red' ||
         aktifBasvuru.durum === 'mulakat' ||

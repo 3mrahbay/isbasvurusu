@@ -136,7 +136,11 @@ window.filtreUygula = function() {
     liste = liste.filter(a => a.kategoriId === kategori);
   }
   
-  if (durum === '__olumlu') {
+  if (durum === '__iptal') {
+    liste = liste.filter(a => a.iptalEdildi);
+  } else if (durum === '__tamamlanmamis') {
+    liste = liste.filter(a => a.durum === 'bilgilerEksik' || a.durum === 'testEksik');
+  } else if (durum === '__olumlu') {
     liste = liste.filter(a => a.havuzTipi === 'olumlu');
   } else if (durum === '__olumsuz') {
     liste = liste.filter(a => a.havuzTipi === 'olumsuz');
@@ -176,6 +180,81 @@ window.detayDegerlendir = async function(adayId, ev) {
 window.detayHavuz = async function(adayId, tip, ev) {
   await window.havuzaGonder(adayId, tip, ev);
   detayTazele(adayId);
+};
+
+// ───────────────────────────────────────────────
+// Tamamlanmamış başvurulara hatırlatma maili
+// ───────────────────────────────────────────────
+async function hatirlatmaMailiAt(aday) {
+  const eksikTip = (aday.durum === 'testEksik') ? 'test' : 'bilgi';
+  const yanit = await fetch(PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      islem: 'mailGonder',
+      alici: aday.adayEposta,
+      aliciAdi: aday.adayAdi || '',
+      tip: 'hatirlatma',
+      parametreler: {
+        eksikTip: eksikTip,
+        pozisyonBaslik: aday.pozisyonBaslik || ''
+      }
+    })
+  });
+  return yanit.json().catch(() => ({}));
+}
+
+window.hatirlatmaGonder = async function(adayId, ev) {
+  if (ev) ev.stopPropagation();
+  const aday = tumAdaylar.find(a => a.id === adayId);
+  if (!aday) return;
+  
+  const eksikAd = (aday.durum === 'testEksik') ? 'değerlendirme testini' : 'bilgi formunu';
+  let uyari = `"${aday.adayAdi || aday.adayEposta}" adayına ${eksikAd} tamamlaması için hatırlatma maili gönderilecek.`;
+  if (aday.hatirlatmaZamani) {
+    uyari += `\n\n⚠️ Bu adaya daha önce ${tarihFormatla(aday.hatirlatmaZamani)} tarihinde hatırlatma gönderilmiş.`;
+  }
+  if (!confirm(uyari + '\n\nDevam edilsin mi?')) return;
+  
+  try {
+    await hatirlatmaMailiAt(aday);
+    await updateDoc(doc(db, 'isBasvurulari', adayId), {
+      hatirlatmaZamani: serverTimestamp(),
+      hatirlatmaSayisi: (aday.hatirlatmaSayisi || 0) + 1
+    });
+    aday.hatirlatmaZamani = new Date();
+    aday.hatirlatmaSayisi = (aday.hatirlatmaSayisi || 0) + 1;
+    filtreUygula();
+    alert('✅ Hatırlatma maili gönderildi.');
+  } catch (hata) {
+    alert('Gönderilemedi: ' + hata.message);
+  }
+};
+
+window.tumunHatirlat = async function() {
+  const eksikler = tumAdaylar.filter(a => (a.durum === 'bilgilerEksik' || a.durum === 'testEksik') && !a.iptalEdildi);
+  if (eksikler.length === 0) { alert('Tamamlanmamış başvuru yok.'); return; }
+  
+  if (!confirm(`${eksikler.length} adet tamamlanmamış başvuru sahibine hatırlatma maili gönderilecek.\n\nDevam edilsin mi?`)) return;
+  
+  let basarili = 0, hatali = 0;
+  for (const aday of eksikler) {
+    try {
+      await hatirlatmaMailiAt(aday);
+      await updateDoc(doc(db, 'isBasvurulari', aday.id), {
+        hatirlatmaZamani: serverTimestamp(),
+        hatirlatmaSayisi: (aday.hatirlatmaSayisi || 0) + 1
+      });
+      aday.hatirlatmaZamani = new Date();
+      aday.hatirlatmaSayisi = (aday.hatirlatmaSayisi || 0) + 1;
+      basarili++;
+    } catch (e) {
+      console.warn('Hatırlatma hatası:', aday.adayEposta, e);
+      hatali++;
+    }
+  }
+  filtreUygula();
+  alert(`✅ ${basarili} hatırlatma gönderildi.${hatali ? `\n⚠️ ${hatali} adet gönderilemedi.` : ''}`);
 };
 
 window.degerlendirmeyeAl = async function(adayId, ev) {
@@ -341,7 +420,7 @@ function tabloyuCiz(liste) {
                    font-weight:700;">${(a.adayAdi || '?').charAt(0).toUpperCase()}</div>`
             }
             <div>
-              <div style="font-weight: 600;">${a.durum === 'degerlendirme' ? '⭐ ' : (a.havuzTipi === 'olumsuz' ? '👎 ' : (a.havuzTipi === 'olumlu' ? '🌊 ' : ''))}${a.adayAdi || '(İsim yok)'}</div>
+              <div style="font-weight: 600;">${a.iptalEdildi ? '🚫 ' : (a.durum === 'degerlendirme' ? '⭐ ' : (a.havuzTipi === 'olumsuz' ? '👎 ' : (a.havuzTipi === 'olumlu' ? '🌊 ' : '')))}${a.adayAdi || '(İsim yok)'}${a.iptalEdildi ? ' <span style="font-size:11px; color:#d32f2f; font-weight:600;">(aday iptal etti)</span>' : ''}</div>
               <div style="font-size: 12px; color: var(--gri);">${a.adayEposta || ''}</div>
             </div>
           </div>
@@ -352,6 +431,10 @@ function tabloyuCiz(liste) {
         <td>${a.olusturmaZamani ? tarihFormatla(a.olusturmaZamani) : '-'}</td>
         <td>
           <div style="display:flex; gap:5px; align-items:center;">
+            ${((a.durum === 'bilgilerEksik' || a.durum === 'testEksik') && !a.iptalEdildi) ? `
+              <button onclick="hatirlatmaGonder('${a.id}', event)" title="${a.hatirlatmaZamani ? 'Son hatırlatma: ' + tarihFormatla(a.hatirlatmaZamani) : 'Hatırlatma maili gönder'}"
+                style="background:${a.hatirlatmaZamani ? '#f5f5f5' : '#fff8e1'}; border:1px solid ${a.hatirlatmaZamani ? '#ccc' : '#f0a500'}; border-radius:8px; cursor:pointer; font-size:16px; padding:4px 8px;">🔔</button>
+            ` : ''}
             <button onclick="degerlendirmeyeAl('${a.id}', event)" title="Başvuruyu Değerlendir"
               style="background:${a.durum === 'degerlendirme' ? '#e8f5e9' : 'none'}; border:1px solid ${a.durum === 'degerlendirme' ? '#4A7C59' : '#ddd'}; border-radius:8px; cursor:pointer; font-size:16px; padding:4px 8px;">⭐</button>
             <button onclick="havuzaGonder('${a.id}', 'olumlu', event)" title="Havuza al (olumlu — ihtiyaçta değerlendirilir)"
@@ -366,8 +449,10 @@ function tabloyuCiz(liste) {
   });
   
   html += '</tbody></table></div>';
-  html += `<div style="margin-top: 12px; font-size: 13px; color: var(--gri); text-align: right;">
-    ${liste.length} aday gösteriliyor
+  const eksikSayisi = tumAdaylar.filter(x => (x.durum === 'bilgilerEksik' || x.durum === 'testEksik') && !x.iptalEdildi).length;
+  html += `<div style="margin-top: 12px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+    ${eksikSayisi > 0 ? `<button onclick="tumunHatirlat()" class="btn btn-kucuk" style="background:#f0a500; color:#fff;">🔔 Tamamlanmamış ${eksikSayisi} başvuruya hatırlatma gönder</button>` : '<span></span>'}
+    <span style="font-size: 13px; color: var(--gri);">${liste.length} aday gösteriliyor</span>
   </div>`;
   
   tablo.innerHTML = html;
@@ -458,6 +543,10 @@ function detayCiz() {
         </div>
         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px;">
           ${durumRozetHTML(a.durum)}
+          ${a.iptalEdildi ? `<div style="background:#ffebee; border:1px solid #d32f2f; color:#c62828; border-radius:8px; padding:6px 10px; font-size:12px; font-weight:600; text-align:right; max-width:260px;">
+            🚫 Adayın kendisi başvurusunu iptal etti${a.iptalZamani ? '<br><span style="font-weight:400;">' + tarihFormatla(a.iptalZamani) + '</span>' : ''}
+            ${a.iptalNedeni ? '<div style="font-weight:400; font-style:italic; margin-top:4px;">"' + a.iptalNedeni + '"</div>' : ''}
+          </div>` : ''}
           <div id="ustAiPuan"></div>
           <div style="display:flex; gap:6px; align-items:center;">
             <button onclick="detayDegerlendir('${a.id}', event)" title="Başvuruyu Değerlendir"
