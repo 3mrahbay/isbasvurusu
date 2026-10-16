@@ -209,6 +209,7 @@ window.googleIleGiris = async function() {
   const tercihler = mailTercihleriniTopla();
   sessionStorage.setItem('basvuruPozisyon', JSON.stringify(secilenPozisyon));
   sessionStorage.setItem('basvuruMailTercihleri', JSON.stringify(tercihler));
+  sessionStorage.setItem('basvuruYzRiza', document.getElementById('yzRiza')?.checked ? '1' : '0');
   
   const buton = document.getElementById('btnGoogleGiris');
   buton.disabled = true;
@@ -256,6 +257,8 @@ async function girisYapildi(kullanici) {
     
     const pozisyon = pozisyonStr ? JSON.parse(pozisyonStr) : null;
     const tercihler = tercihlerStr ? JSON.parse(tercihlerStr) : [];
+    const yzRizaStr = sessionStorage.getItem('basvuruYzRiza');
+    const yzRiza = yzRizaStr === '1';
     
     // Mevcut başvuru var mı?
     const basvuruRef = doc(db, 'isBasvurulari', eposta);
@@ -276,7 +279,10 @@ async function girisYapildi(kullanici) {
         pozisyonId: pozisyon?.id || null,
         pozisyonBaslik: pozisyon?.baslik || 'Aday Havuzu',
         kategoriId: pozisyon?.kategoriId || null,
-        havuzBasvurusu: pozisyon?.havuzBasvurusu === true
+        havuzBasvurusu: pozisyon?.havuzBasvurusu === true,
+        yzRiza: yzRiza,
+        yzRizaZamani: yzRiza ? serverTimestamp() : null,
+        kvkkAydinlatmaSurum: '2026-10'
       });
       
       // Mail tercihlerini kaydet (token ile)
@@ -304,6 +310,12 @@ async function girisYapildi(kullanici) {
         sonGirisZamani: serverTimestamp(),
         googleFoto: kullanici.photoURL || null
       };
+      // Rıza yalnızca bu girişte açıkça seçildiyse güncellenir
+      if (yzRizaStr !== null) {
+        guncellemeler.yzRiza = yzRiza;
+        guncellemeler.yzRizaZamani = yzRiza ? serverTimestamp() : null;
+        guncellemeler.kvkkAydinlatmaSurum = '2026-10';
+      }
       
       // Pozisyon değiştiyse güncelle (eski başvuruyu siler değil, sadece günceller)
       if (pozisyon && pozisyon.id !== (mevcut.pozisyonId || null)) {
@@ -356,6 +368,7 @@ async function girisYapildi(kullanici) {
     // SessionStorage temizle
     sessionStorage.removeItem('basvuruPozisyon');
     sessionStorage.removeItem('basvuruMailTercihleri');
+    sessionStorage.removeItem('basvuruYzRiza');
     
     // Güncel veriyi al
     const veri = (await getDoc(basvuruRef)).data();

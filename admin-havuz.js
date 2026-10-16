@@ -1376,6 +1376,11 @@ window.aiAnaliziManuelTetikle = async function(adayEposta) {
     const basvuru = basvuruSnap.data();
     const testCevaplari = testSnap.data().cevaplar || {};
     
+    if (basvuru.yzRiza !== true) {
+      durumEl.innerHTML = `<div class="alert uyari">⚠️ Bu aday yapay zekâ ile analiz için açık rıza vermedi. Başvuruyu yapay zekâ kullanmadan değerlendirin.</div>`;
+      return;
+    }
+    
     // Apps Script proxy'ye gönder
     const yanit = await fetch(PROXY_URL, {
       method: 'POST',
