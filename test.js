@@ -558,8 +558,10 @@ async function testiTamamla() {
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
-    // 🤖 AI ANALİZİNİ ARKA PLANDA TETİKLE (kullanıcı sayfayı kapatabilir)
-    aiAnaliziTetikle().catch(e => console.warn('AI analiz hatası:', e));
+    // 🤖 AI ANALİZİ: yalnızca aday açık rıza verdiyse (KVKK m. 9, yurt dışına aktarım)
+    if (aktifBasvuru?.yzRiza === true) {
+      aiAnaliziTetikle().catch(e => console.warn('AI analiz hatası:', e));
+    }
     
   } catch (hata) {
     console.error('Tamamlama hatası:', hata);

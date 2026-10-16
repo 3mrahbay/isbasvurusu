@@ -80,10 +80,18 @@
         </p>
       </div>
       
-      <h3>📋 Sıradaki Adım: Değerlendirme Süreci</h3>
+      <div id="adimBitti">
+        <h3>📋 Sırada Ne Var?</h3>
+        <p>
+          Cevaplarınız özenle incelenecek ve <strong>5-7 iş günü</strong> içinde size dönüş yapılacaktır.
+          Kabul olduğunuzda telefon veya WhatsApp ile aranacaksınız.
+        </p>
+      </div>
+      <div id="adimTest" style="display:none;">
+      <h3>📋 Sıradaki Adım: Değerlendirme</h3>
       <p>
-        Sizi daha yakından tanımak için hazırladığımız <strong>20-25 dakikalık</strong> 
-        değerlendirme sürecimize çok yakında başlayabileceksiniz.
+        Sizi daha yakından tanımak için hazırladığımız <strong>yaklaşık 25 dakikalık</strong> 
+        değerlendirmeye şimdi başlayabilirsiniz. Yarıda bırakırsanız kaldığınız yerden devam edersiniz.
       </p>
       
       <div class="bilgi-kutu">
@@ -96,11 +104,7 @@
         </p>
       </div>
       
-      <div class="uyari-kutu">
-        <p>
-          <strong>⏳ Şu an:</strong> Değerlendirme modülümüz son hazırlık aşamasındadır. 
-          Hazır olduğunda size mail ile haber vereceğiz. Lütfen e-postanızı kontrol etmeyi unutmayın.
-        </p>
+      <a class="btn tam-genislik" href="test.html" style="margin-top:12px;">🚀 Değerlendirmeye Başla</a>
       </div>
       
       <h3>📞 Sorularınız İçin</h3>
@@ -143,6 +147,10 @@
           } else if (durum === 'havuz') {
             const kutu = document.getElementById('yildizliMesaj');
             if (kutu) kutu.style.display = 'block';
+          }
+          if (durum === 'testEksik') {
+            const t = document.getElementById('adimTest'); const b = document.getElementById('adimBitti');
+            if (t) t.style.display = 'block'; if (b) b.style.display = 'none';
           }
         }
       } catch (e) {
